@@ -28,3 +28,17 @@ foreach(source_file ${SOURCE_FILES})
   target_include_directories(${executable_name} PUBLIC ${INCLUDE_DIR})
   target_link_libraries(${executable_name} ${LINK_LIBRARIES})
 endforeach()
+
+# Configure and build tests
+enable_testing()
+
+find_package(GTest REQUIRED)
+include_directories(${GTEST_INCLUDE_DIRS})
+
+project(RunTests)
+
+add_executable(${PROJECT_NAME} "tests/main-test.cpp")
+target_link_libraries(${PROJECT_NAME} ${GTEST_LIBRARIES} pthread)
+target_include_directories(${PROJECT_NAME} PUBLIC "include")
+
+add_test(NAME GeneralTest COMMAND ${PROJECT_NAME})
