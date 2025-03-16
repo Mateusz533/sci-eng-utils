@@ -2,6 +2,7 @@
 
 #include <array>
 #include <iostream>
+#include <string_view>
 
 #include "SafePhysics.h"
 
@@ -11,20 +12,21 @@ namespace Physics::Units::SI
 		requires(std::is_arithmetic_v<Type> && !!(Prefix == 0 || (M || S || Kg || A || K || Mol || Cd || Rad || Sr)))
 	class GenerativeUnit
 	{
-	public:
+	private:
 		template<typename _Type = Type, i8 _Prefix = Prefix>
 		using Self = GenerativeUnit<_Type, M, S, Kg, A, K, Mol, Cd, Rad, Sr, _Prefix>;
 
-		// Constructors
+	public:
+		/* Constructors */;
 
 		constexpr GenerativeUnit(const Self<> &value) : mData(value.mData) {}
 		constexpr GenerativeUnit(const Self<> &&value) : mData(value.mData) {}
 		constexpr GenerativeUnit() : mData(0) {}
 		constexpr GenerativeUnit(const Type data) : mData(data) {}
 		template<typename _Type = Type, i8 _Prefix = Prefix>
-		constexpr GenerativeUnit(const Self<_Type, _Prefix> value) : mData(scale(value)) {}
+		constexpr GenerativeUnit(const Self<_Type, _Prefix> value) : mData(scale(value)){};
 
-		// Assignment operators
+		/* Assignment operators */;
 
 		constexpr Self<> &operator=(const Self<> &value) {
 			mData = value.mData;
@@ -60,7 +62,7 @@ namespace Physics::Units::SI
 			return *this;
 		}
 
-		// Comparison operators
+		/* Comparison operators */;
 
 		template<typename _Type = Type>
 		constexpr bool operator<(const Self<_Type> value) const {
@@ -91,25 +93,25 @@ namespace Physics::Units::SI
 			return mData <=> value.toRaw();
 		}
 
-		// Logical operators
+		/* Logical operators */;
 
 		constexpr bool operator!() const {
 			return !mData;
 		}
 
-		// Arithmetic operators
+		/* Arithmetic operators */;
 
 		constexpr auto operator-() const {
 			return Self<decltype(-Type())>{-mData};
 		}
 		template<typename _Type = Type>
 		constexpr auto operator+(const Self<_Type> value) const {
-			using NewType = decltype(Type() * _Type());
+			using NewType = decltype(Type() + _Type());
 			return Self<NewType>{mData + value.toRaw()};
 		}
 		template<typename _Type = Type>
 		constexpr auto operator-(const Self<_Type> value) const {
-			using NewType = decltype(Type() * _Type());
+			using NewType = decltype(Type() - _Type());
 			return Self<NewType>{mData - value.toRaw()};
 		}
 		template<typename _Type, i8 _M, i8 _S, i8 _Kg, i8 _A, i8 _K, i8 _Mol, i8 _Cd, i8 _Rad, i8 _Sr, i8 _Prefix>
@@ -119,7 +121,7 @@ namespace Physics::Units::SI
 		}
 		template<typename _Type, i8 _M, i8 _S, i8 _Kg, i8 _A, i8 _K, i8 _Mol, i8 _Cd, i8 _Rad, i8 _Sr, i8 _Prefix>
 		constexpr auto operator/(const GenerativeUnit<_Type, _M, _S, _Kg, _A, _K, _Mol, _Cd, _Rad, _Sr, _Prefix> value) const {
-			return GenerativeUnit<decltype(Type() * _Type()), M - _M, S - _S, Kg - _Kg, A - _A, K - _K, Mol - _Mol, Cd - _Cd,
+			return GenerativeUnit<decltype(Type() / _Type()), M - _M, S - _S, Kg - _Kg, A - _A, K - _K, Mol - _Mol, Cd - _Cd,
 								  Rad - _Rad, Sr - _Sr, Prefix - _Prefix>{mData / value.toRaw()};
 		}
 
@@ -131,7 +133,7 @@ namespace Physics::Units::SI
 			return os;
 		}
 
-		// Other methods
+		/* Other methods */;
 
 		template<typename _Type = Type>
 		constexpr Self<_Type> cast() const {
@@ -168,20 +170,19 @@ namespace Physics::Units::SI
 							   : std::numeric_limits<f64>::quiet_NaN()};
 		}
 
-		static std::string getType() {
-			constexpr std::array type = getTypeArray();
-			constexpr auto size = type.size();
-			return std::string(type.begin(), size);
-		}
-
 		static consteval bool hasNoPrefix() {
 			return Prefix == 0;
+		}
+
+		static consteval std::string_view getType() {
+			return std::string_view(sTypeText.begin(), sTypeText.size());
 		}
 
 	private:
 		template<typename _Type = Type, i8 _Prefix = Prefix>
 		static constexpr auto scale(const Self<_Type, _Prefix> value) {
 			using NewType = decltype(Type() * _Type());
+
 			if constexpr(_Prefix - Prefix > 0) {
 				constexpr NewType scaleFactor = pow10(_Prefix - Prefix);
 				return value.toRaw() * scaleFactor;
@@ -191,49 +192,19 @@ namespace Physics::Units::SI
 			} else
 				return value.toRaw();
 		}
-		static constexpr i64 pow10(const u8 pow) {
+
+		static consteval i64 pow10(const u8 pow) {
 			if(pow > 0) {
 				return 10L * pow10(pow - 1);
 			}
 			return 1;
 		}
+
 		static constexpr f64 sqrtNewtonRaphson(f64 x, f64 curr, f64 prev) {
 			return curr == prev ? curr : sqrtNewtonRaphson(x, 0.5 * (curr + x / curr), curr);
 		}
 
-		template<usize N>
-		static consteval auto toArray(const char (&arr)[N]) {
-			std::array<char, N - 1> result = {};
-			for(usize i = 0; i < N - 1; ++i)
-				result[i] = arr[i];
-
-			return result;
-		}
-
-		template<usize N, usize N1>
-		static consteval auto concatenate(const std::array<char, N> &arr1, const std::array<char, N1> &arr2) {
-			std::array<char, N + N1> result = {};
-			for(usize i = 0; i < N; ++i)
-				result[i] = arr1[i];
-			for(usize i = 0; i < N1; ++i)
-				result[N + i] = arr2[i];
-
-			return result;
-		}
-
-		template<i8 Dimention, usize N, usize N1>
-		static consteval auto addDimention(const std::array<char, N> &text, const std::array<char, N1> &dimentionText) {
-			if constexpr(Dimention > 0) {
-				constexpr std::array<char, 2> num = {'0' + Dimention};
-				return concatenate(concatenate(text, dimentionText), num);
-			} else if constexpr(Dimention < 0) {
-				constexpr std::array<char, 2> num = {'-', '0' - Dimention};
-				return concatenate(concatenate(text, dimentionText), num);
-			} else
-				return text;
-		}
-
-		static constexpr auto getTypeArray() {
+		static consteval auto getTypeArray() {
 			constexpr auto withExp = addDimention<Prefix>(toArray(""), toArray(" * 10^"));
 			constexpr auto withMet = addDimention<M>(withExp, toArray(" * m^"));
 			constexpr auto withSec = addDimention<S>(withMet, toArray(" * s^"));
@@ -256,6 +227,40 @@ namespace Physics::Units::SI
 			}
 		}
 
+		template<i8 Dimention, usize N, usize N1>
+		static consteval auto addDimention(const std::array<char, N> &text, const std::array<char, N1> &dimentionText) {
+			if constexpr(Dimention > 0) {
+				constexpr std::array<char, 2> num = {'0' + Dimention};
+				return concatenate(concatenate(text, dimentionText), num);
+			} else if constexpr(Dimention < 0) {
+				constexpr std::array<char, 2> num = {'-', '0' - Dimention};
+				return concatenate(concatenate(text, dimentionText), num);
+			} else
+				return text;
+		}
+
+		template<usize N, usize N1>
+		static consteval auto concatenate(const std::array<char, N> &arr1, const std::array<char, N1> &arr2) {
+			std::array<char, N + N1> result = {};
+			for(usize i = 0; i < N; ++i)
+				result[i] = arr1[i];
+			for(usize i = 0; i < N1; ++i)
+				result[N + i] = arr2[i];
+
+			return result;
+		}
+
+		template<usize N>
+		static consteval auto toArray(const char (&arr)[N]) {
+			std::array<char, N - 1> result = {};
+			for(usize i = 0; i < N - 1; ++i)
+				result[i] = arr[i];
+
+			return result;
+		}
+
+	private:
+		inline static constexpr std::array sTypeText = getTypeArray();
 		Type mData;
 	};
 
@@ -287,7 +292,8 @@ namespace Physics::Units::SI
 
 	/* --- GENERATE NEEDED UNITS HERE --- */
 
-	// Basic units
+	/* Basic units */;
+
 	GENERATE_SI_UNIT(Meters, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 	GENERATE_SI_UNIT(Seconds, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0);
 	GENERATE_SI_UNIT(Grams, 0, 0, 1, 0, 0, 0, 0, 0, 0, -3);
@@ -297,14 +303,18 @@ namespace Physics::Units::SI
 	GENERATE_SI_UNIT(Candelas, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0);
 	GENERATE_SI_UNIT(Radians, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0);
 	GENERATE_SI_UNIT(Steradians, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0);
-	// Kinematics
+
+	/* Kinematics */;
+
 	GENERATE_SI_UNIT(MetersPerSecond, 1, -1, 0, 0, 0, 0, 0, 0, 0, 0);
 	GENERATE_SI_UNIT(RadiansPerSecond, 0, -1, 0, 0, 0, 0, 0, 1, 0, 0);
 	GENERATE_SI_UNIT(MetersPerSecondSquare, 1, -2, 0, 0, 0, 0, 0, 0, 0, 0);
 	GENERATE_SI_UNIT(RadiansPerSecondSquare, 0, -2, 0, 0, 0, 0, 0, 1, 0, 0);
 	GENERATE_SI_UNIT(MetersPerRadian, 1, 0, 0, 0, 0, 0, 0, -1, 0, 0);
 	GENERATE_SI_UNIT(RadialMeters, 1, 0, 0, 0, 0, 0, 0, -1, 0, 0);
-	// Dynamics
+
+	/* Dynamics */;
+
 	GENERATE_SI_UNIT(GramMeters, 1, 0, 1, 0, 0, 0, 0, -2, 0, -3);
 	GENERATE_SI_UNIT(GramMetersSquare, 2, 0, 1, 0, 0, 0, 0, -2, 0, -3);
 	GENERATE_SI_UNIT(NewtonSeconds, 1, -1, 1, 0, 0, 0, 0, 0, 0, 0);
@@ -313,7 +323,9 @@ namespace Physics::Units::SI
 	GENERATE_SI_UNIT(NewtonMeters, 2, -2, 1, 0, 0, 0, 0, -1, 0, 0);
 	GENERATE_SI_UNIT(Joules, 2, -2, 1, 0, 0, 0, 0, 0, 0, 0);
 	GENERATE_SI_UNIT(Watts, 2, -3, 1, 0, 0, 0, 0, 0, 0, 0);
-	// Electrics
+
+	/* Electrics */;
+
 	GENERATE_SI_UNIT(Coulombs, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0);
 	GENERATE_SI_UNIT(NewtonsPerCoulomb, 1, -3, 1, -1, 0, 0, 0, 0, 0, 0);
 	GENERATE_SI_UNIT(VoltsPerMeter, 1, -3, 1, -1, 0, 0, 0, 0, 0, 0);
@@ -322,14 +334,18 @@ namespace Physics::Units::SI
 	GENERATE_SI_UNIT(Siemenses, -2, 3, -1, 2, 0, 0, 0, 0, 0, 0);
 	GENERATE_SI_UNIT(Farads, -2, 4, -1, 2, 0, 0, 0, 0, 0, 0);
 	GENERATE_SI_UNIT(FaradsPerMeter, -3, 4, -1, 2, 0, 0, 0, 0, 0, 0);
-	// Magnetism
+
+	/* Magnetism */;
+
 	GENERATE_SI_UNIT(AmperesPerMeter, -1, 0, 0, 1, 0, 0, 0, 0, 0, 0);
 	GENERATE_SI_UNIT(Teslas, 0, -2, 1, -1, 0, 0, 0, 0, 0, 0);
 	GENERATE_SI_UNIT(Webers, 2, -2, 1, -1, 0, 0, 0, 0, 0, 0);
 	GENERATE_SI_UNIT(TeslaMeters, 1, -2, 1, -1, 0, 0, 0, 0, 0, 0);
 	GENERATE_SI_UNIT(Henries, 2, -2, 1, -2, 0, 0, 0, 0, 0, 0);
 	GENERATE_SI_UNIT(HenriesPerMeter, 1, -2, 1, -2, 0, 0, 0, 0, 0, 0);
-	// Materials
+
+	/* Materials */;
+
 	GENERATE_SI_UNIT(MetersSquare, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 	GENERATE_SI_UNIT(MetersCube, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 	GENERATE_SI_UNIT(GramsPerMeterSquare, -2, 0, 1, 0, 0, 0, 0, 0, 0, -3);
@@ -339,18 +355,26 @@ namespace Physics::Units::SI
 	GENERATE_SI_UNIT(AmperesPerMeterSquare, -2, 0, 0, 1, 0, 0, 0, 0, 0, 0);
 	GENERATE_SI_UNIT(GramsPerMole, 0, 0, 1, 0, 0, -1, 0, 0, 0, -3);
 	GENERATE_SI_UNIT(PartsPerMole, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0);
-	// Vibrations and waves
+
+	/* Vibrations and waves */;
+
 	GENERATE_SI_UNIT(Hertzes, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0);
 	GENERATE_SI_UNIT(RadiansPerMeter, -1, 0, 0, 0, 0, 0, 0, 1, 0, 0);
-	// Thermodynamics
+
+	/* Thermodynamics */;
+
 	GENERATE_SI_UNIT(WattsPerMeterSquare, 0, -3, 1, 0, 0, 0, 0, 0, 0, 0);
 	GENERATE_SI_UNIT(JoulesPerKelvin, 2, -2, 1, 0, -1, 0, 0, 0, 0, 0);
 	GENERATE_SI_UNIT(JoulesPerKilogramKelvin, 2, -2, 0, 0, -1, 0, 0, 0, 0, 0);
 	GENERATE_SI_UNIT(WattsPerMeterKelvin, 1, -3, 1, 0, -1, 0, 0, 0, 0, 0);
-	// Optics
+
+	/* Optics */;
+
 	GENERATE_SI_UNIT(Lumens, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0);
 	GENERATE_SI_UNIT(Luxes, -2, 0, 0, 0, 0, 0, 1, 0, 1, 0);
-	// Quantum mechanics
+
+	/* Quantum mechanics */;
+
 	GENERATE_SI_UNIT(JouleSeconds, 2, -1, 1, 0, 0, 0, 0, 0, 0, 0);
 	GENERATE_SI_UNIT(JouleSecondsPerRadian, 2, -1, 1, 0, 0, 0, 0, -1, 0, 0);
 

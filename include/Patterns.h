@@ -22,7 +22,9 @@ namespace Physics
 	namespace Calculate
 	{
 		using namespace Units::SI;
-		// mechanics
+
+		/* Mechanics */;
+
 		template<typename T>
 		constexpr inline MetersPerSecond<T> tangentialVelocity(RadiansPerSecond<T> angularVelocity, RadialMeters<T> radius) {
 			return angularVelocity * radius;
@@ -55,7 +57,9 @@ namespace Physics
 		constexpr inline KiloGramMetersSquare<T> inertia(KiloGrams<T> mass, RadialMeters<T> radius, Scale<T> factor) {
 			return factor * mass * radius * radius;
 		}
-		// electronics
+
+		/* Electronics */;
+
 		template<typename T>
 		constexpr inline Amperes<T> current(Coulombs<T> charge, Seconds<T> time) {
 			return charge / time;
@@ -76,7 +80,9 @@ namespace Physics
 		constexpr inline Webers<T> magneticFlux(Henries<T> inductance, Amperes<T> current) {
 			return inductance * current;
 		}
-		// oscilations and waves
+
+		/* Oscilations and waves */;
+
 		template<typename T>
 		constexpr inline RadiansPerMeter<T> waveNumber(Meters<T> waveLength) {
 			return Constants::RADIAN_PER_REVOLUTION / waveLength;
@@ -85,7 +91,9 @@ namespace Physics
 		constexpr inline Seconds<T> period(Hertzes<T> frequency) {
 			return Scale<T>(1) / frequency;
 		}
-		// relativistic mechanics
+
+		/* Relativistic mechanics */;
+
 		template<typename T>
 		constexpr inline Scale<T> timeDilation(MetersPerSecond<T> velocity) {
 			return Scale<T>(1) / (Scale<T>(1) - (velocity / Constants::SPEED_OF_LIGHT).template power<2>()).sqrt();
