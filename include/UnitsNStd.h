@@ -4,11 +4,11 @@
 
 namespace Physics::Units::NStd
 {
-	namespace
+	namespace _
 	{
 		template<i64 Numerator = 0, i64 Denominator = 1>
 			requires(Denominator > 0)
-		class FractionNorm
+		class Fraction
 		{
 		private:
 			template<i64 A, i64 B>
@@ -27,86 +27,68 @@ namespace Physics::Units::NStd
 		public:
 			static constexpr i64 Num = Numerator / greatestCommonDivisor<Numerator, Denominator>();
 			static constexpr i64 Denom = Denominator / greatestCommonDivisor<Numerator, Denominator>();
-			static constexpr bool isUnchanged() {
+			static consteval bool isNormalized() {
 				return greatestCommonDivisor<Numerator, Denominator>() == 1;
 			}
+			static consteval bool isIdentity() {
+				return Numerator == 1 && Denominator == 1;
+			}
+			static consteval bool isZero() {
+				return Numerator == 0;
+			}
+			static consteval bool isPositive() {
+				return Numerator > 0;
+			}
+			template<typename T = f64>
+				requires(std::is_arithmetic_v<T>)
+			static consteval T toDecimal() {
+				return static_cast<T>(Num) / static_cast<T>(Denom);
+			}
+
+			using Norm = Fraction<Num, Denom>;
+			using Opposite = Fraction<-Num, Denom>;
+
+			template<class _Fraction>
+			using Sum = Fraction<Num * _Fraction::Denom + Denom * _Fraction::Num, Denom * _Fraction::Denom>::Norm;
+
+			template<class _Fraction>
+			using Diff = Fraction<Num * _Fraction::Denom - Denom * _Fraction::Num, Denom * _Fraction::Denom>::Norm;
+
+			template<class _Fraction>
+			using Product = Fraction<Num * _Fraction::Num, Denom * _Fraction::Denom>::Norm;
+
+			template<class _Fraction>
+			using Quotient = Fraction<Num * _Fraction::Denom, Denom * _Fraction::Num>::Norm;
 		};
 
-		class Fraction
-		{
-		private:
-			static consteval i64 exp2(i64 value) noexcept {
-				if(value < 0) return 0;
-				i64 result = 1;
-				while(--value >= 0) {
-					result *= 2L;
-				}
-				return result;
-			}
-			static consteval i64 flooredLog2(f64 value) noexcept {
-				if(value <= 0) return 0;
-				i64 log = 0;
-				while(value > 1.0) {
-					value /= 2.0;
-					++log;
-				}
-				while(value < 1.0) {
-					value *= 2.0;
-					--log;
-				}
-				return log;
-			}
-			static consteval i64 calcExponent(const f64 value) noexcept {
-				return flooredLog2(std::abs(value));
-			}
-
-		public:
-			static consteval i64 denominator(const f64 value) noexcept {
-				const i64 exp = calcExponent(value);
-				return exp2(exp < 0L ? 62L : 62L - exp);
-			}
-			static consteval i64 numerator(const f64 value) noexcept {
-				return value * denominator(value);
-			}
-			static consteval bool isConvertible(const f64 value) noexcept {
-				const i64 exp = calcExponent(value);
-				return exp > -11 && exp < 63;
-			}
-		};
-
-		class _Base
+		class Base
 		{};
-
-		inline static constexpr f64 DEG2RAD = M_PI / 180;
 	}
 
-	template<typename Type, template<typename> class StandardUnit, i64 ScaleNumerator, i64 ScaleDenominator,
-			 i64 OffsetNumerator, i64 OffsetDenominator, typename AccuracyType = f64>
-		requires(!std::is_base_of_v<_Base, StandardUnit<u8>> && std::is_arithmetic_v<Type> &&
-				 ScaleDenominator > 0 && OffsetDenominator > 0 && ScaleNumerator > 0 && StandardUnit<i8>::hasNoPrefix() &&
-				 !(OffsetNumerator == 0 && ScaleNumerator == 1 && ScaleDenominator == 1))
-	class GenerativeUnit : _Base
+	template<typename Type, template<typename> class StandardUnit, class Scale, class Offset, typename AccuracyType = f64>
+		requires(!std::is_base_of_v<_::Base, StandardUnit<u8>> && std::is_arithmetic_v<Type> && StandardUnit<i8>::hasNoPrefix() &&
+				 Scale::isNormalized() && Offset::isNormalized() && Scale::isPositive() && !(Offset::isZero() && Scale::isIdentity()))
+	class GenerativeUnit : _::Base
 	{
 	private:
 		static consteval bool hasNoOffset() {
-			return OffsetNumerator == 0;
+			return Offset::isZero();
 		}
 		static consteval bool hasIdentScale() {
-			return ScaleNumerator == 1 && ScaleDenominator == 1;
+			return Scale::isIdentity();
 		}
-		static consteval bool hasSameScale(const i64 _ScaleNumerator, const i64 _ScaleDenominator) {
-			return ScaleNumerator == _ScaleNumerator && ScaleDenominator == _ScaleDenominator;
+		template<class _Fraction>
+		static consteval bool hasSameScale() {
+			return std::is_same_v<Scale, _Fraction>;
 		}
 
 		template<typename _Type = Type, template<typename> class _StandardUnit = StandardUnit>
-		using Self = GenerativeUnit<_Type, _StandardUnit, ScaleNumerator, ScaleDenominator,
-									OffsetNumerator, OffsetDenominator, AccuracyType>;
+		using Self = GenerativeUnit<_Type, _StandardUnit, Scale, Offset, AccuracyType>;
 
-		template<typename _Type = Type, template<typename> class _StandardUnit = StandardUnit, i64 _ScaleNumerator = ScaleNumerator,
-				 i64 _ScaleDenominator = ScaleDenominator, i64 _OffsetNumerator = OffsetNumerator,
-				 i64 _OffsetDenominator = OffsetDenominator, typename _AccuracyType = AccuracyType>
-		using AdaptiveSelf = std::conditional_t<_ScaleNumerator == 1 && _ScaleDenominator == 1 && _OffsetNumerator == 0, _StandardUnit<_Type>,
-												GenerativeUnit<_Type, _StandardUnit, _ScaleNumerator, _ScaleDenominator, _OffsetNumerator, _OffsetDenominator, _AccuracyType>>;
+		template<typename _Type = Type, template<typename> class _StandardUnit = StandardUnit, class _Scale = Scale,
+				 class _Offset = Offset, typename _AccuracyType = AccuracyType>
+		using AdaptiveSelf = std::conditional_t<_Scale::isIdentity() && _Offset::isZero(), _StandardUnit<_Type>,
+												GenerativeUnit<_Type, _StandardUnit, _Scale, _Offset, _AccuracyType>>;
 
 		template<class Base>
 		struct Decomposer {
@@ -119,7 +101,7 @@ namespace Physics::Units::NStd
 			using NewUnit = Self<decltype(Complex().toRaw()), Decomposer<Complex>::template OuterType>;
 		};
 		template<typename SiblingUnit>
-			requires(std::is_base_of_v<_Base, SiblingUnit>)
+			requires(std::is_base_of_v<_::Base, SiblingUnit>)
 		static consteval bool hasSameStdUnitBase() {
 			return std::is_same_v<decltype(SiblingUnit().toStandardUnit() / StandardUnit<decltype(SiblingUnit().toRaw())>()),
 								  SI::Scale<decltype(SiblingUnit().toRaw())>>;
@@ -253,23 +235,17 @@ namespace Physics::Units::NStd
 
 		/* Arithmetic operators */;
 
-		constexpr AdaptiveSelf<decltype(-Type()), StandardUnit, ScaleNumerator, ScaleDenominator, -OffsetNumerator>
+		constexpr AdaptiveSelf<decltype(-Type()), StandardUnit, Scale, typename Offset::Opposite>
 			operator-() const {
 			return -mData;
 		}
 		template<typename SiblingUnit = Self<>>
-			requires(std::is_base_of_v<_Base, SiblingUnit> && SiblingUnit::hasSameScale(ScaleNumerator, ScaleDenominator) &&
-					 hasSameStdUnitBase<SiblingUnit>())
+			requires(std::is_base_of_v<_::Base, SiblingUnit> && SiblingUnit::template hasSameScale<Scale>() && hasSameStdUnitBase<SiblingUnit>())
 		constexpr auto operator+(const SiblingUnit value) const {
-			using RawType = decltype(SiblingUnit().toRaw() * Type());
-			using FrNm = FractionNorm<OffsetNumerator * SiblingUnit::getOffsetDenominator() +
-										  OffsetDenominator * SiblingUnit::getOffsetNumerator(),
-									  OffsetDenominator * SiblingUnit::getOffsetDenominator()>;
-			constexpr i64 OffNum = FrNm::Num;
-			constexpr i64 OffDenom = FrNm::Denom;
+			using RawType = decltype(Type() + SiblingUnit().toRaw());
+			using ResultOffset = Offset::template Sum<_::Fraction<SiblingUnit::getOffsetNumerator(), SiblingUnit::getOffsetDenominator()>>;
 			using AccType = decltype(AccuracyType() * SiblingUnit::SCALE);
-			using NewUnit = AdaptiveSelf<RawType, StandardUnit, ScaleNumerator, ScaleDenominator,
-										 OffNum, OffDenom, AccType>;
+			using NewUnit = AdaptiveSelf<RawType, StandardUnit, Scale, ResultOffset, AccType>;
 			return NewUnit{mData + value.toRaw()};
 		}
 		template<typename _Type = Type>
@@ -283,18 +259,12 @@ namespace Physics::Units::NStd
 			return value.toRaw() + self.toRaw();
 		}
 		template<typename SiblingUnit = Self<>>
-			requires(std::is_base_of_v<_Base, SiblingUnit> && SiblingUnit::hasSameScale(ScaleNumerator, ScaleDenominator) &&
-					 hasSameStdUnitBase<SiblingUnit>())
+			requires(std::is_base_of_v<_::Base, SiblingUnit> && SiblingUnit::template hasSameScale<Scale>() && hasSameStdUnitBase<SiblingUnit>())
 		constexpr auto operator-(const SiblingUnit value) const {
 			using RawType = decltype(Type() - SiblingUnit().toRaw());
-			using FrNm = FractionNorm<OffsetNumerator * SiblingUnit::getOffsetDenominator() -
-										  OffsetDenominator * SiblingUnit::getOffsetNumerator(),
-									  OffsetDenominator * SiblingUnit::getOffsetDenominator()>;
-			constexpr i64 OffNum = FrNm::Num;
-			constexpr i64 OffDenom = FrNm::Denom;
+			using ResultOffset = Offset::template Diff<_::Fraction<SiblingUnit::getOffsetNumerator(), SiblingUnit::getOffsetDenominator()>>;
 			using AccType = decltype(AccuracyType() * SiblingUnit::SCALE);
-			using NewUnit = AdaptiveSelf<RawType, StandardUnit, ScaleNumerator, ScaleDenominator,
-										 OffNum, OffDenom, AccType>;
+			using NewUnit = AdaptiveSelf<RawType, StandardUnit, Scale, ResultOffset, AccType>;
 			return NewUnit{mData - value.toRaw()};
 		}
 		template<typename _Type = Type>
@@ -308,19 +278,14 @@ namespace Physics::Units::NStd
 			using NewUnit = decltype(-Self<decltype(_Type() - Type())>());
 			return NewUnit{value.toRaw() - self.toRaw()};
 		}
-		template<typename _Type, template<typename> class _StandardUnit, i64 _ScaleNumerator, i64 _ScaleDenominator,
-				 i64 _OffsetNumerator, i64 _OffsetDenominator, typename _AccuracyType = f64>
-			requires(hasNoOffset() && _OffsetNumerator == 0)
-		constexpr auto operator*(const GenerativeUnit<_Type, _StandardUnit, _ScaleNumerator, _ScaleDenominator,
-													  _OffsetNumerator, _OffsetDenominator, _AccuracyType>
-									 value) const {
-			using RawType = decltype(_Type() * Type());
+		template<typename _Type, template<typename> class _StandardUnit, class _Scale, class _Offset, typename _AccuracyType = f64>
+			requires(hasNoOffset() && _Offset::isZero())
+		constexpr auto operator*(const GenerativeUnit<_Type, _StandardUnit, _Scale, _Offset, _AccuracyType> value) const {
+			using RawType = decltype(Type() * _Type());
 			using ComposeType = decltype(StandardUnit<Type>() * _StandardUnit<_Type>());
 			using AccType = decltype(AccuracyType() * _AccuracyType());
-			using FrNm = FractionNorm<ScaleNumerator * _ScaleNumerator, ScaleDenominator * _ScaleDenominator>;
-			constexpr i64 ScNum = FrNm::Num;
-			constexpr i64 ScDenom = FrNm::Denom;
-			using NewUnit = AdaptiveSelf<RawType, Decomposer<ComposeType>::template OuterType, ScNum, ScDenom, 0, 1, AccType>;
+			using ResultScale = Scale::template Product<_Scale>;
+			using NewUnit = AdaptiveSelf<RawType, Decomposer<ComposeType>::template OuterType, ResultScale, _::Fraction<0, 1>, AccType>;
 			return NewUnit{mData * value.toRaw()};
 		}
 		template<typename _StdUnitT = StandardUnit<Type>>
@@ -335,18 +300,14 @@ namespace Physics::Units::NStd
 			operator*(const _StdUnitT &value, const Self<> &self) {
 			return value.toRaw() * self.toRaw();
 		}
-		template<typename _Type, template<typename> class _StandardUnit, i64 _ScaleNumerator, i64 _ScaleDenominator,
-				 i64 _OffsetNumerator, i64 _OffsetDenominator, typename _AccuracyType = f64>
-			requires(hasNoOffset() && _OffsetNumerator == 0)
-		constexpr auto operator/(const GenerativeUnit<_Type, _StandardUnit, _ScaleNumerator, _ScaleDenominator,
-													  _OffsetNumerator, _OffsetDenominator, _AccuracyType>
-									 value) const {
+		template<typename _Type, template<typename> class _StandardUnit, class _Scale, class _Offset, typename _AccuracyType = f64>
+			requires(hasNoOffset() && _Offset::isZero())
+		constexpr auto operator/(const GenerativeUnit<_Type, _StandardUnit, _Scale, _Offset, _AccuracyType> value) const {
 			using RawType = decltype(Type() / _Type());
 			using ComposeType = decltype(StandardUnit<Type>() / _StandardUnit<_Type>());
 			using AccType = decltype(AccuracyType() / _AccuracyType());
-			constexpr i64 ScNum = FractionNorm<ScaleNumerator * _ScaleDenominator, ScaleDenominator * _ScaleNumerator>::Num;
-			constexpr i64 ScDenom = FractionNorm<ScaleNumerator * _ScaleDenominator, ScaleDenominator * _ScaleNumerator>::Denom;
-			using NewUnit = AdaptiveSelf<RawType, Decomposer<ComposeType>::template OuterType, ScNum, ScDenom, 0, 1, AccType>;
+			using ResultScale = Scale::template Quotient<_Scale>;
+			using NewUnit = AdaptiveSelf<RawType, Decomposer<ComposeType>::template OuterType, ResultScale, _::Fraction<0, 1>, AccType>;
 			return NewUnit{mData / value.toRaw()};
 		}
 		template<typename _StdUnitT = StandardUnit<Type>>
@@ -389,16 +350,16 @@ namespace Physics::Units::NStd
 		}
 
 		static consteval auto getScaleNumerator() {
-			return ScaleNumerator;
+			return Scale::Num;
 		}
 		static consteval auto getScaleDenominator() {
-			return ScaleDenominator;
+			return Scale::Denom;
 		}
 		static consteval auto getOffsetNumerator() {
-			return OffsetNumerator;
+			return Offset::Num;
 		}
 		static consteval auto getOffsetDenominator() {
-			return OffsetDenominator;
+			return Offset::Denom;
 		}
 
 	private:
@@ -417,45 +378,88 @@ namespace Physics::Units::NStd
 			if constexpr(std::is_same_v<Self<decltype(SiblingUnit().toRaw())>, SiblingUnit>) {
 				return value;
 			} else {
-				constexpr auto siblingScale = AccuracyType(value.getScaleNumerator()) / value.getScaleDenominator();
-				constexpr auto siblingOffset = AccuracyType(value.getOffsetNumerator()) / value.getOffsetDenominator();
-				constexpr auto compScale = siblingScale * SCALE;
-				constexpr auto compOffset = (siblingOffset - OFFSET) * SCALE;
+				constexpr auto compScale = SiblingUnit::SCALE * SCALE;
+				constexpr auto compOffset = (SiblingUnit::OFFSET - OFFSET) * SCALE;
 
 				return value.toRaw() * compScale + compOffset;
 			}
 		}
 
 		/* TODO: Consider how to handle `AccuracyType` */;
-		inline static constexpr AccuracyType SCALE = AccuracyType(ScaleNumerator) / ScaleDenominator;
-		inline static constexpr AccuracyType OFFSET = AccuracyType(OffsetNumerator) / OffsetDenominator;
+		inline static constexpr AccuracyType SCALE = Scale::template toDecimal<AccuracyType>();
+		inline static constexpr AccuracyType OFFSET = Offset::template toDecimal<AccuracyType>();
 		Type mData;
 	};
 
-	template<typename Type, template<typename> class StdU, i64 ScNum, i64 ScDenom, i64 OffNum = 0, i64 OffDenom = 1>
-		requires(ScNum > 0 && ScDenom > 0 && OffDenom > 0)
-	using Simplifier = GenerativeUnit<Type, StdU, FractionNorm<ScNum, ScDenom>::Num, FractionNorm<ScNum, ScDenom>::Denom,
-									  FractionNorm<OffNum, OffDenom>::Num, FractionNorm<OffNum, OffDenom>::Denom>;
+	namespace _
+	{
+		class FractionParser
+		{
+		private:
+			static consteval i64 exp2(i64 value) noexcept {
+				if(value < 0) return 0;
+				i64 result = 1;
+				while(--value >= 0) {
+					result *= 2L;
+				}
+				return result;
+			}
+			static consteval i64 flooredLog2(f64 value) noexcept {
+				if(value <= 0) return 0;
+				i64 log = 0;
+				while(value > 1.0) {
+					value /= 2.0;
+					++log;
+				}
+				while(value < 1.0) {
+					value *= 2.0;
+					--log;
+				}
+				return log;
+			}
+			static consteval i64 calcExponent(const f64 value) noexcept {
+				return flooredLog2(std::abs(value));
+			}
 
-#define GENERATE_NSTD_FROM_DOUBLE(Name, StdType, Scale)                                          \
-	static_assert(Fraction::isConvertible(Scale), "Value '" #Scale "' out of supported range!"); \
-	template<typename T = f64>                                                                   \
-	using Name = Simplifier<T, StdType, Fraction::numerator(Scale), Fraction::denominator(Scale)>;
+		public:
+			static consteval i64 denominator(const f64 value) noexcept {
+				const i64 exp = calcExponent(value);
+				return exp2(exp < 0L ? 62L : 62L - exp);
+			}
+			static consteval i64 numerator(const f64 value) noexcept {
+				return value * denominator(value);
+			}
+			static consteval bool isConvertible(const f64 value) noexcept {
+				const i64 exp = calcExponent(value);
+				return exp > -11 && exp < 63;
+			}
+		};
+
+		template<typename Type, template<typename> class StdU, i64 ScNum, i64 ScDenom, i64 OffNum = 0, i64 OffDenom = 1>
+		using Simplifier = GenerativeUnit<Type, StdU, typename Fraction<ScNum, ScDenom>::Norm, typename Fraction<OffNum, OffDenom>::Norm>;
+
+		inline static constexpr f64 DEG2RAD = M_PI / 180;
+	}
+
+#define GENERATE_NSTD_FROM_DOUBLE(Name, StdType, Scale)                                                   \
+	static_assert(_::FractionParser::isConvertible(Scale), "Value '" #Scale "' out of supported range!"); \
+	template<typename T = f64>                                                                            \
+	using Name = _::Simplifier<T, StdType, _::FractionParser::numerator(Scale), _::FractionParser::denominator(Scale)>;
 
 #define GENERATE_NSTD_FROM_FRACTION(Name, StdType, ScNum, ScDenom) \
 	template<typename T = f64>                                     \
-	using Name = Simplifier<T, StdType, ScNum, ScDenom>;
+	using Name = _::Simplifier<T, StdType, ScNum, ScDenom>;
 
 #define GENERATE_OFFSETABLE_NSTD_FROM_FRACTION(Name, StdType, ScNum, ScDenom, OffNum, OffDenom) \
 	template<typename T = f64>                                                                  \
-	using Name = Simplifier<T, StdType, ScNum, ScDenom, OffNum, OffDenom>;
+	using Name = _::Simplifier<T, StdType, ScNum, ScDenom, OffNum, OffDenom>;
 
 	/* --- GENERATE NEEDED UNITS HERE --- */
 
 	GENERATE_NSTD_FROM_FRACTION(Percent, SI::Scale, 1, 100)
 	GENERATE_NSTD_FROM_FRACTION(Permille, SI::Scale, 1, 1'000)
 	GENERATE_NSTD_FROM_FRACTION(Inch, SI::Meters, 25'400, 1'000'000)
-	GENERATE_NSTD_FROM_DOUBLE(Degree, SI::Radians, DEG2RAD)
+	GENERATE_NSTD_FROM_DOUBLE(Degree, SI::Radians, _::DEG2RAD)
 	GENERATE_OFFSETABLE_NSTD_FROM_FRACTION(DegreeCelsius, SI::Kelvins, 1, 1, 273'150, 1'000)
 	GENERATE_OFFSETABLE_NSTD_FROM_FRACTION(DegreeFahrenheit, SI::Kelvins, 5, 9, 9 * 273'150 - 4 * 40'000, 9 * 1'000)
 }
