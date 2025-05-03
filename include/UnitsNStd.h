@@ -27,6 +27,7 @@ namespace Physics::Units::NStd
 		public:
 			static constexpr i64 Num = Numerator / greatestCommonDivisor<Numerator, Denominator>();
 			static constexpr i64 Denom = Denominator / greatestCommonDivisor<Numerator, Denominator>();
+
 			static consteval bool isNormalized() {
 				return greatestCommonDivisor<Numerator, Denominator>() == 1;
 			}
@@ -50,13 +51,10 @@ namespace Physics::Units::NStd
 
 			template<class _Fraction>
 			using Sum = Fraction<Num * _Fraction::Denom + Denom * _Fraction::Num, Denom * _Fraction::Denom>::Norm;
-
 			template<class _Fraction>
 			using Diff = Fraction<Num * _Fraction::Denom - Denom * _Fraction::Num, Denom * _Fraction::Denom>::Norm;
-
 			template<class _Fraction>
 			using Product = Fraction<Num * _Fraction::Num, Denom * _Fraction::Denom>::Norm;
-
 			template<class _Fraction>
 			using Quotient = Fraction<Num * _Fraction::Denom, Denom * _Fraction::Num>::Norm;
 		};
