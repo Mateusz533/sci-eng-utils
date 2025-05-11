@@ -59,8 +59,8 @@ namespace GenericMath
 
 		constexpr Matrix &Self() { return static_cast<Matrix &>(*this); }
 		constexpr const Matrix &Self() const { return static_cast<const Matrix &>(*this); }
-		constexpr T &Data(MatrixIdx row, MatrixIdx col) { return Self()(row, col); }
-		constexpr const T &Data(MatrixIdx row, MatrixIdx col) const { return Self()(row, col); }
+		constexpr T &Data(Idx row, Idx col) { return Self()(row, col); }
+		constexpr const T &Data(Idx row, Idx col) const { return Self()(row, col); }
 
 		static constexpr bool IsCloseToZeroEco(T value) {
 			return (std::abs(value) < T(1e-8));
@@ -97,24 +97,8 @@ namespace GenericMath
 		inline static constexpr T EPSILON = T(1e-13);
 
 	public:
-		constexpr Matrix &operator=(const Matrix &obj) {
-			if(this == &obj) { return Self(); }
-			Self().ResizeIfDynamic(obj);
-
-			const T *src = &obj.Data(0, 0);
-			T *dst = &Data(0, 0);
-
-			if constexpr(Matrix::IsColStatic()) {
-				std::memcpy(dst, src, sizeof(T) * static_cast<size_t>(Self().GetRows() * Self().GetCols()));
-			} else {
-				for(Idx i = 0; i < Self().GetRows(); ++i) {
-					std::memcpy(dst, src, sizeof(T) * static_cast<size_t>(Self().GetCols()));
-					src += _::MAX_MATRIX_ALLOCATION_SIZE;
-					dst += _::MAX_MATRIX_ALLOCATION_SIZE;
-				}
-			}
-
-			return Self();
+		constexpr Matrix &operator=(const Matrix &mat) {
+			return (this == &mat) ? Self() : CalcFrom<std::identity{}>(mat, mat);
 		}
 
 		template<typename U>
@@ -215,7 +199,7 @@ namespace GenericMath
 			requires(Matrix::IsStatic())
 		{
 			Matrix res;
-			res.SetToZero();
+			res.SetZero();
 			return res;
 		}
 
@@ -223,7 +207,7 @@ namespace GenericMath
 			requires(Matrix::IsDynamic())
 		{
 			Matrix res = Matrix::AllocateIfDynamic(rows, cols);
-			res.SetToZero();
+			res.SetZero();
 			return res;
 		}
 
@@ -258,7 +242,7 @@ namespace GenericMath
 			ForEachElementAssign<std::identity{}>(val);
 		}
 
-		constexpr void SetToZero() {
+		constexpr void SetZero() {
 			SetHomogen(T(0));
 		}
 
@@ -310,6 +294,22 @@ namespace GenericMath
 		using Base::Self, Base::Data, Base::CreateInvalid;
 		using Base::EPSILON;
 
+	private:
+		// Container needed for some internal calculations
+		class Vector : private Base::template Sibling<T, Base::ROWS, 1>
+		{
+		private:
+			using VectorBase = Base::template Sibling<T, Base::ROWS, 1>;
+
+		public:
+			constexpr Vector() = delete;
+			constexpr Vector(Idx rows) { VectorBase::ResizeIfDynamic(rows, Idx(1)); }
+			constexpr ~Vector() = default;
+
+			constexpr T &operator()(Idx index) { return VectorBase::Self()(index, Idx(0)); }
+			constexpr const T &operator()(Idx index) const { return VectorBase::Self()(index, Idx(0)); }
+		};
+
 	public:
 		static consteval Matrix Identity()
 			requires(Matrix::IsStatic())
@@ -327,7 +327,7 @@ namespace GenericMath
 			return res;
 		}
 
-		constexpr void SetDiag(const T val) {
+		constexpr void SetDiagonal(const T val) {
 			for(Idx i = 0; i < Self().GetRows(); ++i) {
 				for(Idx j = 0; j < Self().GetCols(); ++j) {
 					Data(i, j) = (i == j) ? val : T(0);
@@ -336,14 +336,114 @@ namespace GenericMath
 		}
 
 		constexpr void SetIdentity() {
-			SetDiag(T(1));
+			SetDiagonal(T(1));
 		}
 
-		constexpr void Inverse() {
-			Self() = GetInverse();
+		constexpr Matrix Inverse() const {
+			Matrix Q, R;
+			QrDecomposition(Q, R);
+
+			// Check if R is invertible (no zeros on the diagonal)
+			for(Idx i = 0; i < Self().GetRows(); ++i) {
+				if(std::abs(R(i, i)) < EPSILON) {
+					return CreateInvalid();
+				}
+			}
+
+			// Solve Rx = Q^T b for each column of the identity
+			Matrix inv;
+
+			for(Idx col = 0; col < Self().GetRows(); ++col) {
+				Vector x{Self().GetRows()};
+
+				// Backward substitution
+				for(int i = Self().GetRows() - 1; i >= 0; --i) {
+					const auto &b_i = Q(col, i);  // b(i) = Q^T(i,col)
+
+					T sum = T(0);
+					for(Idx j = i + 1; j < Self().GetRows(); ++j)
+						sum += R(i, j) * x(j);
+					x(i) = (b_i - sum) / R(i, i);
+				}
+
+				for(Idx i = 0; i < Self().GetRows(); ++i)
+					inv(i, col) = x(i);
+			}
+
+			return inv;
 		}
 
-		constexpr Matrix GetInverse() const {}	// TODO: Implement QR algorithm
+		constexpr void QrDecomposition(Matrix &Q, Matrix &R) const {
+			R = Self();
+			Q = Identity();
+
+			for(Idx k = 0; k < Self().GetRows() - 1; ++k) {
+				// Create Householder vector 'v' from a part of column 'k'
+				Vector v{Self().GetRows()};
+
+				T normSqCol = T(0);
+				for(Idx i = k; i < Self().GetRows(); ++i) {
+					const T colVal = R(i, k);
+					v(i) = colVal;
+					normSqCol += colVal * colVal;
+				}
+
+				if(normSqCol < EPSILON * EPSILON) {
+					continue;  // Column near to zeros
+				}
+
+				const T normCol = std::sqrt(normSqCol);
+				v(k) += (v(k) >= T(0) ? normCol : -normCol);
+
+				// Normalization of 'v' moved to next loop
+				const T halfNormSqV = normCol * std::abs(v(k));
+				if(halfNormSqV < T(0.5) * EPSILON * EPSILON) {
+					continue;
+				}
+
+				// Update matrix R: R = H * R
+				for(Idx j = k; j < Self().GetRows(); ++j) {
+					T dot = T(0);
+					for(Idx i = k; i < Self().GetRows(); ++i) {
+						dot += v(i) * R(i, j);
+					}
+					dot /= halfNormSqV;
+					for(Idx i = k; i < Self().GetRows(); ++i) {
+						R(i, j) -= v(i) * dot;
+					}
+				}
+
+				// Update matrix Q: Q = Q * H
+				for(Idx i = 0; i < Self().GetRows(); ++i) {
+					T dot = T(0);
+					for(Idx j = k; j < Self().GetRows(); ++j) {
+						dot += v(j) * Q(i, j);
+					}
+					dot /= halfNormSqV;
+					for(Idx j = k; j < Self().GetRows(); ++j) {
+						Q(i, j) -= v(j) * dot;
+					}
+				}
+			}
+		}
+
+		constexpr T Determinant() const {
+			Matrix Q, R;
+			QrDecomposition(Q, R);
+
+			T detR = T(1);
+			T detQ = T(1);
+
+			// Determinant of an orthogonal matrix Q should be either +1 or -1
+			for(Idx i = 0; i < Self().GetRows(); ++i) {
+				if(Q(i, i) < T(0)) {
+					detQ *= -T(1);
+				}
+				detR *= R(i, i);
+			}
+
+			return detQ * detR;
+		}
 	};
 
 	/* ================================================================================================== */
