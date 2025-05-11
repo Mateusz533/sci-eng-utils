@@ -6,6 +6,7 @@
 #include <cstring>
 #include <iostream>
 #include <limits>
+#include <tuple>
 #include <type_traits>
 //
 #include <eigen3/Eigen/Dense>
@@ -189,13 +190,13 @@ namespace GenericMath
 			std::cout << '\n';
 		}
 
-		static consteval Matrix CreateInvalid() {
+		static constexpr Matrix CreateInvalid() {
 			Matrix res;
 			res.SetInvalid();
 			return res;
 		}
 
-		static consteval Matrix Zero()
+		static constexpr Matrix Zero()
 			requires(Matrix::IsStatic())
 		{
 			Matrix res;
@@ -234,11 +235,11 @@ namespace GenericMath
 			if constexpr(Matrix::IsDynamic()) {
 				Self().ResizeIfDynamic(0, 0);
 			} else {
-				SetHomogen(std::numeric_limits<double>::quiet_NaN());
+				Data(0, 0) = std::numeric_limits<double>::quiet_NaN();
 			}
 		}
 
-		constexpr void SetHomogen(const T val) {
+		constexpr void SetHomogen(T val) {
 			ForEachElementAssign<std::identity{}>(val);
 		}
 
@@ -304,6 +305,7 @@ namespace GenericMath
 		public:
 			constexpr Vector() = delete;
 			constexpr Vector(Idx rows) { VectorBase::ResizeIfDynamic(rows, Idx(1)); }
+			constexpr Vector(Idx rows, T initialValue) : Vector(rows) { VectorBase::SetHomogen(initialValue); }
 			constexpr ~Vector() = default;
 
 			constexpr T &operator()(Idx index) { return VectorBase::Self()(index, Idx(0)); }
@@ -340,8 +342,7 @@ namespace GenericMath
 		}
 
 		constexpr Matrix Inverse() const {
-			Matrix Q, R;
-			QrDecomposition(Q, R);
+			const auto &[Q, R] = QrDecomposition();
 
 			// Check if R is invertible (no zeros on the diagonal)
 			for(Idx i = 0; i < Self().GetRows(); ++i) {
@@ -361,21 +362,23 @@ namespace GenericMath
 					const auto &b_i = Q(col, i);  // b(i) = Q^T(i,col)
 
 					T sum = T(0);
-					for(Idx j = i + 1; j < Self().GetRows(); ++j)
+					for(Idx j = i + 1; j < Self().GetRows(); ++j) {
 						sum += R(i, j) * x(j);
+					}
 					x(i) = (b_i - sum) / R(i, i);
 				}
 
-				for(Idx i = 0; i < Self().GetRows(); ++i)
+				for(Idx i = 0; i < Self().GetRows(); ++i) {
 					inv(i, col) = x(i);
+				}
 			}
 
 			return inv;
 		}
 
-		constexpr void QrDecomposition(Matrix &Q, Matrix &R) const {
-			R = Self();
-			Q = Identity();
+		constexpr std::tuple<Matrix, Matrix> QrDecomposition() const {
+			Matrix R = Self();
+			Matrix Q = Identity();
 
 			for(Idx k = 0; k < Self().GetRows() - 1; ++k) {
 				// Create Householder vector 'v' from a part of column 'k'
@@ -425,11 +428,93 @@ namespace GenericMath
 					}
 				}
 			}
+
+			return std::make_tuple(Q, R);
+		}
+
+		constexpr Matrix InverseWithLu() const {
+			const auto &[LU, P] = LuDecomposition();
+			if(!LU.IsValid()) {
+				return CreateInvalid();
+			}
+
+			Matrix inv;
+
+			for(Idx bInd = 0; bInd < Self().GetRows(); ++bInd) {
+				Vector y{Self().GetRows(), T(0)};
+				const Idx pbInd = P(bInd);
+				y(bInd) = 1.0;
+
+				// Solve L * y = Pb
+				for(Idx i = bInd + 1; i < Self().GetRows(); ++i) {
+					for(Idx j = bInd; j < i; ++j) {
+						y(i) -= LU(i, j) * y(j);
+					}
+				}
+
+				auto &x = y;  // Cost reduction instead of vector copying
+
+				// Solve U * x = y
+				for(Idx i = Self().GetRows() - 1; i >= 0; --i) {
+					for(Idx j = i + 1; j < Self().GetRows(); ++j) {
+						x(i) -= LU(i, j) * x(j);
+					}
+
+					if(std::abs(LU(i, i)) < EPSILON) {
+						return CreateInvalid();
+					}
+					x(i) /= LU(i, i);
+
+					inv(i, pbInd) = x(i);
+				}
+			}
+
+			return inv;
+		}
+
+		constexpr std::tuple<Matrix, Vector> LuDecomposition() const {
+			Matrix LU = Self();
+			Vector P{Self().GetRows()};
+
+			for(Idx i = 0; i < Self().GetRows(); ++i) {
+				P(i) = i;
+			}
+
+			for(Idx k = 0; k < Self().GetRows(); ++k) {
+				Idx pivot = k;
+				T maxVal = std::abs(LU(k, k));
+
+				for(Idx i = k + 1; i < Self().GetRows(); ++i) {
+					const T val = std::abs(LU(i, k));
+					if(val > maxVal) {
+						maxVal = val;
+						pivot = i;
+					}
+				}
+
+				if(maxVal < EPSILON) {
+					return std::make_tuple(CreateInvalid(), P);
+				}
+
+				std::swap(P(k), P(pivot));
+				for(Idx i = 0; i < Self().GetRows(); ++i) {
+					std::swap(LU(k, i), LU(pivot, i));
+				}
+
+				for(Idx i = k + 1; i < Self().GetRows(); ++i) {
+					const T factor = LU(i, k) / LU(k, k);
+					LU(i, k) = factor;
+					for(Idx j = k + 1; j < Self().GetRows(); ++j) {
+						LU(i, j) -= factor * LU(k, j);
+					}
+				}
+			}
+
+			return std::make_tuple(LU, P);
 		}
 
 		constexpr T Determinant() const {
-			Matrix Q, R;
-			QrDecomposition(Q, R);
+			const auto &[Q, R] = QrDecomposition();
 
 			T detR = T(1);
 			T detQ = T(1);

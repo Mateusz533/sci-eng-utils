@@ -3,7 +3,8 @@ cmake_minimum_required(VERSION 3.21)
 # Configure language settings
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_BUILD_TYPE Debug)
+# set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20")
 
 set(PKG_CONFIG_USE_CMAKE_PREFIX_PATH ON)
