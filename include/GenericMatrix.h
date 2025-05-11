@@ -162,15 +162,15 @@ namespace GenericMath
 		}
 
 		template<typename U, Idx R, Idx C>
-		constexpr Matrix operator*(const Sibling<U, R, C> &mat) const
-			requires(!(Matrix::IsStatic() && Sibling<U, R, C>::IsStatic() && ROWS != C))
+		constexpr Sibling<decltype(T() * U()), ROWS, C> operator*(const Sibling<U, R, C> &mat) const
+			requires(COLS == 0 || R == 0 || COLS == R)
 		{
 			if constexpr(Matrix::IsDynamic() || Sibling<U, R, C>::IsDynamic()) {
 				if(Self().GetCols() != mat.GetRows()) {
 					return CreateInvalid();
 				}
 			}
-			Matrix res = Matrix::AllocateIfDynamic(Self().GetRows(), mat.GetCols());
+			auto res = Sibling<decltype(T() * U()), ROWS, C>::AllocateIfDynamic(Self().GetRows(), mat.GetCols());
 
 			for(Idx i = 0; i < Self().GetRows(); ++i) {
 				for(Idx j = 0; j < mat.GetCols(); ++j) {
@@ -544,11 +544,11 @@ namespace GenericMath
 
 		using Matrix = DataClass;
 		using Base = AbstractMatrix<DataClass>;
-		using Base::Self, Base::Data, Base::CreateInvalid, Base::EPSILON;
+		using Base::Self, Base::CreateInvalid, Base::EPSILON, Base::ROWS;
 		using typename Base::Idx, typename Base::T;
 
-		constexpr T &Data(Idx index) { return Data(index, 0); }
-		constexpr const T &Data(Idx index) const { return Data(index, 0); }
+		constexpr T &Data(Idx index) { return Base::Data(index, 0); }
+		constexpr const T &Data(Idx index) const { return Base::Data(index, 0); }
 
 	public:
 		constexpr T DotProduct(const Matrix &other) const {
@@ -574,6 +574,18 @@ namespace GenericMath
 			}
 			return true;
 		}
+
+		constexpr const T &x() const
+			requires(ROWS >= 1)
+		{ return Data(0); }
+
+		constexpr const T &y() const
+			requires(ROWS >= 2)
+		{ return Data(1); }
+
+		constexpr const T &z() const
+			requires(ROWS >= 3)
+		{ return Data(2); }
 	};
 
 	/* ================================================================================================== */
@@ -598,7 +610,7 @@ namespace GenericMath
 			inline static constexpr MatrixIdx ROWS_ALLOC = (ROWS > 0) ? ROWS : MAX_MATRIX_ALLOCATION_SIZE;
 
 			using Row = std::array<T, (COLS > 0) ? COLS : MAX_MATRIX_ALLOCATION_SIZE>;
-			using Data = std::conditional_t<IS_STATIC, std::array<Row, ROWS_ALLOC>,
+			using MatrixData = std::conditional_t<IS_STATIC, std::array<Row, ROWS_ALLOC>,
 											std::pair<std::array<MatrixIdx, ROWS == COLS ? 2 : 1>, std::array<Row, ROWS_ALLOC>>>;
 
 		public:
@@ -653,7 +665,7 @@ namespace GenericMath
 			}
 
 		private:
-			Data matrixData;
+			MatrixData matrixData;
 		};
 	}
 
@@ -709,6 +721,13 @@ namespace GenericMath
 		constexpr T &operator()(Idx row, Idx col) { return (*this)[row][col]; }
 		constexpr const T &operator()(Idx row, Idx col) const { return (*this)[row][col]; }
 
+		constexpr T &operator()(Idx index)
+			requires(COLS == 1)
+		{ return (*this)(index, 0); }
+		constexpr const T &operator()(Idx index) const
+			requires(COLS == 1)
+		{ return (*this)(index, 0); }
+
 	public:
 		constexpr Matrix() {}
 
@@ -756,4 +775,25 @@ namespace GenericMath
 
 	template<typename T>
 	using MatrixX = Matrix<T, 0, 0>;
+
+	/* ================================================================================================== */
+
+	using Vector3f = Matrix<float, 3, 1>;
+	using Vector4f = Matrix<float, 4, 1>;
+	using VectorXf = Matrix<float, 0, 1>;
+	using Vector3d = Matrix<double, 3, 1>;
+	using Vector4d = Matrix<double, 4, 1>;
+	using VectorXd = Matrix<double, 0, 1>;
+
+	template<typename T>
+	using Vector3 = Matrix<T, 3, 1>;
+
+	template<typename T>
+	using Vector4 = Matrix<T, 4, 1>;
+
+	template<typename T>
+	using VectorX = Matrix<T, 0, 1>;
+
+	template<typename T, MatrixIdx LENGTH>
+	using Vector = Matrix<T, LENGTH, 1>;
 }
