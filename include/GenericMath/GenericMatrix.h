@@ -611,7 +611,7 @@ namespace GenericMath
 
 			using Row = std::array<T, (COLS > 0) ? COLS : MAX_MATRIX_ALLOCATION_SIZE>;
 			using MatrixData = std::conditional_t<IS_STATIC, std::array<Row, ROWS_ALLOC>,
-											std::pair<std::array<MatrixIdx, ROWS == COLS ? 2 : 1>, std::array<Row, ROWS_ALLOC>>>;
+												  std::pair<std::array<MatrixIdx, ROWS == COLS ? 2 : 1>, std::array<Row, ROWS_ALLOC>>>;
 
 		public:
 			template<typename U>
