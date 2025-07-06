@@ -743,7 +743,7 @@ namespace GenericMath
 			requires(IsStatic())
 		{ SetHomogen(initialValue); }
 
-		constexpr Matrix(const std::array<T, COLS> &data)
+		constexpr Matrix(const std::array<T, ROWS> &data)
 			requires(IsStatic() && COLS == 1)
 		{
 			for(Idx i = 0; i < data.size(); ++i)

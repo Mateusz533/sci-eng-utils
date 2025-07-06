@@ -1,13 +1,6 @@
 #pragma once
 
-#include <algorithm>
-#include <array>
-#include <cmath>
-#include <cstddef>
-#include <cstdint>
-#include <type_traits>
-
-#include "GenericMatrix.h"
+#include "GenericMath.h"
 #include "GenericQuaternion.h"
 
 namespace GenericMath
@@ -29,8 +22,8 @@ namespace GenericMath
 		constexpr EulerAngles() = delete;
 		constexpr EulerAngles(const std::array<T, 3>& anglesRad) : mAnglesRad{anglesRad} {}
 
-		constexpr T& operator()(size_t index) { return mAnglesRad; }
-		constexpr const T& operator()(size_t index) const { return mAnglesRad; }
+		constexpr T& operator()(size_t index) { return mAnglesRad[index]; }
+		constexpr const T& operator()(size_t index) const { return mAnglesRad[index]; }
 
 		static constexpr EulerAngles FromMatrix(const Matrix3<T>& mat) {
 			const auto angle1 = std::asin(-mat((int)A0, (int)A2));
@@ -40,7 +33,7 @@ namespace GenericMath
 			const auto angle2 = noSingularity ? std::atan2(+mat((int)A0, (int)A1), mat((int)A0, (int)A0))
 											  : 0.0;  // or `std::atan2(-mat((int)A1, (int)A0), mat((int)A1, (int)A1))`
 
-			return EulerAngles{DIR * angle0, DIR * angle1, DIR * angle2};
+			return EulerAngles{{DIR * angle0, DIR * angle1, DIR * angle2}};
 		}
 		static constexpr EulerAngles FromQuaternion(const Quaternion<T>& q) {
 			const auto& v = q.Vector();
@@ -53,7 +46,7 @@ namespace GenericMath
 			const auto angle2 = noSingularity ? std::atan2(2.0 * (q.w() * v2 + DIR * v1 * v0), 1.0 - 2.0 * (v1 * v1 + v2 * v2))
 											  : 0.0;  // or `2.0 * std::atan2(v2, q.w())`
 
-			return EulerAngles{angle0, angle1, angle2};
+			return EulerAngles{{angle0, angle1, angle2}};
 		}
 
 	public:
@@ -110,10 +103,10 @@ namespace GenericMath
 			return AreForwardAngles() ? CalcDualAngles() : *this;
 		}
 		constexpr EulerAngles CalcDualAngles() const {
-			return EulerAngles{mAnglesRad[0] - M_PI, M_PI - mAnglesRad[1], mAnglesRad[2] - M_PI};
+			return EulerAngles{{mAnglesRad[0] - M_PI, M_PI - mAnglesRad[1], mAnglesRad[2] - M_PI}};
 		}
 		constexpr EulerAngles Normalize() const {
-			return EulerAngles{NormalizeRad(mAnglesRad[0]), NormalizeRad(mAnglesRad[1]), NormalizeRad(mAnglesRad[2])};
+			return EulerAngles{{NormalizeRad(mAnglesRad[0]), NormalizeRad(mAnglesRad[1]), NormalizeRad(mAnglesRad[2])}};
 		}
 
 	private:
@@ -162,10 +155,10 @@ namespace GenericMath
 			return EulerAnglesLocalZYX<T>::FromQuaternion(q);
 		}
 		static constexpr StdEulerAngles FromVectorRadRPY(const Vector3<T>& vec) {
-			return EulerAnglesLocalZYX<T>{{vec(0), vec(1), vec(2)}};
+			return EulerAnglesLocalZYX<T>{{vec(2), vec(1), vec(0)}};
 		}
 		static constexpr StdEulerAngles FromVectorDegRPY(const Vector3<T>& vec) {
-			return EulerAnglesLocalZYX<T>{{DegreesToRadians(vec(0)), DegreesToRadians(vec(1)), DegreesToRadians(vec(2))}};
+			return EulerAnglesLocalZYX<T>{{DegreesToRadians(vec(2)), DegreesToRadians(vec(1)), DegreesToRadians(vec(0))}};
 		}
 
 	public:
@@ -178,10 +171,10 @@ namespace GenericMath
 		constexpr const T& Yaw() const { return (*this)(0); }
 
 		constexpr Vector3<T> GetRadRPY() const {
-			return Vector3<T>{Roll(), Pitch(), Yaw()};
+			return Vector3<T>{std::array{Roll(), Pitch(), Yaw()}};
 		}
 		constexpr Vector3<T> ToDegRPY() const {
-			return Vector3<T>{RadiansToDegrees(Roll()), RadiansToDegrees(Pitch()), RadiansToDegrees(Yaw())};
+			return Vector3<T>{std::array{RadiansToDegrees(Roll()), RadiansToDegrees(Pitch()), RadiansToDegrees(Yaw())}};
 		}
 	};
 

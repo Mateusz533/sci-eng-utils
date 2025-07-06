@@ -40,7 +40,7 @@ include_directories(${GTEST_INCLUDE_DIRS})
 
 project(RunTests)
 
-add_executable(${PROJECT_NAME} "tests/main-test.cpp")
+add_executable(${PROJECT_NAME} "tests/MainTest.cpp")
 target_link_libraries(${PROJECT_NAME} ${GTEST_LIBRARIES} pthread)
 target_include_directories(${PROJECT_NAME} PUBLIC "include")
 

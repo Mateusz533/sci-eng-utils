@@ -1,8 +1,4 @@
-#include <gtest/gtest.h>
-
-TEST(ExampleTestSuite, ExampleTest) {
-	EXPECT_EQ(2 + 2, 4);
-}
+#include "EulerAnglesTest.h"
 
 int main(int argc, char** argv) {
 	::testing::InitGoogleTest(&argc, argv);
