@@ -6,29 +6,13 @@
 
 namespace GenericMath
 {
-
 	template<typename T>
 	class Quaternion
 	{
 	public:
-		constexpr T &w() { return mData(0); }
-		constexpr T &x() { return mData(1); }
-		constexpr T &y() { return mData(2); }
-		constexpr T &z() { return mData(3); }
-
-		constexpr const T &w() const { return mData(0); }
-		constexpr const T &x() const { return mData(1); }
-		constexpr const T &y() const { return mData(2); }
-		constexpr const T &z() const { return mData(3); }
-
-		constexpr Quaternion() : Quaternion(Identity()) {}
-		constexpr Quaternion(T w, T x, T y, T z) {
-			this->w() = w;
-			this->x() = x;
-			this->y() = y;
-			this->z() = z;
-		}
-		constexpr Quaternion(const Quaternion &other) : mData(other.mData) {}
+		constexpr Quaternion() : Quaternion{Identity()} {}
+		constexpr Quaternion(T w, T x, T y, T z) : mScalar{w}, mVector{x, y, z} {}
+		constexpr Quaternion(const Quaternion &other) : mScalar{other.mScalar}, mVector{other.mVector} {}
 
 		template<typename U>
 		Quaternion(const Matrix3<U> &rotationMatrix) {
@@ -64,7 +48,8 @@ namespace GenericMath
 
 	public:
 		constexpr Quaternion operator=(const Quaternion &other) {
-			mData = other.mData;
+			mScalar = other.mScalar;
+			mVector = other.mVector;
 			return *this;
 		}
 
@@ -84,17 +69,53 @@ namespace GenericMath
 			};
 		}
 		constexpr Quaternion operator/(const Quaternion &other) const {
-			return *this * other.GetInverse();
+			return *this * other.Inverse();
 		}
 
 		template<typename U>
 		operator Quaternion<U>() const {
-			return Quaternion<U>(w(), x(), y(), z());
+			return Quaternion<U>{w(), x(), y(), z()};
 		}
 
 	public:
+		constexpr T &w() { return mScalar; }
+		constexpr T &x() { return mVector(0); }
+		constexpr T &y() { return mVector(1); }
+		constexpr T &z() { return mVector(2); }
+
+		constexpr const T &w() const { return mScalar; }
+		constexpr const T &x() const { return mVector(0); }
+		constexpr const T &y() const { return mVector(1); }
+		constexpr const T &z() const { return mVector(2); }
+
+		constexpr T &Scalar() { return mScalar; }
+		constexpr const T &Scalar() const { return mScalar; }
+		constexpr Vector3<T> &Vector() { return mVector; }
+		constexpr const Vector3<T> &Vector() const { return mVector; }
+
+	public:
 		static constexpr Quaternion<T> Identity() {
-			return Quaternion<T>(1, 0, 0, 0);
+			return Quaternion<T>{1, 0, 0, 0};
+		}
+
+		constexpr Quaternion Normalize() const {
+			const double normInv = 1.0 / Norm();
+			return Quaternion{
+				w() * normInv,
+				x() * normInv,
+				y() * normInv,
+				z() * normInv,
+			};
+		}
+
+		constexpr Quaternion Inverse() const {
+			const double factor = 1.0 / SquareSum();
+			return Quaternion{
+				+w() * factor,
+				-x() * factor,
+				-y() * factor,
+				-z() * factor,
+			};
 		}
 
 		constexpr Matrix3<T> ToRotationMatrix() const {
@@ -127,33 +148,14 @@ namespace GenericMath
 			return std::sqrt(SquareSum());
 		}
 
-		constexpr Quaternion Normalize() const {
-			const double normInv = 1.0 / Norm();
-			return Quaternion{
-				w() * normInv,
-				x() * normInv,
-				y() * normInv,
-				z() * normInv,
-			};
-		}
-
-		constexpr Quaternion Inverse() const {
-			const double factor = 1.0 / SquareSum();
-			return Quaternion{
-				+w() * factor,
-				-x() * factor,
-				-y() * factor,
-				-z() * factor,
-			};
-		}
-
 	private:
 		constexpr double SquareSum() const {
 			return x() * x() + y() * y() + z() * z() + w() * w();
 		}
 
 	private:
-		Vector4<T> mData;
+		T mScalar;
+		Vector3<T> mVector;
 	};
 
 	using Quaternionf = Quaternion<float>;
