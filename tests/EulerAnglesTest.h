@@ -62,7 +62,7 @@ namespace EulerAnglesTest
 
 				for(int k = -N; k < N; ++k) {
 					const double yaw = 180. * k / N;
-					data.push_back(Vector3d{std::array{roll, pitch, yaw}});
+					data.push_back({roll, pitch, yaw});
 				}
 			}
 		}
@@ -86,9 +86,9 @@ namespace EulerAnglesTest
 		const auto scope = GetScopeDeg();
 		for(const auto& vec : scope) {
 			const auto rotZYX = StdEulerAnglesd::FromVectorDegRPY(vec).ToMatrix();
-			const auto rotX = StdEulerAnglesd::FromVectorDegRPY(Vector3d{std::array{vec.x(), 0.0, 0.0}}).ToMatrix();
-			const auto rotY = StdEulerAnglesd::FromVectorDegRPY(Vector3d{std::array{0.0, vec.y(), 0.0}}).ToMatrix();
-			const auto rotZ = StdEulerAnglesd::FromVectorDegRPY(Vector3d{std::array{0.0, 0.0, vec.z()}}).ToMatrix();
+			const auto rotX = StdEulerAnglesd::FromVectorDegRPY({vec.x(), 0.0, 0.0}).ToMatrix();
+			const auto rotY = StdEulerAnglesd::FromVectorDegRPY({0.0, vec.y(), 0.0}).ToMatrix();
+			const auto rotZ = StdEulerAnglesd::FromVectorDegRPY({0.0, 0.0, vec.z()}).ToMatrix();
 			successCounter += MatrixEqual(rotZYX, rotZ * rotY * rotX);
 		}
 		EXPECT_EQ(successCounter, scope.size());
@@ -109,9 +109,9 @@ namespace EulerAnglesTest
 		const auto scope = GetScopeDeg();
 		for(const auto& vec : scope) {
 			const auto rotZYX = StdEulerAnglesd::FromVectorDegRPY(vec).ToQuaternion();
-			const auto rotX = StdEulerAnglesd::FromVectorDegRPY(Vector3d{std::array{vec.x(), 0.0, 0.0}}).ToQuaternion();
-			const auto rotY = StdEulerAnglesd::FromVectorDegRPY(Vector3d{std::array{0.0, vec.y(), 0.0}}).ToQuaternion();
-			const auto rotZ = StdEulerAnglesd::FromVectorDegRPY(Vector3d{std::array{0.0, 0.0, vec.z()}}).ToQuaternion();
+			const auto rotX = StdEulerAnglesd::FromVectorDegRPY({vec.x(), 0.0, 0.0}).ToQuaternion();
+			const auto rotY = StdEulerAnglesd::FromVectorDegRPY({0.0, vec.y(), 0.0}).ToQuaternion();
+			const auto rotZ = StdEulerAnglesd::FromVectorDegRPY({0.0, 0.0, vec.z()}).ToQuaternion();
 			successCounter += QuaternionEqualAndNormed(rotZYX, rotZ * rotY * rotX);
 		}
 		EXPECT_EQ(successCounter, scope.size());
@@ -138,7 +138,7 @@ namespace EulerAnglesTest
 	}
 
 	TEST(EulerZYXTestSuite, SizeTest) {
-		const auto anglesZYX = StdEulerAnglesd::FromVectorDegRPY(Vector3d{std::array{0.0, 1.0, 2.0}});
+		const auto anglesZYX = StdEulerAnglesd::FromVectorDegRPY({0.0, 1.0, 2.0});
 		EXPECT_EQ(sizeof(anglesZYX), 3 * sizeof(double));
 	}
 }

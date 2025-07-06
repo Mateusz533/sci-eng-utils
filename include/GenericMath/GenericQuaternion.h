@@ -11,7 +11,7 @@ namespace GenericMath
 	{
 	public:
 		constexpr Quaternion() : Quaternion{Identity()} {}
-		constexpr Quaternion(T w, T x, T y, T z) : mScalar{w}, mVector{std::array{x, y, z}} {}
+		constexpr Quaternion(T w, T x, T y, T z) : mScalar{w}, mVector{x, y, z} {}
 		constexpr Quaternion(const Quaternion &other) : mScalar{other.mScalar}, mVector{other.mVector} {}
 
 		template<typename U>

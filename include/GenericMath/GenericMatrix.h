@@ -586,6 +586,14 @@ namespace GenericMath
 		constexpr const T &z() const
 			requires(ROWS >= 3)
 		{ return Data(2); }
+
+		template<Idx OFFSET, typename... Args>
+			requires(ROWS > 0 && OFFSET + 1 + sizeof...(Args) == ROWS)
+		constexpr void Fill(T v, Args... args) {
+			Data(OFFSET) = v;
+			if constexpr(sizeof...(Args) > 0)
+				Fill<OFFSET + 1>(args...);
+		}
 	};
 
 	/* ================================================================================================== */
@@ -749,6 +757,11 @@ namespace GenericMath
 			for(Idx i = 0; i < data.size(); ++i)
 				Base::Data(i) = data[i];
 		}
+
+		template<typename... Args>
+		constexpr Matrix(const Args... args)
+			requires(IsStatic() && COLS == 1 && (std::is_same_v<Args, T> && ...) && sizeof...(Args) == ROWS)
+		{ Base::template Fill<0>(args...); }
 
 		template<typename U>
 		constexpr Matrix(const Matrix<U, ROWS, COLS> &other) {
