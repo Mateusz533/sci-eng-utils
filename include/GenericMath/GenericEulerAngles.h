@@ -23,6 +23,13 @@ namespace GenericMath
 		constexpr EulerAngles(T rad0, T rad1, T rad2) : mAnglesRad{rad0, rad1, rad2} {}
 		constexpr EulerAngles(const std::array<T, 3>& anglesRad) : mAnglesRad{anglesRad} {}
 
+		static constexpr EulerAngles FromDegrees(T angle0, T angle1, T angle2) {
+			return FromDegrees({angle0, angle1, angle2});
+		}
+		static constexpr EulerAngles FromDegrees(const std::array<T, 3>& angles) {
+			return EulerAngles{DegreesToRadians(angles[0]), DegreesToRadians(angles[1]), DegreesToRadians(angles[2])};
+		}
+
 		constexpr T& operator()(size_t index) { return mAnglesRad[index]; }
 		constexpr const T& operator()(size_t index) const { return mAnglesRad[index]; }
 
@@ -159,7 +166,7 @@ namespace GenericMath
 			return EulerAnglesLocalZYX<T>{vec(2), vec(1), vec(0)};
 		}
 		static constexpr StdEulerAngles FromVectorDegRPY(const Vector3<T>& vec) {
-			return EulerAnglesLocalZYX<T>{DegreesToRadians(vec(2)), DegreesToRadians(vec(1)), DegreesToRadians(vec(0))};
+			return EulerAnglesLocalZYX<T>::FromDegrees(vec(2), vec(1), vec(0));
 		}
 
 	public:
@@ -171,10 +178,10 @@ namespace GenericMath
 		constexpr const T& Pitch() const { return (*this)(1); }
 		constexpr const T& Yaw() const { return (*this)(0); }
 
-		constexpr Vector3<T> GetRadRPY() const {
+		constexpr Vector3<T> ToVectorRadRPY() const {
 			return Vector3<T>{Roll(), Pitch(), Yaw()};
 		}
-		constexpr Vector3<T> ToDegRPY() const {
+		constexpr Vector3<T> ToVectorDegRPY() const {
 			return Vector3<T>{RadiansToDegrees(Roll()), RadiansToDegrees(Pitch()), RadiansToDegrees(Yaw())};
 		}
 	};
