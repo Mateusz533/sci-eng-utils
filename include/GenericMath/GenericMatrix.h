@@ -6,6 +6,7 @@
 #include <cstring>
 #include <iostream>
 #include <limits>
+#include <memory>
 #include <tuple>
 #include <type_traits>
 //
@@ -675,18 +676,87 @@ namespace GenericMath
 		private:
 			MatrixData matrixData;
 		};
+
+		template<typename T, MatrixIdx ROWS, MatrixIdx COLS>
+			requires(ROWS >= 0 && COLS >= 0)
+		class StdMatrixAllocator
+		{
+		private:
+			inline static constexpr bool IS_STATIC = ROWS > 0 && COLS > 0;
+
+			using Row = std::conditional_t<(COLS > 0), std::array<T, COLS>, T[]>;
+			using MatrixData = std::conditional_t<IS_STATIC, std::array<Row, ROWS>,
+												  std::pair<std::array<MatrixIdx, ROWS == COLS ? 2 : 1>, std::unique_ptr<T[]>>>;
+
+		public:
+			template<typename U>
+			constexpr StdMatrixAllocator(const StdMatrixAllocator<U, ROWS, COLS> &other) {
+				ResizeIfDynamic(other);
+			}
+
+			constexpr Row &operator[](MatrixIdx row) {
+				if constexpr(IS_STATIC)
+					return matrixData[row];
+				else
+					return matrixData.second[row];
+			}
+			constexpr const Row &operator[](MatrixIdx row) const {
+				if constexpr(IS_STATIC)
+					return matrixData[row];
+				else
+					return matrixData.second[row];
+			}
+
+			static constexpr MatrixIdx GetRows()
+				requires(ROWS > 0)
+			{ return ROWS; }
+			static constexpr MatrixIdx GetCols()
+				requires(COLS > 0)
+			{ return COLS; }
+			constexpr MatrixIdx GetRows() const
+				requires(ROWS == 0)
+			{ return matrixData.first[0]; }
+			constexpr MatrixIdx GetCols() const
+				requires(COLS == 0)
+			{ return matrixData.first[matrixData.first.size() - 1]; }
+
+			template<typename U>
+			constexpr void ResizeIfDynamic(const StdMatrixAllocator<U, ROWS, COLS> &other) {
+				if constexpr(!IS_STATIC) {
+					matrixData.first = other.matrixData.first;
+					matrixData.second = std::make_unique<T[]>(GetRows() * GetCols());
+				}
+			}
+			constexpr void ResizeIfDynamic(MatrixIdx rows, MatrixIdx cols) {
+				if constexpr(ROWS == 0)
+					matrixData.first[0] = rows;
+				if constexpr(COLS == 0)
+					matrixData.first[matrixData.first.size() - 1] = cols;
+				if constexpr(!IS_STATIC)
+					matrixData.second = std::make_unique<T[]>(GetRows() * GetCols());
+			}
+
+		protected:
+			constexpr StdMatrixAllocator() {
+				if constexpr(!IS_STATIC)
+					matrixData.first = decltype(matrixData.first){};
+			}
+
+		private:
+			MatrixData matrixData;
+		};
 	}
 
 	/* ================================================================================================== */
 
 	template<typename T, MatrixIdx ROWS, MatrixIdx COLS>
-	class Matrix : public _::CompactMatrixAllocator<T, ROWS, COLS>,
+	class Matrix : public _::StdMatrixAllocator<T, ROWS, COLS>,
 				   public std::conditional_t<ROWS == COLS, AbstractSquareMatrix<Matrix<T, ROWS, COLS>>,
 											 std::conditional_t<COLS == 1, AbstractVector<Matrix<T, ROWS, COLS>>,
 																AbstractMatrix<Matrix<T, ROWS, COLS>>>>
 	{
 	public:
-		using Allocator = _::CompactMatrixAllocator<T, ROWS, COLS>;
+		using Allocator = _::StdMatrixAllocator<T, ROWS, COLS>;
 		using Base = std::conditional_t<ROWS == COLS, AbstractSquareMatrix<Matrix<T, ROWS, COLS>>,
 										std::conditional_t<COLS == 1, AbstractVector<Matrix<T, ROWS, COLS>>,
 														   AbstractMatrix<Matrix<T, ROWS, COLS>>>>;
