@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "GenericMatrix.h"
+#include "GenericMath/GenericMatrix.h"
 
 int main() {
 	/* Quick test for matrix operations */

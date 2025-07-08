@@ -24,7 +24,18 @@ namespace GenericMath
 
 		template<typename>
 		struct SiblingTrait;
+
+		template<typename T, MatrixIdx ROWS, MatrixIdx COLS>
+			requires(ROWS >= 0 && ROWS <= MAX_MATRIX_ALLOCATION_SIZE && COLS >= 0 && COLS <= MAX_MATRIX_ALLOCATION_SIZE)
+		class CompactMatrixAllocator;
+
+		template<typename T, MatrixIdx ROWS, MatrixIdx COLS>
+			requires(ROWS >= 0 && COLS >= 0)
+		class StdMatrixAllocator;
 	}
+
+	template<typename T, MatrixIdx ROWS, MatrixIdx COLS>
+	using DefaultMatrixAllocator = _::StdMatrixAllocator<T, ROWS, COLS>;
 
 	template<class DataClass>
 	class AbstractMatrix;
@@ -35,7 +46,7 @@ namespace GenericMath
 	template<class DataClass>
 	class AbstractVector;
 
-	template<typename T, MatrixIdx ROWS, MatrixIdx COLS>
+	template<typename T, MatrixIdx ROWS, MatrixIdx COLS, template<typename, MatrixIdx, MatrixIdx> typename Allocator = DefaultMatrixAllocator>
 	class Matrix;
 
 	/* ================================================================================================== */
@@ -677,6 +688,14 @@ namespace GenericMath
 			MatrixData matrixData;
 		};
 
+		namespace
+		{
+			static_assert(sizeof(CompactMatrixAllocator<double, 3, 5>) == 3 * 5 * sizeof(double));
+			static_assert(sizeof(CompactMatrixAllocator<float, 0, 0>) == 2 * sizeof(MatrixIdx) + (MAX_MATRIX_ALLOCATION_SIZE * MAX_MATRIX_ALLOCATION_SIZE) * sizeof(float));
+			static_assert(sizeof(CompactMatrixAllocator<char, 0, 4>) == sizeof(MatrixIdx) + (MAX_MATRIX_ALLOCATION_SIZE * 4) * sizeof(char));
+			static_assert(sizeof(CompactMatrixAllocator<short, 2, 0>) == sizeof(MatrixIdx) + (2 * MAX_MATRIX_ALLOCATION_SIZE) * sizeof(short));
+		}
+
 		template<typename T, MatrixIdx ROWS, MatrixIdx COLS>
 			requires(ROWS >= 0 && COLS >= 0)
 		class StdMatrixAllocator
@@ -698,7 +717,7 @@ namespace GenericMath
 				if constexpr(IS_STATIC)
 					return matrixData[row];
 				else
-					return matrixData.second[row];
+					return matrixData.second[row * GetCols()];
 			}
 			constexpr const Row &operator[](MatrixIdx row) const {
 				if constexpr(IS_STATIC)
@@ -745,18 +764,26 @@ namespace GenericMath
 		private:
 			MatrixData matrixData;
 		};
+
+		namespace
+		{
+			static_assert(sizeof(StdMatrixAllocator<double, 3, 5>) == 3 * 5 * sizeof(double));
+			static_assert(sizeof(StdMatrixAllocator<float, 0, 0>) == (1 + 1) * sizeof(void *));
+			static_assert(sizeof(StdMatrixAllocator<char, 0, 4>) == (1 + 1) * sizeof(void *));
+			static_assert(sizeof(StdMatrixAllocator<short, 2, 0>) == (1 + 1) * sizeof(void *));
+		}
 	}
 
 	/* ================================================================================================== */
 
-	template<typename T, MatrixIdx ROWS, MatrixIdx COLS>
-	class Matrix : public _::StdMatrixAllocator<T, ROWS, COLS>,
+	template<typename T, MatrixIdx ROWS, MatrixIdx COLS, template<typename, MatrixIdx, MatrixIdx> typename AllocatorT>
+	class Matrix : public AllocatorT<T, ROWS, COLS>,
 				   public std::conditional_t<ROWS == COLS, AbstractSquareMatrix<Matrix<T, ROWS, COLS>>,
 											 std::conditional_t<COLS == 1, AbstractVector<Matrix<T, ROWS, COLS>>,
 																AbstractMatrix<Matrix<T, ROWS, COLS>>>>
 	{
 	public:
-		using Allocator = _::StdMatrixAllocator<T, ROWS, COLS>;
+		using Allocator = AllocatorT<T, ROWS, COLS>;
 		using Base = std::conditional_t<ROWS == COLS, AbstractSquareMatrix<Matrix<T, ROWS, COLS>>,
 										std::conditional_t<COLS == 1, AbstractVector<Matrix<T, ROWS, COLS>>,
 														   AbstractMatrix<Matrix<T, ROWS, COLS>>>>;
@@ -824,7 +851,7 @@ namespace GenericMath
 		constexpr Matrix(const std::array<T, ROWS> &data)
 			requires(IsStatic() && COLS == 1)
 		{
-			for(Idx i = 0; i < data.size(); ++i)
+			for(Idx i = 0; i < ROWS; ++i)
 				Base::Data(i) = data[i];
 		}
 
@@ -832,6 +859,14 @@ namespace GenericMath
 		constexpr Matrix(const Args... args)
 			requires(IsStatic() && COLS == 1 && (std::is_same_v<Args, T> && ...) && sizeof...(Args) == ROWS)
 		{ Base::template Fill<0>(args...); }
+
+		constexpr Matrix(const std::array<std::array<T, COLS>, ROWS> &data)
+			requires(IsStatic() && COLS > 1)
+		{
+			for(Idx i = 0; i < ROWS; ++i)
+				for(Idx j = 0; j < COLS; ++j)
+					Base::Data(i, j) = data[i][j];
+		}
 
 		template<typename U>
 		constexpr Matrix(const Matrix<U, ROWS, COLS> &other) {
