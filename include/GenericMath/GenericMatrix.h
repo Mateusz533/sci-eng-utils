@@ -143,17 +143,17 @@ namespace GenericMath
 		constexpr Matrix &operator-=(const Matrix &mat) { return Self() = Self() - mat; }
 		constexpr Matrix &operator*=(const Matrix &mat) { return Self() = Self() * mat; }
 
-		constexpr Matrix operator-() const { return Matrix().template CalcFrom<std::negate<>{}>(Self(), Self()); }
-		constexpr Matrix operator+(const T scalar) const { return Matrix().template CalcFrom<std::plus<>{}>(Self(), Self(), scalar); }
-		constexpr Matrix operator-(const T scalar) const { return Matrix().template CalcFrom<std::minus<>{}>(Self(), Self(), scalar); }
-		constexpr Matrix operator*(const T scalar) const { return Matrix().template CalcFrom<std::multiplies<>{}>(Self(), Self(), scalar); }
+		constexpr Matrix operator-() const { return std::move(Matrix().template CalcFrom<std::negate<>{}>(Self(), Self())); }
+		constexpr Matrix operator+(const T scalar) const { return std::move(Matrix().template CalcFrom<std::plus<>{}>(Self(), Self(), scalar)); }
+		constexpr Matrix operator-(const T scalar) const { return std::move(Matrix().template CalcFrom<std::minus<>{}>(Self(), Self(), scalar)); }
+		constexpr Matrix operator*(const T scalar) const { return std::move(Matrix().template CalcFrom<std::multiplies<>{}>(Self(), Self(), scalar)); }
 		constexpr Matrix operator/(const T scalar) const {
-			return (scalar == T(0)) ? CreateInvalid() : Matrix().template CalcFrom<std::divides<>{}>(Self(), Self(), scalar);
+			return (scalar == T(0)) ? CreateInvalid() : std::move(Matrix().template CalcFrom<std::divides<>{}>(Self(), Self(), scalar));
 		}
 
-		friend constexpr Matrix operator+(const T scalar, const Matrix &mat) { return Matrix().template CalcFrom<std::plus<>{}>(mat, scalar, mat); }
-		friend constexpr Matrix operator-(const T scalar, const Matrix &mat) { return Matrix().template CalcFrom<std::minus<>{}>(mat, scalar, mat); }
-		friend constexpr Matrix operator*(const T scalar, const Matrix &mat) { return Matrix().template CalcFrom<std::multiplies<>{}>(mat, scalar, mat); }
+		friend constexpr Matrix operator+(const T scalar, const Matrix &mat) { return std::move(Matrix().template CalcFrom<std::plus<>{}>(mat, scalar, mat)); }
+		friend constexpr Matrix operator-(const T scalar, const Matrix &mat) { return std::move(Matrix().template CalcFrom<std::minus<>{}>(mat, scalar, mat)); }
+		friend constexpr Matrix operator*(const T scalar, const Matrix &mat) { return std::move(Matrix().template CalcFrom<std::multiplies<>{}>(mat, scalar, mat)); }
 
 		constexpr Matrix operator+(const Matrix &mat) const {
 			if constexpr(Matrix::IsDynamic()) {
@@ -161,7 +161,7 @@ namespace GenericMath
 					return CreateInvalid();
 				}
 			}
-			return Matrix().template CalcFrom<std::plus<>{}>(Self(), Self(), mat);
+			return std::move(Matrix().template CalcFrom<std::plus<>{}>(Self(), Self(), mat));
 		}
 
 		constexpr Matrix operator-(const Matrix &mat) const {
@@ -170,7 +170,7 @@ namespace GenericMath
 					return CreateInvalid();
 				}
 			}
-			return Matrix().template CalcFrom<std::minus<>{}>(Self(), Self(), mat);
+			return std::move(Matrix().template CalcFrom<std::minus<>{}>(Self(), Self(), mat));
 		}
 
 		template<typename U, Idx R, Idx C>
@@ -239,8 +239,8 @@ namespace GenericMath
 		constexpr bool IsValid() const
 			requires(Matrix::IsDynamic())
 		{
-			return ((Self().GetRows() > 0) && (Self().GetRows() <= _::MAX_MATRIX_ALLOCATION_SIZE) &&
-					(Self().GetCols() > 0) && (Self().GetCols() <= _::MAX_MATRIX_ALLOCATION_SIZE));
+			return ((Self().GetRows() > 0) && (Self().GetRows() <= Self().GetRowsLimit()) &&
+					(Self().GetCols() > 0) && (Self().GetCols() <= Self().GetColsLimit()));
 		}
 
 		constexpr void SetInvalid() {
@@ -666,6 +666,9 @@ namespace GenericMath
 				requires(COLS == 0)
 			{ return matrixData.first[matrixData.first.size() - 1]; }
 
+			static constexpr MatrixIdx GetRowsLimit() { return ROWS > 0 ? ROWS : MAX_MATRIX_ALLOCATION_SIZE; }
+			static constexpr MatrixIdx GetColsLimit() { return COLS > 0 ? COLS : MAX_MATRIX_ALLOCATION_SIZE; }
+
 			template<typename U>
 			constexpr void ResizeIfDynamic(const CompactMatrixAllocator<U, ROWS, COLS> &other) {
 				if constexpr(!IS_STATIC)
@@ -717,13 +720,13 @@ namespace GenericMath
 				if constexpr(IS_STATIC)
 					return matrixData[row];
 				else
-					return matrixData.second[row * GetCols()];
+					return (T(&)[])matrixData.second[row];
 			}
 			constexpr const Row &operator[](MatrixIdx row) const {
 				if constexpr(IS_STATIC)
 					return matrixData[row];
 				else
-					return matrixData.second[row];
+					return (const T(&)[])matrixData.second[row];
 			}
 
 			static constexpr MatrixIdx GetRows()
@@ -738,6 +741,9 @@ namespace GenericMath
 			constexpr MatrixIdx GetCols() const
 				requires(COLS == 0)
 			{ return matrixData.first[matrixData.first.size() - 1]; }
+
+			static constexpr MatrixIdx GetRowsLimit() { return ROWS > 0 ? ROWS : std::numeric_limits<MatrixIdx>::max(); }
+			static constexpr MatrixIdx GetColsLimit() { return COLS > 0 ? COLS : std::numeric_limits<MatrixIdx>::max(); }
 
 			template<typename U>
 			constexpr void ResizeIfDynamic(const StdMatrixAllocator<U, ROWS, COLS> &other) {
@@ -788,7 +794,7 @@ namespace GenericMath
 										std::conditional_t<COLS == 1, AbstractVector<Matrix<T, ROWS, COLS>>,
 														   AbstractMatrix<Matrix<T, ROWS, COLS>>>>;
 
-		using Allocator::GetRows, Allocator::GetCols, Allocator::ResizeIfDynamic;
+		using Allocator::GetRows, Allocator::GetCols, Allocator::GetRowsLimit, Allocator::GetColsLimit, Allocator::ResizeIfDynamic;
 		using Allocator::operator[];
 		using Base::SetHomogen, Base::CalcFrom, Base::ForEachElementAssign;
 		using typename Base::Idx;
