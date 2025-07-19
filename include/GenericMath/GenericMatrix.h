@@ -349,6 +349,16 @@ namespace GenericMath
 			}
 		}
 
+		constexpr void SetDiagonal(const Base::template Sibling<T, Base::ROWS, 1> &vec)
+			requires(Matrix::IsStatic())
+		{
+			for(Idx i = 0; i < Self().GetRows(); ++i) {
+				for(Idx j = 0; j < Self().GetCols(); ++j) {
+					Data(i, j) = (i == j) ? vec(i) : T(0);
+				}
+			}
+		}
+
 		constexpr void SetIdentity() {
 			SetDiagonal(T(1));
 		}

@@ -61,10 +61,26 @@
  ************************************************************************************************************/
 #pragma once
 
+#include <concepts>
+
 #include "GenericMath/GenericMatrix.h"
 
 namespace GenericMath
 {
+
+	template<class ConcreateFilter, MatrixIdx U_LEN, MatrixIdx X_LEN, MatrixIdx Y_LEN>
+	class ExtendedKalmanFilter;
+
+	template<class ConcreateFilter, MatrixIdx U_LEN, MatrixIdx X_LEN, MatrixIdx Y_LEN>
+	concept KalmanFilter = std::derived_from<ConcreateFilter, ExtendedKalmanFilter<ConcreateFilter, U_LEN, X_LEN, Y_LEN>> &&
+						   requires(ConcreateFilter filter, Matrix<double, X_LEN, X_LEN> F, Matrix<double, Y_LEN, X_LEN> H,
+									Vector<double, U_LEN> u, Vector<double, X_LEN> x_est, Vector<double, Y_LEN> y_est, double dt) {
+							   { filter.CalcJacobianF(F, x_est, u, dt) } -> std::same_as<bool>;
+							   { filter.NonlinearUpdateX(x_est, x_est, u, dt) } -> std::same_as<bool>;
+							   { filter.CalcJacobianH(H, x_est, u) } -> std::same_as<bool>;
+							   { filter.NonlinearUpdateY(y_est, x_est, u) } -> std::same_as<bool>;
+						   };
+
 	template<class ConcreateFilter, MatrixIdx U_LEN, MatrixIdx X_LEN, MatrixIdx Y_LEN>
 	class ExtendedKalmanFilter
 	{
@@ -79,8 +95,8 @@ namespace GenericMath
 
 	public:
 		constexpr ExtendedKalmanFilter() {
-			static_assert(std::is_base_of_v<ExtendedKalmanFilter, ConcreateFilter>,
-						  "ExtendedKalmanFilter template parameter must derive from ExtendedKalmanFilter");
+			static_assert(KalmanFilter<ConcreateFilter, U_LEN, X_LEN, Y_LEN>,
+						  "ExtendedKalmanFilter template parameter must implement KalmanFilter concept");
 		}
 
 		constexpr void Init(const StateVector& x_init, const StateCovMatrix& P_init) {
@@ -123,7 +139,7 @@ namespace GenericMath
 			}
 
 			/* P(k|k-1) = F*P(k-1|k-1)*F' + Q                                   ...{EKF_3} */
-			P = F * P * (F.Transpose()) + Q;
+			P = F * P * F.Transpose() + Q;
 
 			/* =============== Calculate the Jacobian matrix of h (i.e. H) =============== */
 			/* H = d(h(..))/dx |x(k|k-1)                                        ...{EKF_4} */
@@ -134,10 +150,10 @@ namespace GenericMath
 
 			/* =========================== Correction of x & P =========================== */
 			/* S = H*P(k|k-1)*H' + R                                            ...{EKF_5} */
-			const OutputCovMatrix S = (H * P * (H.Transpose())) + R;
+			const OutputCovMatrix S = H * P * H.Transpose() + R;
 
 			/* K = P(k|k-1)*H'*(S^-1)                                           ...{EKF_6} */
-			const OutputToStateMatrix K = P * (H.Transpose()) * (S.Inverse());
+			const OutputToStateMatrix K = P * H.Transpose() * S.Inverse();
 
 			if(!K.IsValid()) {
 				return false;
