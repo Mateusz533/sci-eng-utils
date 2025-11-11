@@ -93,7 +93,7 @@ namespace GenericMath
 
 		/* Nonlinear & linearization function ------------------------------------------------------------------------------- */
 
-		static constexpr bool NonlinearUpdateX(StateVector& x_next, const StateVector& x, const InputVector& u, double dt) {
+		static constexpr bool NonlinearUpdateX(StateVector& x_next, const StateVector x, const InputVector& u, double dt) {
 			/* Insert the nonlinear update transformation here
 			 *          x(k+1) = f[x(k), u(k)]
 			 *
