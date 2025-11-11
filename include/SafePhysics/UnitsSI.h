@@ -174,7 +174,7 @@ namespace Physics::Units::SI
 			return Prefix == 0;
 		}
 
-		static consteval std::string_view getType() {
+		static constexpr std::string_view getType() {
 			return std::string_view(sTypeText.begin(), sTypeText.size());
 		}
 
