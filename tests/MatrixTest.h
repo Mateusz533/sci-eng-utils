@@ -1,9 +1,9 @@
 #pragma once
-
+//
 #include <gtest/gtest.h>
-
+//
 #include <array>
-
+//
 #include "GenericMath/GenericMatrix.h"
 
 namespace MatrixTest

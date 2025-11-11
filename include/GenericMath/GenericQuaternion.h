@@ -1,7 +1,7 @@
 #pragma once
-
+//
 #include <cmath>
-
+//
 #include "GenericMatrix.h"
 
 namespace GenericMath
@@ -12,7 +12,7 @@ namespace GenericMath
 	public:
 		constexpr Quaternion() : Quaternion{Identity()} {}
 		constexpr Quaternion(T w, T x, T y, T z) : mScalar{w}, mVector{x, y, z} {}
-		constexpr Quaternion(const Quaternion &other) : mScalar{other.mScalar}, mVector{other.mVector} {}
+		constexpr Quaternion(const Quaternion &other) = default;
 
 		template<typename U>
 		Quaternion(const Matrix3<U> &rotationMatrix) {
@@ -47,11 +47,7 @@ namespace GenericMath
 		}
 
 	public:
-		constexpr Quaternion operator=(const Quaternion &other) {
-			mScalar = other.mScalar;
-			mVector = other.mVector;
-			return *this;
-		}
+		constexpr Quaternion &operator=(const Quaternion &other) = default;
 
 		constexpr Quaternion operator*=(const Quaternion &other) {
 			return *this * other;

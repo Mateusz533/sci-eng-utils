@@ -1,14 +1,17 @@
 #pragma once
-
+//
 #include <cmath>
+#include <type_traits>
 
 namespace GenericMath
 {
 	template<typename T>
-	constexpr inline T DegreesToRadians(T angleDeg) { return angleDeg * M_PI / 180.0; }
+		requires(std::is_floating_point_v<T>)
+	constexpr T DegreesToRadians(T angleDeg) { return angleDeg * T(M_PI / 180.0); }
 
 	template<typename T>
-	constexpr inline T RadiansToDegrees(T angleRad) { return angleRad * 180.0 / M_PI; }
+		requires(std::is_floating_point_v<T>)
+	constexpr T RadiansToDegrees(T angleRad) { return angleRad * T(180.0 / M_PI); }
 
 	inline double NormalizeRad(double angle) {
 		angle = std::fmod(angle, 2.0 * M_PI);

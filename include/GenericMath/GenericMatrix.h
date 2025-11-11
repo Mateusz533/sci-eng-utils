@@ -1,5 +1,5 @@
 #pragma once
-
+//
 #include <array>
 #include <cmath>
 #include <cstdint>
@@ -12,6 +12,7 @@
 //
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/Geometry>
+//
 #define EIGEN_AVAILABLE
 
 namespace GenericMath
@@ -20,13 +21,13 @@ namespace GenericMath
 
 	namespace _
 	{
-		inline constexpr MatrixIdx MAX_MATRIX_ALLOCATION_SIZE = 6;
+		static inline constexpr MatrixIdx MAX_MATRIX_ALLOCATION_SIZE = 6;
 
 		template<typename>
 		struct SiblingTrait;
 
 		template<typename T, MatrixIdx ROWS, MatrixIdx COLS>
-			requires(ROWS >= 0 && ROWS <= MAX_MATRIX_ALLOCATION_SIZE && COLS >= 0 && COLS <= MAX_MATRIX_ALLOCATION_SIZE)
+			requires((0 <= ROWS && ROWS <= MAX_MATRIX_ALLOCATION_SIZE) && (0 <= COLS && COLS <= MAX_MATRIX_ALLOCATION_SIZE))
 		class CompactMatrixAllocator;
 
 		template<typename T, MatrixIdx ROWS, MatrixIdx COLS>
@@ -64,8 +65,8 @@ namespace GenericMath
 		using Matrix = DataClass;
 		using Idx = MatrixIdx;
 		using T = typename _::SiblingTrait<DataClass>::RawType;
-		inline static constexpr Idx ROWS = _::SiblingTrait<DataClass>::R;
-		inline static constexpr Idx COLS = _::SiblingTrait<DataClass>::C;
+		static inline constexpr Idx ROWS = _::SiblingTrait<DataClass>::R;
+		static inline constexpr Idx COLS = _::SiblingTrait<DataClass>::C;
 
 		template<typename U, Idx R = ROWS, Idx C = COLS>
 		using Sibling = typename _::SiblingTrait<DataClass>::template Type<U, R, C>;
@@ -107,7 +108,7 @@ namespace GenericMath
 		}
 
 	protected:
-		inline static constexpr T EPSILON = T(1e-13);
+		static inline constexpr T EPSILON = T(1e-13);
 
 	public:
 		constexpr Matrix &operator=(const Matrix &mat) {
@@ -239,8 +240,8 @@ namespace GenericMath
 		constexpr bool IsValid() const
 			requires(Matrix::IsDynamic())
 		{
-			return ((Self().GetRows() > 0) && (Self().GetRows() <= Self().GetRowsLimit()) &&
-					(Self().GetCols() > 0) && (Self().GetCols() <= Self().GetColsLimit()));
+			return ((0 < Self().GetRows() && Self().GetRows() <= Self().GetRowsLimit()) &&
+					(0 < Self().GetCols() && Self().GetCols() <= Self().GetColsLimit()));
 		}
 
 		constexpr void SetInvalid() {
@@ -418,7 +419,7 @@ namespace GenericMath
 				}
 
 				const T normCol = std::sqrt(normSqCol);
-				v(k) += (v(k) >= T(0) ? normCol : -normCol);
+				v(k) += (v(k) >= T(0)) ? normCol : -normCol;
 
 				// Normalization of 'v' moved to next loop
 				const T halfNormSqV = normCol * std::abs(v(k));
@@ -551,6 +552,16 @@ namespace GenericMath
 
 			return detQ * detR;
 		}
+
+		constexpr T Trace() const {
+			T trace = T(0);
+
+			for(Idx i = 0; i < Self().GetRows(); ++i) {
+				trace += Data(i, i);
+			}
+
+			return trace;
+		}
 	};
 
 	/* ================================================================================================== */
@@ -627,21 +638,21 @@ namespace GenericMath
 			template<typename U, MatrixIdx R = ROWS, MatrixIdx C = COLS>
 			using Type = Matrix<U, R, C>;
 			using RawType = T;
-			inline static constexpr MatrixIdx R = ROWS;
-			inline static constexpr MatrixIdx C = COLS;
+			static inline constexpr MatrixIdx R = ROWS;
+			static inline constexpr MatrixIdx C = COLS;
 		};
 
 		template<typename T, MatrixIdx ROWS, MatrixIdx COLS>
-			requires(ROWS >= 0 && ROWS <= MAX_MATRIX_ALLOCATION_SIZE && COLS >= 0 && COLS <= MAX_MATRIX_ALLOCATION_SIZE)
+			requires((0 <= ROWS && ROWS <= MAX_MATRIX_ALLOCATION_SIZE) && (0 <= COLS && COLS <= MAX_MATRIX_ALLOCATION_SIZE))
 		class CompactMatrixAllocator
 		{
 		private:
-			inline static constexpr bool IS_STATIC = ROWS > 0 && COLS > 0;
-			inline static constexpr MatrixIdx ROWS_ALLOC = (ROWS > 0) ? ROWS : MAX_MATRIX_ALLOCATION_SIZE;
+			static inline constexpr bool IS_STATIC = (ROWS > 0 && COLS > 0);
+			static inline constexpr MatrixIdx ROWS_ALLOC = (ROWS > 0) ? ROWS : MAX_MATRIX_ALLOCATION_SIZE;
 
 			using Row = std::array<T, (COLS > 0) ? COLS : MAX_MATRIX_ALLOCATION_SIZE>;
 			using MatrixData = std::conditional_t<IS_STATIC, std::array<Row, ROWS_ALLOC>,
-												  std::pair<std::array<MatrixIdx, ROWS == COLS ? 2 : 1>, std::array<Row, ROWS_ALLOC>>>;
+												  std::pair<std::array<MatrixIdx, (ROWS == COLS) ? 2 : 1>, std::array<Row, ROWS_ALLOC>>>;
 
 		public:
 			template<typename U>
@@ -676,8 +687,8 @@ namespace GenericMath
 				requires(COLS == 0)
 			{ return matrixData.first[matrixData.first.size() - 1]; }
 
-			static constexpr MatrixIdx GetRowsLimit() { return ROWS > 0 ? ROWS : MAX_MATRIX_ALLOCATION_SIZE; }
-			static constexpr MatrixIdx GetColsLimit() { return COLS > 0 ? COLS : MAX_MATRIX_ALLOCATION_SIZE; }
+			static constexpr MatrixIdx GetRowsLimit() { return (ROWS > 0) ? ROWS : MAX_MATRIX_ALLOCATION_SIZE; }
+			static constexpr MatrixIdx GetColsLimit() { return (COLS > 0) ? COLS : MAX_MATRIX_ALLOCATION_SIZE; }
 
 			template<typename U>
 			constexpr void ResizeIfDynamic(const CompactMatrixAllocator<U, ROWS, COLS> &other) {
@@ -714,11 +725,11 @@ namespace GenericMath
 		class StdMatrixAllocator
 		{
 		private:
-			inline static constexpr bool IS_STATIC = ROWS > 0 && COLS > 0;
+			static inline constexpr bool IS_STATIC = (ROWS > 0 && COLS > 0);
 
 			using Row = std::conditional_t<(COLS > 0), std::array<T, COLS>, T[]>;
 			using MatrixData = std::conditional_t<IS_STATIC, std::array<Row, ROWS>,
-												  std::pair<std::array<MatrixIdx, ROWS == COLS ? 2 : 1>, std::unique_ptr<T[]>>>;
+												  std::pair<std::array<MatrixIdx, (ROWS == COLS) ? 2 : 1>, std::unique_ptr<T[]>>>;
 
 		public:
 			template<typename U>
@@ -752,8 +763,8 @@ namespace GenericMath
 				requires(COLS == 0)
 			{ return matrixData.first[matrixData.first.size() - 1]; }
 
-			static constexpr MatrixIdx GetRowsLimit() { return ROWS > 0 ? ROWS : std::numeric_limits<MatrixIdx>::max(); }
-			static constexpr MatrixIdx GetColsLimit() { return COLS > 0 ? COLS : std::numeric_limits<MatrixIdx>::max(); }
+			static constexpr MatrixIdx GetRowsLimit() { return (ROWS > 0) ? ROWS : std::numeric_limits<MatrixIdx>::max(); }
+			static constexpr MatrixIdx GetColsLimit() { return (COLS > 0) ? COLS : std::numeric_limits<MatrixIdx>::max(); }
 
 			template<typename U>
 			constexpr void ResizeIfDynamic(const StdMatrixAllocator<U, ROWS, COLS> &other) {
@@ -901,12 +912,8 @@ namespace GenericMath
 
 	/* ================================================================================================== */
 
-	using Matrix3f = Matrix<float, 3, 3>;
-	using Matrix4f = Matrix<float, 4, 4>;
-	using MatrixXf = Matrix<float, 0, 0>;
-	using Matrix3d = Matrix<double, 3, 3>;
-	using Matrix4d = Matrix<double, 4, 4>;
-	using MatrixXd = Matrix<double, 0, 0>;
+	template<typename T>
+	using MatrixX = Matrix<T, 0, 0>;
 
 	template<typename T>
 	using Matrix3 = Matrix<T, 3, 3>;
@@ -914,27 +921,31 @@ namespace GenericMath
 	template<typename T>
 	using Matrix4 = Matrix<T, 4, 4>;
 
-	template<typename T>
-	using MatrixX = Matrix<T, 0, 0>;
+	using MatrixXf = MatrixX<float>;
+	using Matrix3f = Matrix3<float>;
+	using Matrix4f = Matrix4<float>;
+	using MatrixXd = MatrixX<double>;
+	using Matrix3d = Matrix3<double>;
+	using Matrix4d = Matrix4<double>;
 
 	/* ================================================================================================== */
 
-	using Vector3f = Matrix<float, 3, 1>;
-	using Vector4f = Matrix<float, 4, 1>;
-	using VectorXf = Matrix<float, 0, 1>;
-	using Vector3d = Matrix<double, 3, 1>;
-	using Vector4d = Matrix<double, 4, 1>;
-	using VectorXd = Matrix<double, 0, 1>;
-
-	template<typename T>
-	using Vector3 = Matrix<T, 3, 1>;
-
-	template<typename T>
-	using Vector4 = Matrix<T, 4, 1>;
-
-	template<typename T>
-	using VectorX = Matrix<T, 0, 1>;
-
 	template<typename T, MatrixIdx LENGTH>
 	using Vector = Matrix<T, LENGTH, 1>;
+
+	template<typename T>
+	using VectorX = Vector<T, 0>;
+
+	template<typename T>
+	using Vector3 = Vector<T, 3>;
+
+	template<typename T>
+	using Vector4 = Vector<T, 4>;
+
+	using VectorXf = VectorX<float>;
+	using Vector3f = Vector3<float>;
+	using Vector4f = Vector4<float>;
+	using VectorXd = VectorX<double>;
+	using Vector3d = Vector3<double>;
+	using Vector4d = Vector4<double>;
 }

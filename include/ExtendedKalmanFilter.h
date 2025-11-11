@@ -60,9 +60,9 @@
  * Based on implementation from: https://github.com/pronenewbits
  ************************************************************************************************************/
 #pragma once
-
+//
 #include <concepts>
-
+//
 #include "GenericMath/GenericMatrix.h"
 
 namespace GenericMath
