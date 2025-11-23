@@ -16,10 +16,11 @@ namespace MatrixTest
 	/************************************************************************************************************/
 
 	TEST(MatrixTestSuite, MatrixInversionQRTest) {
-		const std::array<std::array<double, 3>, 3> matArray = {
-			54, 97, -21,
-			-96, 353, 2,
-			-39, 5, 24};
+		const std::array<std::array<double, 3>, 3> matArray{
+			std::array<double, 3>{54, 97, -21},
+			std::array<double, 3>{-96, 353, 2},
+			std::array<double, 3>{-39, 5, 24},
+		};
 
 		const Matrix3d mat = matArray;
 
@@ -27,10 +28,11 @@ namespace MatrixTest
 	}
 
 	TEST(MatrixTestSuite, MatrixInversionLUTest) {
-		const std::array<std::array<double, 3>, 3> matArray = {
-			54, 97, -21,
-			-96, 353, 2,
-			-39, 5, 24};
+		const std::array<std::array<double, 3>, 3> matArray{
+			std::array<double, 3>{54, 97, -21},
+			std::array<double, 3>{-96, 353, 2},
+			std::array<double, 3>{-39, 5, 24},
+		};
 
 		const Matrix3d mat = matArray;
 

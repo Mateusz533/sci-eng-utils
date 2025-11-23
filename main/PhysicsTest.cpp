@@ -21,7 +21,7 @@ inline SI::Meters<f64> distance(SI::MetersPerSecondSquare<f64> acceleration, SI:
 	return (startVelocity + SI::Scale<f64>(0.5) * acceleration * time) * time;
 }
 
-int main(int argc, char *argv[]) {
+int main() {
 	/*----------------------------------------------------------------------*/
 	/*------------------------ Standard Units tests ------------------------*/
 	/*----------------------------------------------------------------------*/
