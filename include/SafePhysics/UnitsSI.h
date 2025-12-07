@@ -9,7 +9,14 @@
 namespace Physics::Units::SI
 {
 	template<typename Type, i8 M, i8 S, i8 Kg, i8 A, i8 K, i8 Mol, i8 Cd, i8 Rad, i8 Sr, i8 Prefix>
-		requires(std::is_arithmetic_v<Type> && !!(Prefix == 0 || (M || S || Kg || A || K || Mol || Cd || Rad || Sr)))
+		requires(std::is_arithmetic_v<Type> && bool(Prefix == 0 || (M || S || Kg || A || K || Mol || Cd || Rad || Sr)))
+	class GenerativeUnit;
+
+	template<typename T = f64>
+	using Scale = GenerativeUnit<T, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>;
+
+	template<typename Type, i8 M, i8 S, i8 Kg, i8 A, i8 K, i8 Mol, i8 Cd, i8 Rad, i8 Sr, i8 Prefix>
+		requires(std::is_arithmetic_v<Type> && bool(Prefix == 0 || (M || S || Kg || A || K || Mol || Cd || Rad || Sr)))
 	class GenerativeUnit
 	{
 	private:
@@ -52,12 +59,12 @@ namespace Physics::Units::SI
 			return *this;
 		}
 		template<typename _Type = Type>
-		constexpr Self<> &operator*=(const GenerativeUnit<_Type, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0> value) {
+		constexpr Self<> &operator*=(const Scale<_Type> value) {
 			mData *= value.toRaw();
 			return *this;
 		}
 		template<typename _Type = Type>
-		constexpr Self<> &operator/=(const GenerativeUnit<_Type, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0> value) {
+		constexpr Self<> &operator/=(const Scale<_Type> value) {
 			mData /= value.toRaw();
 			return *this;
 		}
@@ -147,7 +154,7 @@ namespace Physics::Units::SI
 		template<u8 EXPONENT>
 		constexpr auto power() const {
 			if constexpr(EXPONENT == 0)
-				return GenerativeUnit<Type, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>{1};
+				return Scale<Type>{1};
 			else
 				return *this * power<EXPONENT - 1>();
 		}
@@ -260,7 +267,7 @@ namespace Physics::Units::SI
 		}
 
 	private:
-		inline static constexpr std::array sTypeText = getTypeArray();
+		static constexpr std::array sTypeText = getTypeArray();
 		Type mData;
 	};
 
@@ -378,6 +385,5 @@ namespace Physics::Units::SI
 	GENERATE_SI_UNIT(JouleSeconds, 2, -1, 1, 0, 0, 0, 0, 0, 0, 0);
 	GENERATE_SI_UNIT(JouleSecondsPerRadian, 2, -1, 1, 0, 0, 0, 0, -1, 0, 0);
 
-	template<typename T = f64>
-	using Scale = GenerativeUnit<T, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>;
+#undef GENERATE_SI_UNIT
 }

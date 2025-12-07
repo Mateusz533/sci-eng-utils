@@ -34,18 +34,18 @@ namespace GenericMath
 		constexpr const T& operator()(size_t index) const { return mAnglesRad[index]; }
 
 		static constexpr EulerAngles FromMatrix(const Matrix3<T>& mat) {
-			const auto angle1 = std::asin(-mat((int)A0, (int)A2));
+			const auto angle1 = std::asin(-mat(int(A0), int(A2)));
 			const bool noSingularity = std::cos(angle1) > SINGULARITY_SCOPE_RAD;
-			const auto angle0 = noSingularity ? std::atan2(+mat((int)A1, (int)A2), mat((int)A2, (int)A2))
-											  : std::atan2(-mat((int)A2, (int)A1), mat((int)A1, (int)A1));	// or `0.0`
-			const auto angle2 = noSingularity ? std::atan2(+mat((int)A0, (int)A1), mat((int)A0, (int)A0))
-											  : 0.0;  // or `std::atan2(-mat((int)A1, (int)A0), mat((int)A1, (int)A1))`
+			const auto angle0 = noSingularity ? std::atan2(+mat(int(A1), int(A2)), mat(int(A2), int(A2)))
+											  : std::atan2(-mat(int(A2), int(A1)), mat(int(A1), int(A1)));	// or `0.0`
+			const auto angle2 = noSingularity ? std::atan2(+mat(int(A0), int(A1)), mat(int(A0), int(A0)))
+											  : 0.0;  // or `std::atan2(-mat(int(A1), int(A0)), mat(int(A1), int(A1)))`
 
 			return EulerAngles{DIR * angle0, DIR * angle1, DIR * angle2};
 		}
 		static constexpr EulerAngles FromQuaternion(const Quaternion<T>& q) {
 			const auto& v = q.Vector();
-			const auto &v0 = v((int)A0), &v1 = v((int)A1), &v2 = v((int)A2);
+			const auto &v0 = v(int(A0)), &v1 = v(int(A1)), &v2 = v(int(A2));
 
 			const auto angle1 = std::asin(std::clamp(2.0 * (q.w() * v1 - DIR * v0 * v2), -1.0, 1.0));
 			const bool noSingularity = std::cos(angle1) > SINGULARITY_SCOPE_RAD;
@@ -65,17 +65,17 @@ namespace GenericMath
 
 			Matrix3<T> result;
 
-			result((int)A0, (int)A0) = c1 * c2;
-			result((int)A0, (int)A1) = c1 * s2;
-			result((int)A0, (int)A2) = -s1;
+			result(int(A0), int(A0)) = c1 * c2;
+			result(int(A0), int(A1)) = c1 * s2;
+			result(int(A0), int(A2)) = -s1;
 
-			result((int)A1, (int)A0) = s0 * s1 * c2 - c0 * s2;
-			result((int)A1, (int)A1) = s0 * s1 * s2 + c0 * c2;
-			result((int)A1, (int)A2) = s0 * c1;
+			result(int(A1), int(A0)) = s0 * s1 * c2 - c0 * s2;
+			result(int(A1), int(A1)) = s0 * s1 * s2 + c0 * c2;
+			result(int(A1), int(A2)) = s0 * c1;
 
-			result((int)A2, (int)A0) = c0 * s1 * c2 + s0 * s2;
-			result((int)A2, (int)A1) = c0 * s1 * s2 - s0 * c2;
-			result((int)A2, (int)A2) = c0 * c1;
+			result(int(A2), int(A0)) = c0 * s1 * c2 + s0 * s2;
+			result(int(A2), int(A1)) = c0 * s1 * s2 - s0 * c2;
+			result(int(A2), int(A2)) = c0 * c1;
 
 			return result;
 		}
@@ -91,9 +91,9 @@ namespace GenericMath
 			Quaternion<T> result;
 
 			result.Scalar() /*    */ = c0 * c1 * c2 + DIR * s0 * s1 * s2;
-			result.Vector()((int)A0) = s0 * c1 * c2 - DIR * c0 * s1 * s2;
-			result.Vector()((int)A1) = c0 * s1 * c2 + DIR * s0 * c1 * s2;
-			result.Vector()((int)A2) = c0 * c1 * s2 - DIR * s0 * s1 * c2;
+			result.Vector()(int(A0)) = s0 * c1 * c2 - DIR * c0 * s1 * s2;
+			result.Vector()(int(A1)) = c0 * s1 * c2 + DIR * s0 * c1 * s2;
+			result.Vector()(int(A2)) = c0 * c1 * s2 - DIR * s0 * s1 * c2;
 
 			return result;
 		}
@@ -118,8 +118,8 @@ namespace GenericMath
 		}
 
 	private:
-		static inline constexpr T DIR = ((3u + (uint)A0 - (uint)A1) % 3u == 1u) ? T(1) : T(-1);
-		static inline constexpr T SINGULARITY_SCOPE_RAD = 1e-6;
+		static constexpr T DIR = ((3u + uint(A0) - uint(A1)) % 3u == 1u) ? T(1) : T(-1);
+		static constexpr T SINGULARITY_SCOPE_RAD = 1e-6;
 		std::array<T, 3> mAnglesRad;
 	};
 

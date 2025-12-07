@@ -60,8 +60,8 @@ namespace GenericMath
 			std::array<TensorIdx, RANK + _RANK> rIdx{};
 
 			ForEachIndex<RANK + _RANK>(rIdx, [&](const auto &ri) {
-				const auto &ai = (const std::array<TensorIdx, RANK> &)ri;
-				const auto &bi = (const std::array<TensorIdx, _RANK> &)ri[RANK];
+				const auto &ai = reinterpret_cast<const std::array<TensorIdx, RANK> &>(ri);
+				const auto &bi = reinterpret_cast<const std::array<TensorIdx, _RANK> &>(ri[RANK]);
 
 				const Data a = At<RANK>(mData, ai);
 				const Data b = At<_RANK>(other.mData, bi);
@@ -174,7 +174,7 @@ namespace GenericMath
 			if constexpr(N == 0)
 				return array;
 			else
-				return At<N - 1>(array[indices[0]], (const std::array<TensorIdx, N - 1> &)indices[1]);
+				return At<N - 1>(array[indices[0]], reinterpret_cast<const std::array<TensorIdx, N - 1> &>(indices[1]));
 		}
 
 		template<TensorIdx N>
@@ -182,7 +182,7 @@ namespace GenericMath
 			if constexpr(N == 0)
 				return array;
 			else
-				return At<N - 1>(array[indices[0]], (const std::array<TensorIdx, N - 1> &)indices[1]);
+				return At<N - 1>(array[indices[0]], reinterpret_cast<const std::array<TensorIdx, N - 1> &>(indices[1]));
 		}
 
 		// Generic N-dimensional index iteration: calls f(indices) for all indices in [0..DIM)^N

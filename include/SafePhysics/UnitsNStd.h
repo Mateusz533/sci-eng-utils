@@ -383,9 +383,10 @@ namespace Physics::Units::NStd
 			}
 		}
 
+	private:
 		/* TODO: Consider how to handle `AccuracyType` */;
-		inline static constexpr AccuracyType SCALE = Scale::template toDecimal<AccuracyType>();
-		inline static constexpr AccuracyType OFFSET = Offset::template toDecimal<AccuracyType>();
+		static constexpr AccuracyType SCALE = Scale::template toDecimal<AccuracyType>();
+		static constexpr AccuracyType OFFSET = Offset::template toDecimal<AccuracyType>();
 		Type mData;
 	};
 
@@ -436,7 +437,7 @@ namespace Physics::Units::NStd
 		template<typename Type, template<typename> class StdU, i64 ScNum, i64 ScDenom, i64 OffNum = 0, i64 OffDenom = 1>
 		using Simplifier = GenerativeUnit<Type, StdU, typename Fraction<ScNum, ScDenom>::Norm, typename Fraction<OffNum, OffDenom>::Norm>;
 
-		inline static constexpr f64 DEG2RAD = M_PI / 180;
+		static constexpr f64 DEG2RAD = M_PI / 180;
 	}
 
 #define GENERATE_NSTD_FROM_DOUBLE(Name, StdType, Scale)                                                   \
@@ -460,4 +461,8 @@ namespace Physics::Units::NStd
 	GENERATE_NSTD_FROM_DOUBLE(Degree, SI::Radians, _::DEG2RAD)
 	GENERATE_OFFSETABLE_NSTD_FROM_FRACTION(DegreeCelsius, SI::Kelvins, 1, 1, 273'150, 1'000)
 	GENERATE_OFFSETABLE_NSTD_FROM_FRACTION(DegreeFahrenheit, SI::Kelvins, 5, 9, 9 * 273'150 - 4 * 40'000, 9 * 1'000)
+
+#undef GENERATE_NSTD_FROM_DOUBLE
+#undef GENERATE_NSTD_FROM_FRACTION
+#undef GENERATE_OFFSETABLE_NSTD_FROM_FRACTION
 }
