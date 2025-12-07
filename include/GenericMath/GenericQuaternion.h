@@ -49,11 +49,11 @@ namespace GenericMath
 	public:
 		constexpr Quaternion &operator=(const Quaternion &other) = default;
 
-		constexpr Quaternion operator*=(const Quaternion &other) {
-			return *this * other;
+		constexpr Quaternion &operator*=(const Quaternion &other) {
+			return *this = *this * other;
 		}
-		constexpr Quaternion operator/=(const Quaternion &other) {
-			return *this / other;
+		constexpr Quaternion &operator/=(const Quaternion &other) {
+			return *this = *this / other;
 		}
 
 		constexpr Quaternion operator*(const Quaternion &other) const {
