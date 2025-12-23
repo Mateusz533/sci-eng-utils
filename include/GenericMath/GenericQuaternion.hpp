@@ -2,7 +2,7 @@
 //
 #include <cmath>
 //
-#include "GenericMatrix.h"
+#include "GenericMatrix.hpp"
 
 namespace GenericMath
 {

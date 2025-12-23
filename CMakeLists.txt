@@ -45,19 +45,18 @@ file(GLOB SOURCE_FILES "${SOURCE_DIR}/*.cpp")
 foreach(source_file ${SOURCE_FILES})
     get_filename_component(executable_name ${source_file} NAME_WE)
     add_executable(${executable_name} ${source_file})
-    target_include_directories(${executable_name} PUBLIC ${INCLUDE_DIR})
+    target_include_directories(${executable_name} PRIVATE ${INCLUDE_DIR})
 endforeach()
 
 # Configure and build tests
 enable_testing()
 
 find_package(GTest REQUIRED)
-include_directories(${GTEST_INCLUDE_DIRS})
 
 project(RunTests)
 
 add_executable(${PROJECT_NAME} "tests/MainTest.cpp")
-target_link_libraries(${PROJECT_NAME} ${GTEST_LIBRARIES})
-target_include_directories(${PROJECT_NAME} PUBLIC "include")
+target_link_libraries(${PROJECT_NAME} GTest::GTest)
+target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDE_DIR} "tests/include")
 
 add_test(NAME GeneralTest COMMAND ${PROJECT_NAME})

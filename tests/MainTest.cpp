@@ -1,6 +1,6 @@
-#include "EulerAnglesTest.h"
-#include "MatrixTest.h"
-#include "TensorTest.h"
+#include "EulerAnglesTest.hpp"
+#include "MatrixTest.hpp"
+#include "TensorTest.hpp"
 
 int main(int argc, char** argv) {
 	::testing::InitGoogleTest(&argc, argv);

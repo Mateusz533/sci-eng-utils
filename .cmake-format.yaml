@@ -1,4 +1,3 @@
-# Source: https://github.com/cpp-best-practices/cmake_template
 bullet_char: "*"
 dangle_parens: true
 enum_char: .

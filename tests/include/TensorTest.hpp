@@ -4,7 +4,7 @@
 //
 #include <array>
 //
-#include "GenericMath/GenericTensor.h"
+#include "GenericMath/GenericTensor.hpp"
 
 namespace TensorTest
 {

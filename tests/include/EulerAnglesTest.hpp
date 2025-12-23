@@ -1,10 +1,10 @@
 #pragma once
-
+//
 #include <gtest/gtest.h>
-
+//
 #include <vector>
-
-#include "GenericMath/GenericEulerAngles.h"
+//
+#include "GenericMath/GenericEulerAngles.hpp"
 
 namespace EulerAnglesTest
 {

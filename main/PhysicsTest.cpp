@@ -1,5 +1,5 @@
-#include "SafePhysics/Patterns.h"
-#include "SafePhysics/UnitsNStd.h"
+#include "SafePhysics/Patterns.hpp"
+#include "SafePhysics/UnitsNStd.hpp"
 
 using namespace Physics;
 using namespace Units;

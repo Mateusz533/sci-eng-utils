@@ -1,7 +1,7 @@
 #pragma once
 //
-#include "GenericMath.h"
-#include "GenericQuaternion.h"
+#include "GenericMath.hpp"
+#include "GenericQuaternion.hpp"
 
 namespace GenericMath
 {

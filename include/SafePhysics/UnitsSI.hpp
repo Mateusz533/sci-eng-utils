@@ -4,7 +4,7 @@
 #include <iostream>
 #include <string_view>
 //
-#include "SafePhysics.h"
+#include "SafePhysics.hpp"
 
 namespace Physics::Units::SI
 {

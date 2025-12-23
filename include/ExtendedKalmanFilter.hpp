@@ -63,7 +63,7 @@
 //
 #include <concepts>
 //
-#include "GenericMath/GenericMatrix.h"
+#include "GenericMath/GenericMatrix.hpp"
 
 namespace GenericMath
 {

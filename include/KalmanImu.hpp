@@ -5,8 +5,8 @@
  ************************************************************************************************************/
 #pragma once
 //
-#include "ExtendedKalmanFilter.h"
-#include "GenericMath/GenericQuaternion.h"
+#include "ExtendedKalmanFilter.hpp"
+#include "GenericMath/GenericQuaternion.hpp"
 
 namespace GenericMath
 {

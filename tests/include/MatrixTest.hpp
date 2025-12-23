@@ -4,7 +4,7 @@
 //
 #include <array>
 //
-#include "GenericMath/GenericMatrix.h"
+#include "GenericMath/GenericMatrix.hpp"
 
 namespace MatrixTest
 {

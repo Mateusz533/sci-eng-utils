@@ -7,7 +7,7 @@
 #include <iostream>
 #include <type_traits>
 //
-#include "GenericMath/GenericMatrix.h"
+#include "GenericMath/GenericMatrix.hpp"
 
 constexpr int N = 3;
 constexpr int MAX_SAMPLES = 300'000;

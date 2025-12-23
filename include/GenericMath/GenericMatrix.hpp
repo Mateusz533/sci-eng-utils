@@ -273,7 +273,7 @@ namespace GenericMath
 
 		constexpr void SetRandom(int32_t minRand, int32_t maxRand) {
 			const int32_t scope = (maxRand - minRand + 1);
-			ForEachElementAssign<[](auto minRand, auto scope) { return T((rand() % scope) + minRand); }>(minRand, scope);
+			ForEachElementAssign<[](auto minRand, auto scope) { return T((std::rand() % scope) + minRand); }>(minRand, scope);
 		}
 
 		constexpr auto Transpose() const {
