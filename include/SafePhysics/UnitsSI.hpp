@@ -1,10 +1,10 @@
 #pragma once
 //
-#include <array>
 #include <iostream>
 #include <string_view>
 //
 #include "SafePhysics.hpp"
+#include "Utils/CompileTime.hpp"
 
 namespace Physics::Units::SI
 {
@@ -136,7 +136,7 @@ namespace Physics::Units::SI
 			os << obj.mData << ' ';
 			if constexpr(Prefix != 0)
 				os << "* ";
-			os << Self<>::GetType();
+			os << Self<>::GetTypeView();
 			return os;
 		}
 
@@ -181,8 +181,12 @@ namespace Physics::Units::SI
 			return Prefix == 0;
 		}
 
-		static consteval std::string_view GetType() {
-			return sTypeTextView;
+		static consteval std::string_view GetTypeView() {
+			return sTypeText.View();
+		}
+
+		static consteval std::string_view GetTypeCString() {
+			return sTypeText.CString();
 		}
 
 	private:
@@ -196,8 +200,9 @@ namespace Physics::Units::SI
 			} else if constexpr(_Prefix - Prefix < 0) {
 				constexpr NewType scaleFactor = Pow10(Prefix - _Prefix);
 				return value.ToRaw() / scaleFactor;
-			} else
+			} else {
 				return value.ToRaw();
+			}
 		}
 
 		static consteval i64 Pow10(const u8 pow) {
@@ -211,64 +216,41 @@ namespace Physics::Units::SI
 			return curr == prev ? curr : SqrtNewtonRaphson(x, 0.5 * (curr + x / curr), curr);
 		}
 
-		static consteval auto GetTypeArray() {
-			constexpr auto withExp = AddDimention<Prefix>(ToArray(""), ToArray(" * 10^"));
-			constexpr auto withMet = AddDimention<M>(withExp, ToArray(" * m^"));
-			constexpr auto withSec = AddDimention<S>(withMet, ToArray(" * s^"));
-			constexpr auto withKgm = AddDimention<Kg>(withSec, ToArray(" * kg^"));
-			constexpr auto withAmp = AddDimention<A>(withKgm, ToArray(" * A^"));
-			constexpr auto withKel = AddDimention<K>(withAmp, ToArray(" * K^"));
-			constexpr auto withMol = AddDimention<Mol>(withKel, ToArray(" * mol^"));
-			constexpr auto withCnd = AddDimention<Cd>(withMol, ToArray(" * cd^"));
-			constexpr auto withRad = AddDimention<Rad>(withCnd, ToArray(" * rad^"));
-			constexpr auto withAll = AddDimention<Sr>(withRad, ToArray(" * sr^"));
+		static consteval auto GetTypeText() {
+			constexpr auto text = Utils::CompileTime::String("").Join(
+				DimentionToString<Prefix>("10"),
+				DimentionToString<M>("m"),
+				DimentionToString<S>("s"),
+				DimentionToString<Kg>("kg"),
+				DimentionToString<A>("A"),
+				DimentionToString<K>("K"),
+				DimentionToString<Mol>("mol"),
+				DimentionToString<Cd>("cd"),
+				DimentionToString<Rad>("rad"),
+				DimentionToString<Sr>("sr"));
 
-			if constexpr(withAll.size() != 0) {
-				std::array<char, withAll.size() - 3> result = {};
-				for(usize i = 0; i < result.size(); ++i)
-					result[i] = withAll[i + 3];
-				return result;
+			if constexpr(text.Size() != 0) {
+				constexpr auto prefixSize = Utils::CompileTime::String(" * ").Size();
+				return text.template SubString<prefixSize, text.Size() - prefixSize>();
 			} else {
-				constexpr auto result = ToArray("dimensionless");
-				return result;
+				return Utils::CompileTime::String("(dimensionless)");
 			}
 		}
 
-		template<i8 Dimention, usize N, usize N1>
-		static consteval auto AddDimention(const std::array<char, N> &text, const std::array<char, N1> &dimentionText) {
-			if constexpr(Dimention > 0) {
-				constexpr std::array<char, 2> num = {'0' + Dimention};
-				return Concatenate(Concatenate(text, dimentionText), num);
-			} else if constexpr(Dimention < 0) {
-				constexpr std::array<char, 2> num = {'-', '0' - Dimention};
-				return Concatenate(Concatenate(text, dimentionText), num);
-			} else
-				return text;
-		}
-
-		template<usize N, usize N1>
-		static consteval auto Concatenate(const std::array<char, N> &arr1, const std::array<char, N1> &arr2) {
-			std::array<char, N + N1> result = {};
-			for(usize i = 0; i < N; ++i)
-				result[i] = arr1[i];
-			for(usize i = 0; i < N1; ++i)
-				result[N + i] = arr2[i];
-
-			return result;
-		}
-
-		template<usize N>
-		static consteval auto ToArray(const char (&arr)[N]) {
-			std::array<char, N - 1> result = {};
-			for(usize i = 0; i < N - 1; ++i)
-				result[i] = arr[i];
-
-			return result;
+		template<i8 Dimention, usize N>
+		static consteval auto DimentionToString(const char (&baseText)[N]) {
+			if constexpr(Dimention == 0) {
+				return Utils::CompileTime::String("");
+			} else {
+				return Utils::CompileTime::String(" * ").Join(
+					Utils::CompileTime::String(baseText),
+					Utils::CompileTime::String("^"),
+					Utils::CompileTime::IntegerToString<Dimention>());
+			}
 		}
 
 	private:
-		static constexpr std::array sTypeText = GetTypeArray();
-		static constexpr std::string_view sTypeTextView{sTypeText.begin(), sTypeText.size()};
+		static constexpr auto sTypeText = GetTypeText();
 		Type mData;
 	};
 

@@ -54,9 +54,9 @@ int main() {
 	// 5 m / 0 s = ERROR
 	// SI::Meters<int>{5} / SI::Seconds<int>{0}
 
-	std::cout << "Scale type: " << SI::Scale<>().GetType() << std::endl;
-	std::cout << "Meters type: " << SI::Meters<>().GetType() << std::endl;
-	std::cout << "NanoWatts type: " << SI::NanoWatts<>().GetType() << std::endl;
+	std::cout << "Scale type: " << SI::Scale<>().GetTypeView() << std::endl;
+	std::cout << "Meters type: " << SI::Meters<>().GetTypeView() << std::endl;
+	std::cout << "NanoWatts type: " << SI::NanoWatts<>().GetTypeView() << std::endl;
 	std::cout << "Electric constant value: " << Constants::ELECTRIC_CONSTANT << std::endl;
 
 	// Patterns
