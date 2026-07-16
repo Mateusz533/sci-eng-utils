@@ -82,7 +82,7 @@ namespace Physics
 			return inductance * current;
 		}
 
-		/* Oscilations and waves */;
+		/* Oscillations and waves */;
 
 		template<typename T>
 		constexpr RadiansPerMeter<T> WaveNumber(Meters<T> waveLength) {

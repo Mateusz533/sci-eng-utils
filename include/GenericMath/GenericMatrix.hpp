@@ -293,7 +293,7 @@ namespace GenericMath
 	class AbstractSquareMatrix : public AbstractMatrix<DataClass>
 	{
 		static_assert(_::SiblingTrait<DataClass>::R == _::SiblingTrait<DataClass>::C,
-					  "AbstractSquareMatrix must have same static rows and columns number or both danamic!");
+					  "AbstractSquareMatrix must have same static rows and columns number or both dynamic!");
 
 		using Matrix = DataClass;
 		using Base = AbstractMatrix<DataClass>;

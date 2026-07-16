@@ -421,14 +421,14 @@ namespace Physics::Units::NStd
 			}
 
 		public:
-			static consteval i64 Denominator( f64 value) noexcept {
+			static consteval i64 Denominator(f64 value) noexcept {
 				const i64 exp = CalcExponent(value);
 				return Exp2(exp < 0L ? 62L : 62L - exp);
 			}
-			static consteval i64 Numerator( f64 value) noexcept {
+			static consteval i64 Numerator(f64 value) noexcept {
 				return value * Denominator(value);
 			}
-			static consteval bool IsConvertible( f64 value) noexcept {
+			static consteval bool IsConvertible(f64 value) noexcept {
 				const i64 exp = CalcExponent(value);
 				return exp > -11 && exp < 63;
 			}
@@ -449,8 +449,8 @@ namespace Physics::Units::NStd
 	template<typename T = f64>                                     \
 	using Name = _::Simplifier<T, StdType, ScNum, ScDenom>;
 
-#define GENERATE_OFFSETABLE_NSTD_FROM_FRACTION(Name, StdType, ScNum, ScDenom, OffNum, OffDenom) \
-	template<typename T = f64>                                                                  \
+#define GENERATE_OFFSETTABLE_NSTD_FROM_FRACTION(Name, StdType, ScNum, ScDenom, OffNum, OffDenom) \
+	template<typename T = f64>                                                                   \
 	using Name = _::Simplifier<T, StdType, ScNum, ScDenom, OffNum, OffDenom>;
 
 	/* --- GENERATE NEEDED UNITS HERE --- */
@@ -459,10 +459,10 @@ namespace Physics::Units::NStd
 	GENERATE_NSTD_FROM_FRACTION(Permille, SI::Scale, 1, 1'000)
 	GENERATE_NSTD_FROM_FRACTION(Inch, SI::Meters, 25'400, 1'000'000)
 	GENERATE_NSTD_FROM_DOUBLE(Degree, SI::Radians, _::DEG2RAD)
-	GENERATE_OFFSETABLE_NSTD_FROM_FRACTION(DegreeCelsius, SI::Kelvins, 1, 1, 273'150, 1'000)
-	GENERATE_OFFSETABLE_NSTD_FROM_FRACTION(DegreeFahrenheit, SI::Kelvins, 5, 9, 9 * 273'150 - 4 * 40'000, 9 * 1'000)
+	GENERATE_OFFSETTABLE_NSTD_FROM_FRACTION(DegreeCelsius, SI::Kelvins, 1, 1, 273'150, 1'000)
+	GENERATE_OFFSETTABLE_NSTD_FROM_FRACTION(DegreeFahrenheit, SI::Kelvins, 5, 9, 9 * 273'150 - 4 * 40'000, 9 * 1'000)
 
 #undef GENERATE_NSTD_FROM_DOUBLE
 #undef GENERATE_NSTD_FROM_FRACTION
-#undef GENERATE_OFFSETABLE_NSTD_FROM_FRACTION
+#undef GENERATE_OFFSETTABLE_NSTD_FROM_FRACTION
 }

@@ -218,16 +218,16 @@ namespace Physics::Units::SI
 
 		static consteval auto GetTypeText() {
 			constexpr auto text = Utils::CompileTime::String("").Join(
-				DimentionToString<Prefix>("10"),
-				DimentionToString<M>("m"),
-				DimentionToString<S>("s"),
-				DimentionToString<Kg>("kg"),
-				DimentionToString<A>("A"),
-				DimentionToString<K>("K"),
-				DimentionToString<Mol>("mol"),
-				DimentionToString<Cd>("cd"),
-				DimentionToString<Rad>("rad"),
-				DimentionToString<Sr>("sr"));
+				DimensionToString<Prefix>("10"),
+				DimensionToString<M>("m"),
+				DimensionToString<S>("s"),
+				DimensionToString<Kg>("kg"),
+				DimensionToString<A>("A"),
+				DimensionToString<K>("K"),
+				DimensionToString<Mol>("mol"),
+				DimensionToString<Cd>("cd"),
+				DimensionToString<Rad>("rad"),
+				DimensionToString<Sr>("sr"));
 
 			if constexpr(text.Size() != 0) {
 				constexpr auto prefixSize = Utils::CompileTime::String(" * ").Size();
@@ -237,15 +237,15 @@ namespace Physics::Units::SI
 			}
 		}
 
-		template<i8 Dimention, usize N>
-		static consteval auto DimentionToString(const char (&baseText)[N]) {
-			if constexpr(Dimention == 0) {
+		template<i8 Dimension, usize N>
+		static consteval auto DimensionToString(const char (&baseText)[N]) {
+			if constexpr(Dimension == 0) {
 				return Utils::CompileTime::String("");
 			} else {
 				return Utils::CompileTime::String(" * ").Join(
 					Utils::CompileTime::String(baseText),
 					Utils::CompileTime::String("^"),
-					Utils::CompileTime::IntegerToString<Dimention>());
+					Utils::CompileTime::IntegerToString<Dimension>());
 			}
 		}
 
@@ -321,7 +321,7 @@ namespace Physics::Units::SI
 	GENERATE_SI_UNIT(VoltsPerMeter, 1, -3, 1, -1, 0, 0, 0, 0, 0, 0);
 	GENERATE_SI_UNIT(Volts, 2, -3, 1, -1, 0, 0, 0, 0, 0, 0);
 	GENERATE_SI_UNIT(Ohms, 2, -3, 1, -2, 0, 0, 0, 0, 0, 0);
-	GENERATE_SI_UNIT(Siemenses, -2, 3, -1, 2, 0, 0, 0, 0, 0, 0);
+	GENERATE_SI_UNIT(Siemens, -2, 3, -1, 2, 0, 0, 0, 0, 0, 0);
 	GENERATE_SI_UNIT(Farads, -2, 4, -1, 2, 0, 0, 0, 0, 0, 0);
 	GENERATE_SI_UNIT(FaradsPerMeter, -3, 4, -1, 2, 0, 0, 0, 0, 0, 0);
 
