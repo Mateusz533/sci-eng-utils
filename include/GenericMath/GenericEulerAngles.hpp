@@ -111,7 +111,7 @@ namespace GenericMath
 			return AreForwardAngles() ? CalcDualAngles() : *this;
 		}
 		constexpr EulerAngles CalcDualAngles() const {
-			return EulerAngles{mAnglesRad[0] - M_PI, M_PI - mAnglesRad[1], mAnglesRad[2] - M_PI};
+			return EulerAngles{mAnglesRad[0] - std::numbers::pi, std::numbers::pi - mAnglesRad[1], mAnglesRad[2] - std::numbers::pi};
 		}
 		constexpr EulerAngles Normalize() const {
 			return EulerAngles{NormalizeRad(mAnglesRad[0]), NormalizeRad(mAnglesRad[1]), NormalizeRad(mAnglesRad[2])};

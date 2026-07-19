@@ -1,5 +1,7 @@
 #pragma once
 //
+#include <numbers>
+//
 #include "UnitsSI.hpp"
 
 namespace Physics::Units::NStd
@@ -437,7 +439,7 @@ namespace Physics::Units::NStd
 		template<typename Type, template<typename> class StdU, i64 ScNum, i64 ScDenom, i64 OffNum = 0, i64 OffDenom = 1>
 		using Simplifier = GenerativeUnit<Type, StdU, typename Fraction<ScNum, ScDenom>::Norm, typename Fraction<OffNum, OffDenom>::Norm>;
 
-		static constexpr f64 DEG2RAD = M_PI / 180;
+		inline constexpr f64 DEG2RAD = std::numbers::pi / 180.0;
 	}
 
 #define GENERATE_NSTD_FROM_DOUBLE(Name, StdType, Scale)                                                        \

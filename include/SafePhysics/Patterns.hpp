@@ -1,5 +1,7 @@
 #pragma once
 //
+#include <numbers>
+//
 #include "UnitsSI.hpp"
 
 namespace Physics
@@ -8,7 +10,7 @@ namespace Physics
 	{
 		using namespace Units::SI;
 
-		inline constexpr Radians<> RADIAN_PER_REVOLUTION{2 * M_PI};
+		inline constexpr Radians<> RADIAN_PER_REVOLUTION{2.0 * std::numbers::pi};
 		inline constexpr MetersPerSecond<> SPEED_OF_LIGHT{2.99792458e8};
 		inline constexpr JouleSeconds<> PLANCK_CONSTANT{6.62607015e-34};
 		inline constexpr Coulombs<> ELEMENTARY_CHARGE{1.602176634e-19};
@@ -16,7 +18,7 @@ namespace Physics
 		inline constexpr PartsPerMole<> AVOGADRO_CONSTANT{6.02214076e23};
 
 		inline constexpr JouleSecondsPerRadian<> DIRAC_CONSTANT{PLANCK_CONSTANT / RADIAN_PER_REVOLUTION};
-		inline constexpr HenriesPerMeter<> MAGNETIC_CONSTANT{4e-7 * M_PI};
+		inline constexpr HenriesPerMeter<> MAGNETIC_CONSTANT{4e-7 * std::numbers::pi};
 		inline constexpr FaradsPerMeter<> ELECTRIC_CONSTANT = Scale<>{1} / (MAGNETIC_CONSTANT * SPEED_OF_LIGHT.Power<2>());
 	}
 
