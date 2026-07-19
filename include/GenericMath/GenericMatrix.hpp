@@ -19,7 +19,7 @@ namespace GenericMath
 {
 	using MatrixIdx = int16_t;
 
-	namespace _
+	namespace Detail
 	{
 		static constexpr MatrixIdx DYNAMIC_SIZE = 0;
 		static constexpr MatrixIdx MAX_MATRIX_ALLOCATION_SIZE = 6;
@@ -39,7 +39,7 @@ namespace GenericMath
 	}
 
 	template<typename T, MatrixIdx ROWS, MatrixIdx COLS>
-	using DefaultMatrixAllocator = _::StdMatrixAllocator<T, ROWS, COLS>;
+	using DefaultMatrixAllocator = Detail::StdMatrixAllocator<T, ROWS, COLS>;
 
 	template<class DataClass>
 	class AbstractMatrix;
@@ -62,12 +62,12 @@ namespace GenericMath
 		using Matrix = DataClass;
 		using Idx = MatrixIdx;
 
-		using T = typename _::SiblingTrait<DataClass>::RawType;
-		static constexpr Idx ROWS = _::SiblingTrait<DataClass>::R;
-		static constexpr Idx COLS = _::SiblingTrait<DataClass>::C;
+		using T = typename Detail::SiblingTrait<DataClass>::RawType;
+		static constexpr Idx ROWS = Detail::SiblingTrait<DataClass>::R;
+		static constexpr Idx COLS = Detail::SiblingTrait<DataClass>::C;
 
 		template<typename U, Idx R = ROWS, Idx C = COLS>
-		using Sibling = typename _::SiblingTrait<DataClass>::template Type<U, R, C>;
+		using Sibling = typename Detail::SiblingTrait<DataClass>::template Type<U, R, C>;
 
 		static constexpr T EPSILON = T(1e-13);
 
@@ -292,7 +292,7 @@ namespace GenericMath
 	template<class DataClass>
 	class AbstractSquareMatrix : public AbstractMatrix<DataClass>
 	{
-		static_assert(_::SiblingTrait<DataClass>::R == _::SiblingTrait<DataClass>::C,
+		static_assert(Detail::SiblingTrait<DataClass>::R == Detail::SiblingTrait<DataClass>::C,
 					  "AbstractSquareMatrix must have same static rows and columns number or both dynamic!");
 
 		using Matrix = DataClass;
@@ -567,7 +567,7 @@ namespace GenericMath
 	template<class DataClass>
 	class AbstractVector : public AbstractMatrix<DataClass>
 	{
-		static_assert(_::SiblingTrait<DataClass>::C == 1,
+		static_assert(Detail::SiblingTrait<DataClass>::C == 1,
 					  "AbstractVector must have only one and static column!");
 
 		using Matrix = DataClass;
@@ -632,7 +632,7 @@ namespace GenericMath
 
 	/* ================================================================================================== */
 
-	namespace _
+	namespace Detail
 	{
 		template<typename T, MatrixIdx ROWS, MatrixIdx COLS>
 		struct SiblingTrait<Matrix<T, ROWS, COLS>> {
@@ -700,8 +700,8 @@ namespace GenericMath
 			constexpr CompactMatrixAllocator() : mRows{}, mCols{} {}
 
 		private:
-			[[no_unique_address]] std::conditional_t<(ROWS == DYNAMIC_SIZE), MatrixIdx, _::Empty> mRows;
-			[[no_unique_address]] std::conditional_t<(COLS == DYNAMIC_SIZE), MatrixIdx, _::Empty> mCols;
+			[[no_unique_address]] std::conditional_t<(ROWS == DYNAMIC_SIZE), MatrixIdx, Detail::Empty> mRows;
+			[[no_unique_address]] std::conditional_t<(COLS == DYNAMIC_SIZE), MatrixIdx, Detail::Empty> mCols;
 			MatrixData matrixData;
 		};
 
@@ -780,8 +780,8 @@ namespace GenericMath
 			constexpr StdMatrixAllocator() : mRows{}, mCols{} {}
 
 		private:
-			[[no_unique_address]] std::conditional_t<(ROWS == DYNAMIC_SIZE), MatrixIdx, _::Empty> mRows;
-			[[no_unique_address]] std::conditional_t<(COLS == DYNAMIC_SIZE), MatrixIdx, _::Empty> mCols;
+			[[no_unique_address]] std::conditional_t<(ROWS == DYNAMIC_SIZE), MatrixIdx, Detail::Empty> mRows;
+			[[no_unique_address]] std::conditional_t<(COLS == DYNAMIC_SIZE), MatrixIdx, Detail::Empty> mCols;
 			MatrixData matrixData;
 		};
 
@@ -803,18 +803,18 @@ namespace GenericMath
 
 	template<typename T, MatrixIdx ROWS, MatrixIdx COLS, template<typename, MatrixIdx, MatrixIdx> typename AllocatorT>
 	class Matrix : public AllocatorT<T, ROWS, COLS>,
-				   public _::AbstractUnifiedMatrix<Matrix<T, ROWS, COLS>>
+				   public Detail::AbstractUnifiedMatrix<Matrix<T, ROWS, COLS>>
 	{
 	public:
 		using Allocator = AllocatorT<T, ROWS, COLS>;
-		using Base = _::AbstractUnifiedMatrix<Matrix<T, ROWS, COLS>>;
+		using Base = Detail::AbstractUnifiedMatrix<Matrix<T, ROWS, COLS>>;
 
 		using Allocator::GetRows, Allocator::GetCols, Allocator::GetRowsLimit, Allocator::GetColsLimit, Allocator::ResizeIfDynamic;
 		using Allocator::operator[];
 		using typename Base::Idx;
 
-		static consteval bool IsRowDynamic() { return ROWS == _::DYNAMIC_SIZE; }
-		static consteval bool IsColDynamic() { return COLS == _::DYNAMIC_SIZE; }
+		static consteval bool IsRowDynamic() { return ROWS == Detail::DYNAMIC_SIZE; }
+		static consteval bool IsColDynamic() { return COLS == Detail::DYNAMIC_SIZE; }
 		static consteval bool IsRowStatic() { return !IsRowDynamic(); }
 		static consteval bool IsColStatic() { return !IsColDynamic(); }
 		static consteval bool IsStatic() { return IsRowStatic() && IsColStatic(); }
@@ -916,7 +916,7 @@ namespace GenericMath
 	/* ================================================================================================== */
 
 	template<typename T>
-	using MatrixX = Matrix<T, _::DYNAMIC_SIZE, _::DYNAMIC_SIZE>;
+	using MatrixX = Matrix<T, Detail::DYNAMIC_SIZE, Detail::DYNAMIC_SIZE>;
 
 	template<typename T>
 	using Matrix3 = Matrix<T, 3, 3>;
@@ -937,7 +937,7 @@ namespace GenericMath
 	using Vector = Matrix<T, LENGTH, 1>;
 
 	template<typename T>
-	using VectorX = Vector<T, _::DYNAMIC_SIZE>;
+	using VectorX = Vector<T, Detail::DYNAMIC_SIZE>;
 
 	template<typename T>
 	using Vector3 = Vector<T, 3>;
