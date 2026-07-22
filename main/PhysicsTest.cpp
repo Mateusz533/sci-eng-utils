@@ -8,15 +8,6 @@ inline SI::KiloGramMetersSquare<f64> CylinderInertia(SI::RadialMeters<f64> radiu
 	return SI::Scale<f64>(0.5) * mass * radius * radius;
 }
 
-/// @return Moment of inertia in kg * m^2
-inline double CylinderInertia(double radiusInMeters, double massInKilograms) {
-	return 0.5 * massInKilograms * radiusInMeters * radiusInMeters;
-}
-
-inline double CylinderInertia2(double radius, double mass) {
-	return 0.5 * mass * radius * radius;
-}
-
 inline SI::Meters<f64> Distance(SI::MetersPerSecondSquare<f64> acceleration, SI::Seconds<f64> time, SI::MetersPerSecond<f64> startVelocity = 0) {
 	return (startVelocity + SI::Scale<f64>(0.5) * acceleration * time) * time;
 }
@@ -68,11 +59,11 @@ int main() {
 	/*----------------------------------------------------------------------*/
 	std::cout << "\n--- NStd units tests ---\n\n";
 
-	NStd::Inch<double> resultInch = ingM;
+	NStd::Inches<double> resultInch = ingM;
 	std::cout << "1 meter in inches: " << resultInch << std::endl;
 	std::cout << "1 meter after double conversion: " << resultInch.ToStandardUnit<>() << std::endl;
 
-	NStd::Degree<> degree;
+	NStd::Degrees<> degree;
 	std::cout << "Offset Numerator:   " << degree.GetOffsetNumerator() << std::endl;
 	std::cout << "Offset Denominator: " << degree.GetOffsetDenominator() << std::endl;
 	std::cout << "Scale Numerator:    " << degree.GetScaleNumerator() << std::endl;
@@ -80,10 +71,10 @@ int main() {
 	std::cout << "Degree per radian:  " << 1.0 * degree.GetScaleNumerator() / degree.GetScaleDenominator() << std::endl;
 	std::cout << "Radian per degree:  " << 1.0 * degree.GetScaleDenominator() / degree.GetScaleNumerator() << std::endl;
 
-	std::cout << "  0 *F = " << NStd::DegreeFahrenheit<>{0}.ToStandardUnit() << std::endl;
-	std::cout << "100 *F = " << NStd::DegreeFahrenheit<>{100}.ToStandardUnit() << std::endl;
-	std::cout << "  0 *C = " << NStd::DegreeCelsius<>{0}.ToStandardUnit() << std::endl;
-	std::cout << "100 *C = " << NStd::DegreeCelsius<>{100}.ToStandardUnit() << std::endl;
+	std::cout << "  0 *F = " << NStd::DegreesFahrenheit<>{0}.ToStandardUnit() << std::endl;
+	std::cout << "100 *F = " << NStd::DegreesFahrenheit<>{100}.ToStandardUnit() << std::endl;
+	std::cout << "  0 *C = " << NStd::DegreesCelsius<>{0}.ToStandardUnit() << std::endl;
+	std::cout << "100 *C = " << NStd::DegreesCelsius<>{100}.ToStandardUnit() << std::endl;
 
 	std::cout << "\n--- The end of the tests ---\n\n";
 
