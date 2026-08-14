@@ -4,11 +4,11 @@
 using namespace Physics;
 using namespace Units;
 
-inline SI::KiloGramMetersSquare<f64> CylinderInertia(SI::RadialMeters<f64> radius, SI::KiloGrams<f64> mass) {
+constexpr SI::KiloGramMetersSquare<f64> CylinderInertia(SI::RadialMeters<f64> radius, SI::KiloGrams<f64> mass) noexcept {
 	return SI::Scale<f64>(0.5) * mass * radius * radius;
 }
 
-inline SI::Meters<f64> Distance(SI::MetersPerSecondSquare<f64> acceleration, SI::Seconds<f64> time, SI::MetersPerSecond<f64> startVelocity = 0) {
+constexpr SI::Meters<f64> Distance(SI::MetersPerSecondSquare<f64> acceleration, SI::Seconds<f64> time, SI::MetersPerSecond<f64> startVelocity = 0) noexcept {
 	return (startVelocity + SI::Scale<f64>(0.5) * acceleration * time) * time;
 }
 
