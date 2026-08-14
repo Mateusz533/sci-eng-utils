@@ -42,8 +42,7 @@ namespace Physics::Units::NStd
 			static consteval bool IsPositive() {
 				return Numerator > 0;
 			}
-			template<typename T = f64>
-				requires(std::is_arithmetic_v<T>)
+			template<Arithmetic T = f64>
 			static consteval T ToDecimal() {
 				return static_cast<T>(Num) / static_cast<T>(Denom);
 			}
@@ -65,8 +64,8 @@ namespace Physics::Units::NStd
 		{};
 	}
 
-	template<typename Type, template<typename> class StandardUnit, class Scale, class Offset, typename AccuracyType = f64>
-		requires(!std::is_base_of_v<Detail::Base, StandardUnit<u8>> && std::is_arithmetic_v<Type> && StandardUnit<i8>::HasNoPrefix() &&
+	template<Arithmetic Type, template<typename> class StandardUnit, class Scale, class Offset, typename AccuracyType = f64>
+		requires(!std::is_base_of_v<Detail::Base, StandardUnit<u8>> && StandardUnit<i8>::HasNoPrefix() &&
 				 Scale::IsNormalized() && Offset::IsNormalized() && Scale::IsPositive() && !(Offset::IsZero() && Scale::IsIdentity()))
 	class GenerativeUnit : Detail::Base
 	{
@@ -82,17 +81,17 @@ namespace Physics::Units::NStd
 			return std::is_same_v<Scale, _Fraction>;
 		}
 
-		template<typename _Type = Type, template<typename> class _StandardUnit = StandardUnit>
+		template<Arithmetic _Type = Type, template<typename> class _StandardUnit = StandardUnit>
 		using Self = GenerativeUnit<_Type, _StandardUnit, Scale, Offset, AccuracyType>;
 
-		template<typename _Type = Type, template<typename> class _StandardUnit = StandardUnit, class _Scale = Scale,
+		template<Arithmetic _Type = Type, template<typename> class _StandardUnit = StandardUnit, class _Scale = Scale,
 				 class _Offset = Offset, typename _AccuracyType = AccuracyType>
 		using AdaptiveSelf = std::conditional_t<_Scale::IsIdentity() && _Offset::IsZero(), _StandardUnit<_Type>,
 												GenerativeUnit<_Type, _StandardUnit, _Scale, _Offset, _AccuracyType>>;
 
 		template<class Base>
 		struct Decomposer {
-			template<typename T>
+			template<Arithmetic T>
 			using OuterType = decltype(Base().template Cast<T>());
 			using InnerType = decltype(Base().ToRaw());
 		};
@@ -114,9 +113,9 @@ namespace Physics::Units::NStd
 		constexpr GenerativeUnit(const Self<> &&value) : mData(value.mData) {}
 		constexpr GenerativeUnit() : mData(0) {}
 		constexpr GenerativeUnit(const Type data) : mData(data) {}
-		template<typename _Type = Type>
+		template<Arithmetic _Type = Type>
 		constexpr GenerativeUnit(const StandardUnit<_Type> value) : mData(FromStandardUnit(value)) {}
-		template<typename _Type = Type>
+		template<Arithmetic _Type = Type>
 		constexpr GenerativeUnit(const Self<_Type> value) : mData(value.ToRaw()) {}
 		template<typename SiblingUnit = Self<>>
 			requires(HasSameStdUnitBase<SiblingUnit>())
@@ -132,12 +131,12 @@ namespace Physics::Units::NStd
 			mData = value.mData;
 			return *this;
 		}
-		template<typename _Type = Type>
+		template<Arithmetic _Type = Type>
 		constexpr Self<> &operator=(const StandardUnit<_Type> value) {
 			mData = FromStandardUnit(value);
 			return *this;
 		}
-		template<typename _Type = Type>
+		template<Arithmetic _Type = Type>
 		constexpr Self<> &operator=(const Self<_Type> value) {
 			mData = value.ToRaw();
 			return *this;
@@ -149,12 +148,12 @@ namespace Physics::Units::NStd
 			return *this;
 		}
 
-		template<typename _Type = Type>
+		template<Arithmetic _Type = Type>
 		constexpr Self<> &operator+=(const StandardUnit<_Type> value) {
 			mData += value.ToRaw() / SCALE;
 			return *this;
 		}
-		template<typename _Type = Type>
+		template<Arithmetic _Type = Type>
 			requires(HasNoOffset())
 		constexpr Self<> &operator+=(const Self<_Type> value) {
 			mData += value.ToRaw();
@@ -166,12 +165,12 @@ namespace Physics::Units::NStd
 			mData += FromOtherNStd(value);
 			return *this;
 		}
-		template<typename _Type = Type>
+		template<Arithmetic _Type = Type>
 		constexpr Self<> &operator-=(const StandardUnit<_Type> value) {
 			mData -= value.ToRaw() / SCALE;
 			return *this;
 		}
-		template<typename _Type = Type>
+		template<Arithmetic _Type = Type>
 			requires(HasNoOffset())
 		constexpr Self<> &operator-=(const Self<_Type> value) {
 			mData -= value.ToRaw();
@@ -183,13 +182,13 @@ namespace Physics::Units::NStd
 			mData -= FromOtherNStd(value);
 			return *this;
 		}
-		template<typename _Type = Type>
+		template<Arithmetic _Type = Type>
 			requires(HasNoOffset())
 		constexpr Self<> &operator*=(const SI::Scale<_Type> value) {
 			mData *= value.ToRaw();
 			return *this;
 		}
-		template<typename _Type = Type>
+		template<Arithmetic _Type = Type>
 			requires(HasNoOffset())
 		constexpr Self<> &operator/=(const SI::Scale<_Type> value) {
 			mData /= value.ToRaw();
@@ -198,31 +197,31 @@ namespace Physics::Units::NStd
 
 		/* Comparison operators */;
 
-		template<typename _Type = Type>
+		template<Arithmetic _Type = Type>
 		constexpr bool operator<(const Self<_Type> value) const {
 			return mData < value.ToRaw();
 		}
-		template<typename _Type = Type>
+		template<Arithmetic _Type = Type>
 		constexpr bool operator>(const Self<_Type> value) const {
 			return mData > value.ToRaw();
 		}
-		template<typename _Type = Type>
+		template<Arithmetic _Type = Type>
 		constexpr bool operator<=(const Self<_Type> value) const {
 			return mData <= value.ToRaw();
 		}
-		template<typename _Type = Type>
+		template<Arithmetic _Type = Type>
 		constexpr bool operator>=(const Self<_Type> value) const {
 			return mData >= value.ToRaw();
 		}
-		template<typename _Type = Type>
+		template<Arithmetic _Type = Type>
 		constexpr bool operator==(const Self<_Type> value) const {
 			return mData == value.ToRaw();
 		}
-		template<typename _Type = Type>
+		template<Arithmetic _Type = Type>
 		constexpr bool operator!=(const Self<_Type> value) const {
 			return mData != value.ToRaw();
 		}
-		template<typename _Type = Type>
+		template<Arithmetic _Type = Type>
 		constexpr auto operator<=>(const Self<_Type> value) const {
 			return mData <=> value.ToRaw();
 		}
@@ -248,12 +247,12 @@ namespace Physics::Units::NStd
 			using NewUnit = AdaptiveSelf<RawType, StandardUnit, Scale, ResultOffset, AccType>;
 			return NewUnit{mData + value.ToRaw()};
 		}
-		template<typename _Type = Type>
+		template<Arithmetic _Type = Type>
 			requires(HasIdentScale())
 		constexpr Self<decltype(Type() + _Type())> operator+(const StandardUnit<_Type> value) const {
 			return mData + value.ToRaw();
 		}
-		template<typename _Type = Type>
+		template<Arithmetic _Type = Type>
 			requires(HasIdentScale())
 		friend constexpr Self<decltype(_Type() + Type())> operator+(const StandardUnit<_Type> &value, const Self<> &self) {
 			return value.ToRaw() + self.ToRaw();
@@ -267,18 +266,18 @@ namespace Physics::Units::NStd
 			using NewUnit = AdaptiveSelf<RawType, StandardUnit, Scale, ResultOffset, AccType>;
 			return NewUnit{mData - value.ToRaw()};
 		}
-		template<typename _Type = Type>
+		template<Arithmetic _Type = Type>
 			requires(HasIdentScale())
 		constexpr Self<decltype(Type() - _Type())> operator-(const StandardUnit<_Type> value) const {
 			return mData - value.ToRaw();
 		}
-		template<typename _Type = Type>
+		template<Arithmetic _Type = Type>
 			requires(HasIdentScale())
 		friend constexpr auto operator-(const StandardUnit<_Type> &value, const Self<> &self) {
 			using NewUnit = decltype(-Self<decltype(_Type() - Type())>());
 			return NewUnit{value.ToRaw() - self.ToRaw()};
 		}
-		template<typename _Type, template<typename> class _StandardUnit, class _Scale, class _Offset, typename _AccuracyType = f64>
+		template<Arithmetic _Type, template<typename> class _StandardUnit, class _Scale, class _Offset, typename _AccuracyType = f64>
 			requires(HasNoOffset() && _Offset::IsZero())
 		constexpr auto operator*(const GenerativeUnit<_Type, _StandardUnit, _Scale, _Offset, _AccuracyType> value) const {
 			using RawType = decltype(Type() * _Type());
@@ -300,7 +299,7 @@ namespace Physics::Units::NStd
 			operator*(const _StdUnitT &value, const Self<> &self) {
 			return value.ToRaw() * self.ToRaw();
 		}
-		template<typename _Type, template<typename> class _StandardUnit, class _Scale, class _Offset, typename _AccuracyType = f64>
+		template<Arithmetic _Type, template<typename> class _StandardUnit, class _Scale, class _Offset, typename _AccuracyType = f64>
 			requires(HasNoOffset() && _Offset::IsZero())
 		constexpr auto operator/(const GenerativeUnit<_Type, _StandardUnit, _Scale, _Offset, _AccuracyType> value) const {
 			using RawType = decltype(Type() / _Type());
@@ -330,7 +329,7 @@ namespace Physics::Units::NStd
 
 		/* Other methods */;
 
-		template<typename _Type = Type>
+		template<Arithmetic _Type = Type>
 		constexpr Self<_Type> Cast() const {
 			return mData;
 		}
@@ -339,7 +338,7 @@ namespace Physics::Units::NStd
 			return mData;
 		}
 
-		template<typename _Type = Type>
+		template<Arithmetic _Type = Type>
 		constexpr StandardUnit<_Type> ToStandardUnit() const {
 			if constexpr(SCALE == 1)
 				return mData + OFFSET;
@@ -363,7 +362,7 @@ namespace Physics::Units::NStd
 		}
 
 	private:
-		template<typename _Type = Type>
+		template<Arithmetic _Type = Type>
 		static constexpr Type FromStandardUnit(const StandardUnit<_Type> value) {
 			if constexpr(SCALE == 1)
 				return value.ToRaw() - OFFSET;
@@ -436,7 +435,7 @@ namespace Physics::Units::NStd
 			}
 		};
 
-		template<typename Type, template<typename> class StdU, i64 ScNum, i64 ScDenom, i64 OffNum = 0, i64 OffDenom = 1>
+		template<Arithmetic Type, template<typename> class StdU, i64 ScNum, i64 ScDenom, i64 OffNum = 0, i64 OffDenom = 1>
 		using Simplifier = GenerativeUnit<Type, StdU, typename Fraction<ScNum, ScDenom>::Norm, typename Fraction<OffNum, OffDenom>::Norm>;
 
 		inline constexpr f64 DEG2RAD = std::numbers::pi / 180.0;
@@ -444,15 +443,15 @@ namespace Physics::Units::NStd
 
 #define GENERATE_NSTD_FROM_DOUBLE(Name, StdType, Scale)                                                        \
 	static_assert(Detail::FractionParser::IsConvertible(Scale), "Value '" #Scale "' out of supported range!"); \
-	template<typename T = f64>                                                                                 \
+	template<Arithmetic T = f64>                                                                               \
 	using Name = Detail::Simplifier<T, StdType, Detail::FractionParser::Numerator(Scale), Detail::FractionParser::Denominator(Scale)>;
 
 #define GENERATE_NSTD_FROM_FRACTION(Name, StdType, ScNum, ScDenom) \
-	template<typename T = f64>                                     \
+	template<Arithmetic T = f64>                                   \
 	using Name = Detail::Simplifier<T, StdType, ScNum, ScDenom>;
 
 #define GENERATE_OFFSETTABLE_NSTD_FROM_FRACTION(Name, StdType, ScNum, ScDenom, OffNum, OffDenom) \
-	template<typename T = f64>                                                                   \
+	template<Arithmetic T = f64>                                                                 \
 	using Name = Detail::Simplifier<T, StdType, ScNum, ScDenom, OffNum, OffDenom>;
 
 	/* --- GENERATE NEEDED UNITS HERE --- */

@@ -1,5 +1,6 @@
 #pragma once
 //
+#include <cmath>
 #include <iostream>
 #include <string_view>
 //
@@ -8,19 +9,19 @@
 
 namespace Physics::Units::SI
 {
-	template<typename Type, i8 M, i8 S, i8 Kg, i8 A, i8 K, i8 Mol, i8 Cd, i8 Rad, i8 Sr, i8 Prefix>
-		requires(std::is_arithmetic_v<Type> && bool(Prefix == 0 || (M || S || Kg || A || K || Mol || Cd || Rad || Sr)))
+	template<Arithmetic Type, i8 M, i8 S, i8 Kg, i8 A, i8 K, i8 Mol, i8 Cd, i8 Rad, i8 Sr, i8 Prefix>
+		requires(bool(Prefix == 0 || (M || S || Kg || A || K || Mol || Cd || Rad || Sr)))
 	class GenerativeUnit;
 
-	template<typename T = f64>
+	template<Arithmetic T = f64>
 	using Scale = GenerativeUnit<T, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>;
 
-	template<typename Type, i8 M, i8 S, i8 Kg, i8 A, i8 K, i8 Mol, i8 Cd, i8 Rad, i8 Sr, i8 Prefix>
-		requires(std::is_arithmetic_v<Type> && bool(Prefix == 0 || (M || S || Kg || A || K || Mol || Cd || Rad || Sr)))
+	template<Arithmetic Type, i8 M, i8 S, i8 Kg, i8 A, i8 K, i8 Mol, i8 Cd, i8 Rad, i8 Sr, i8 Prefix>
+		requires(bool(Prefix == 0 || (M || S || Kg || A || K || Mol || Cd || Rad || Sr)))
 	class GenerativeUnit
 	{
 	private:
-		template<typename _Type = Type, i8 _Prefix = Prefix>
+		template<Arithmetic _Type = Type, i8 _Prefix = Prefix>
 		using Self = GenerativeUnit<_Type, M, S, Kg, A, K, Mol, Cd, Rad, Sr, _Prefix>;
 
 	public:
@@ -30,7 +31,7 @@ namespace Physics::Units::SI
 		constexpr GenerativeUnit(const Self<> &&value) : mData(value.mData) {}
 		constexpr GenerativeUnit() : mData(0) {}
 		constexpr GenerativeUnit(const Type data) : mData(data) {}
-		template<typename _Type = Type, i8 _Prefix = Prefix>
+		template<Arithmetic _Type = Type, i8 _Prefix = Prefix>
 		constexpr GenerativeUnit(const Self<_Type, _Prefix> value) : mData(ScaleUnit(value)){};
 
 		/* Assignment operators */;
@@ -43,27 +44,27 @@ namespace Physics::Units::SI
 			mData = value.mData;
 			return *this;
 		}
-		template<typename _Type = Type, i8 _Prefix = Prefix>
+		template<Arithmetic _Type = Type, i8 _Prefix = Prefix>
 		constexpr Self<> &operator=(const Self<_Type, _Prefix> value) {
 			mData = ScaleUnit(value);
 			return *this;
 		}
-		template<typename _Type = Type, i8 _Prefix = Prefix>
+		template<Arithmetic _Type = Type, i8 _Prefix = Prefix>
 		constexpr Self<> &operator+=(const Self<_Type, _Prefix> value) {
 			mData += ScaleUnit(value);
 			return *this;
 		}
-		template<typename _Type = Type, i8 _Prefix = Prefix>
+		template<Arithmetic _Type = Type, i8 _Prefix = Prefix>
 		constexpr Self<> &operator-=(const Self<_Type, _Prefix> value) {
 			mData -= ScaleUnit(value);
 			return *this;
 		}
-		template<typename _Type = Type>
+		template<Arithmetic _Type = Type>
 		constexpr Self<> &operator*=(const Scale<_Type> value) {
 			mData *= value.ToRaw();
 			return *this;
 		}
-		template<typename _Type = Type>
+		template<Arithmetic _Type = Type>
 		constexpr Self<> &operator/=(const Scale<_Type> value) {
 			mData /= value.ToRaw();
 			return *this;
@@ -71,31 +72,31 @@ namespace Physics::Units::SI
 
 		/* Comparison operators */;
 
-		template<typename _Type = Type>
+		template<Arithmetic _Type = Type>
 		constexpr bool operator<(const Self<_Type> value) const {
 			return mData < value.ToRaw();
 		}
-		template<typename _Type = Type>
+		template<Arithmetic _Type = Type>
 		constexpr bool operator>(const Self<_Type> value) const {
 			return mData > value.ToRaw();
 		}
-		template<typename _Type = Type>
+		template<Arithmetic _Type = Type>
 		constexpr bool operator<=(const Self<_Type> value) const {
 			return mData <= value.ToRaw();
 		}
-		template<typename _Type = Type>
+		template<Arithmetic _Type = Type>
 		constexpr bool operator>=(const Self<_Type> value) const {
 			return mData >= value.ToRaw();
 		}
-		template<typename _Type = Type>
+		template<Arithmetic _Type = Type>
 		constexpr bool operator==(const Self<_Type> value) const {
 			return mData == value.ToRaw();
 		}
-		template<typename _Type = Type>
+		template<Arithmetic _Type = Type>
 		constexpr bool operator!=(const Self<_Type> value) const {
 			return mData != value.ToRaw();
 		}
-		template<typename _Type = Type>
+		template<Arithmetic _Type = Type>
 		constexpr auto operator<=>(const Self<_Type> value) const {
 			return mData <=> value.ToRaw();
 		}
@@ -111,22 +112,22 @@ namespace Physics::Units::SI
 		constexpr auto operator-() const {
 			return Self<decltype(-Type())>{-mData};
 		}
-		template<typename _Type = Type>
+		template<Arithmetic _Type = Type>
 		constexpr auto operator+(const Self<_Type> value) const {
 			using NewType = decltype(Type() + _Type());
 			return Self<NewType>{mData + value.ToRaw()};
 		}
-		template<typename _Type = Type>
+		template<Arithmetic _Type = Type>
 		constexpr auto operator-(const Self<_Type> value) const {
 			using NewType = decltype(Type() - _Type());
 			return Self<NewType>{mData - value.ToRaw()};
 		}
-		template<typename _Type, i8 _M, i8 _S, i8 _Kg, i8 _A, i8 _K, i8 _Mol, i8 _Cd, i8 _Rad, i8 _Sr, i8 _Prefix>
+		template<Arithmetic _Type, i8 _M, i8 _S, i8 _Kg, i8 _A, i8 _K, i8 _Mol, i8 _Cd, i8 _Rad, i8 _Sr, i8 _Prefix>
 		constexpr auto operator*(const GenerativeUnit<_Type, _M, _S, _Kg, _A, _K, _Mol, _Cd, _Rad, _Sr, _Prefix> value) const {
 			return GenerativeUnit<decltype(Type() * _Type()), M + _M, S + _S, Kg + _Kg, A + _A, K + _K, Mol + _Mol, Cd + _Cd,
 								  Rad + _Rad, Sr + _Sr, Prefix + _Prefix>{mData * value.ToRaw()};
 		}
-		template<typename _Type, i8 _M, i8 _S, i8 _Kg, i8 _A, i8 _K, i8 _Mol, i8 _Cd, i8 _Rad, i8 _Sr, i8 _Prefix>
+		template<Arithmetic _Type, i8 _M, i8 _S, i8 _Kg, i8 _A, i8 _K, i8 _Mol, i8 _Cd, i8 _Rad, i8 _Sr, i8 _Prefix>
 		constexpr auto operator/(const GenerativeUnit<_Type, _M, _S, _Kg, _A, _K, _Mol, _Cd, _Rad, _Sr, _Prefix> value) const {
 			return GenerativeUnit<decltype(Type() / _Type()), M - _M, S - _S, Kg - _Kg, A - _A, K - _K, Mol - _Mol, Cd - _Cd,
 								  Rad - _Rad, Sr - _Sr, Prefix - _Prefix>{mData / value.ToRaw()};
@@ -142,7 +143,7 @@ namespace Physics::Units::SI
 
 		/* Other methods */;
 
-		template<typename _Type = Type>
+		template<Arithmetic _Type = Type>
 		constexpr Self<_Type> Cast() const {
 			return static_cast<_Type>(mData);
 		}
@@ -190,7 +191,7 @@ namespace Physics::Units::SI
 		}
 
 	private:
-		template<typename _Type = Type, i8 _Prefix = Prefix>
+		template<Arithmetic _Type = Type, i8 _Prefix = Prefix>
 		static constexpr auto ScaleUnit(const Self<_Type, _Prefix> value) {
 			using NewType = decltype(Type() * _Type());
 
@@ -255,29 +256,29 @@ namespace Physics::Units::SI
 	};
 
 #define GENERATE_SI_UNIT(Name, M, S, Kg, A, K, Mol, Cd, Rad, Sr, BaseShift)                 \
-	template<typename T = f64>                                                              \
+	template<Arithmetic T = f64>                                                            \
 	using Nano##Name = GenerativeUnit<T, M, S, Kg, A, K, Mol, Cd, Rad, Sr, BaseShift - 9>;  \
-	template<typename T = f64>                                                              \
+	template<Arithmetic T = f64>                                                            \
 	using Micro##Name = GenerativeUnit<T, M, S, Kg, A, K, Mol, Cd, Rad, Sr, BaseShift - 6>; \
-	template<typename T = f64>                                                              \
+	template<Arithmetic T = f64>                                                            \
 	using Milli##Name = GenerativeUnit<T, M, S, Kg, A, K, Mol, Cd, Rad, Sr, BaseShift - 3>; \
-	template<typename T = f64>                                                              \
+	template<Arithmetic T = f64>                                                            \
 	using Centi##Name = GenerativeUnit<T, M, S, Kg, A, K, Mol, Cd, Rad, Sr, BaseShift - 2>; \
-	template<typename T = f64>                                                              \
+	template<Arithmetic T = f64>                                                            \
 	using Deci##Name = GenerativeUnit<T, M, S, Kg, A, K, Mol, Cd, Rad, Sr, BaseShift - 1>;  \
-	template<typename T = f64>                                                              \
+	template<Arithmetic T = f64>                                                            \
 	using Name = GenerativeUnit<T, M, S, Kg, A, K, Mol, Cd, Rad, Sr, BaseShift>;            \
-	template<typename T = f64>                                                              \
+	template<Arithmetic T = f64>                                                            \
 	using Deca##Name = GenerativeUnit<T, M, S, Kg, A, K, Mol, Cd, Rad, Sr, BaseShift + 1>;  \
-	template<typename T = f64>                                                              \
+	template<Arithmetic T = f64>                                                            \
 	using Hecto##Name = GenerativeUnit<T, M, S, Kg, A, K, Mol, Cd, Rad, Sr, BaseShift + 2>; \
-	template<typename T = f64>                                                              \
+	template<Arithmetic T = f64>                                                            \
 	using Kilo##Name = GenerativeUnit<T, M, S, Kg, A, K, Mol, Cd, Rad, Sr, BaseShift + 3>;  \
-	template<typename T = f64>                                                              \
+	template<Arithmetic T = f64>                                                            \
 	using Mega##Name = GenerativeUnit<T, M, S, Kg, A, K, Mol, Cd, Rad, Sr, BaseShift + 6>;  \
-	template<typename T = f64>                                                              \
+	template<Arithmetic T = f64>                                                            \
 	using Giga##Name = GenerativeUnit<T, M, S, Kg, A, K, Mol, Cd, Rad, Sr, BaseShift + 9>;  \
-	template<typename T = f64, i8 Power = 0>                                                \
+	template<Arithmetic T = f64, i8 Power = 0>                                              \
 	using Any##Name = GenerativeUnit<T, M, S, Kg, A, K, Mol, Cd, Rad, Sr, BaseShift + Power>;
 
 	/* --- GENERATE NEEDED UNITS HERE --- */

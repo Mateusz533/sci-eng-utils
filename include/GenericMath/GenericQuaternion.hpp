@@ -1,12 +1,13 @@
 #pragma once
 //
 #include <cmath>
+#include <concepts>
 //
 #include "GenericMatrix.hpp"
 
 namespace GenericMath
 {
-	template<typename T>
+	template<std::floating_point T>
 	class Quaternion
 	{
 	public:
@@ -14,7 +15,7 @@ namespace GenericMath
 		constexpr Quaternion(T w, T x, T y, T z) : mScalar{w}, mVector{x, y, z} {}
 		constexpr Quaternion(const Quaternion &other) = default;
 
-		template<typename U>
+		template<std::floating_point U>
 		Quaternion(const Matrix3<U> &rotationMatrix) {
 			const auto &mat = rotationMatrix;
 			const double trace = mat(0, 0) + mat(1, 1) + mat(2, 2);
@@ -68,7 +69,7 @@ namespace GenericMath
 			return *this * other.Inverse();
 		}
 
-		template<typename U>
+		template<std::floating_point U>
 		operator Quaternion<U>() const {
 			return Quaternion<U>{w(), x(), y(), z()};
 		}

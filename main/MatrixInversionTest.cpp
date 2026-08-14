@@ -15,8 +15,8 @@ constexpr int MAX_SAMPLES = 300'000;
 template<class Matrix3d>
 inline Matrix3d makeMatrix(const std::array<double, N * N>& values) {
 	Matrix3d res;
-	for(size_t i = 0; i < N; ++i)
-		for(size_t j = 0; j < N; ++j)
+	for(std::size_t i = 0; i < N; ++i)
+		for(std::size_t j = 0; j < N; ++j)
 			res(i, j) = values[i * N + j];
 
 	return res;
@@ -43,8 +43,8 @@ inline bool validateMatrix(const Matrix3d& mat) {
 template<class Matrix3d>
 inline double maxDiff(const Matrix3d& mat) {
 	double max = 0.0;
-	for(size_t i = 0; i < N; ++i) {
-		for(size_t j = 0; j < N; ++j) {
+	for(std::size_t i = 0; i < N; ++i) {
+		for(std::size_t j = 0; j < N; ++j) {
 			const double val = std::abs(mat(i, j));
 			if(val > max) max = val;
 		}
@@ -54,8 +54,8 @@ inline double maxDiff(const Matrix3d& mat) {
 
 template<class Matrix3d>
 inline void printMatrix(const Matrix3d& mat) {
-	for(size_t i = 0; i < N; ++i) {
-		for(size_t j = 0; j < N; ++j)
+	for(std::size_t i = 0; i < N; ++i) {
+		for(std::size_t j = 0; j < N; ++j)
 			printf("% 13.6f\t", mat(i, j));
 		std::cout << "\n";
 	}

@@ -1,5 +1,7 @@
 #pragma once
 //
+#include <concepts>
+//
 #include "GenericMath.hpp"
 #include "GenericQuaternion.hpp"
 
@@ -11,8 +13,7 @@ namespace GenericMath
 		Z = 2,
 	};
 
-	template<typename T, RotationAxis A0, RotationAxis A1, RotationAxis A2>
-		requires(std::is_floating_point_v<T>)
+	template<std::floating_point T, RotationAxis A0, RotationAxis A1, RotationAxis A2>
 	class EulerAngles
 	{
 		static_assert(A0 != A1 && A1 != A2, "Invalid axis order!");
@@ -30,8 +31,8 @@ namespace GenericMath
 			return EulerAngles{DegreesToRadians(angles[0]), DegreesToRadians(angles[1]), DegreesToRadians(angles[2])};
 		}
 
-		constexpr T& operator()(size_t index) { return mAnglesRad[index]; }
-		constexpr const T& operator()(size_t index) const { return mAnglesRad[index]; }
+		constexpr T& operator()(std::size_t index) { return mAnglesRad[index]; }
+		constexpr const T& operator()(std::size_t index) const { return mAnglesRad[index]; }
 
 		static constexpr EulerAngles FromMatrix(const Matrix3<T>& mat) {
 			const auto angle1 = std::asin(-mat(int(A0), int(A2)));
@@ -123,33 +124,33 @@ namespace GenericMath
 		std::array<T, 3> mAnglesRad;
 	};
 
-	template<typename T>
+	template<std::floating_point T>
 	using EulerAnglesLocalXYZ = EulerAngles<T, RotationAxis::X, RotationAxis::Y, RotationAxis::Z>;
-	template<typename T>
+	template<std::floating_point T>
 	using EulerAnglesLocalXZY = EulerAngles<T, RotationAxis::X, RotationAxis::Z, RotationAxis::Y>;
-	template<typename T>
+	template<std::floating_point T>
 	using EulerAnglesLocalYZX = EulerAngles<T, RotationAxis::Y, RotationAxis::Z, RotationAxis::X>;
-	template<typename T>
+	template<std::floating_point T>
 	using EulerAnglesLocalYXZ = EulerAngles<T, RotationAxis::Y, RotationAxis::X, RotationAxis::Z>;
-	template<typename T>
+	template<std::floating_point T>
 	using EulerAnglesLocalZXY = EulerAngles<T, RotationAxis::Z, RotationAxis::X, RotationAxis::Y>;
-	template<typename T>
+	template<std::floating_point T>
 	using EulerAnglesLocalZYX = EulerAngles<T, RotationAxis::Z, RotationAxis::Y, RotationAxis::X>;
 
-	template<typename T>
+	template<std::floating_point T>
 	using EulerAnglesGlobalXYZ = EulerAnglesLocalZYX<T>;
-	template<typename T>
+	template<std::floating_point T>
 	using EulerAnglesGlobalXZY = EulerAnglesLocalYZX<T>;
-	template<typename T>
+	template<std::floating_point T>
 	using EulerAnglesGlobalYZX = EulerAnglesLocalXZY<T>;
-	template<typename T>
+	template<std::floating_point T>
 	using EulerAnglesGlobalYXZ = EulerAnglesLocalZXY<T>;
-	template<typename T>
+	template<std::floating_point T>
 	using EulerAnglesGlobalZXY = EulerAnglesLocalYXZ<T>;
-	template<typename T>
+	template<std::floating_point T>
 	using EulerAnglesGlobalZYX = EulerAnglesLocalXYZ<T>;
 
-	template<typename T>
+	template<std::floating_point T>
 	class StdEulerAngles : public EulerAnglesLocalZYX<T>
 	{
 	public:

@@ -1,6 +1,7 @@
 #pragma once
 //
 #include <array>
+#include <concepts>
 #include <cstdint>
 #include <span>
 #include <type_traits>
@@ -8,7 +9,7 @@
 
 namespace GenericMath
 {
-	using TensorIdx = int32_t;
+	using TensorIdx = std::int32_t;
 
 	namespace Private
 	{
@@ -24,8 +25,8 @@ namespace GenericMath
 		};
 	}
 
-	template<typename Data, TensorIdx RANK, TensorIdx DIM>
-		requires(std::is_floating_point_v<Data> && DIM > 0 && RANK >= 0)
+	template<std::floating_point Data, TensorIdx RANK, TensorIdx DIM>
+		requires(DIM > 0 && RANK >= 0)
 	class Tensor
 	{
 		template<TensorIdx _RANK>
