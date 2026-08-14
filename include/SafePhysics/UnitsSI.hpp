@@ -22,50 +22,46 @@ namespace Physics::Units::SI
 	{
 	private:
 		template<Arithmetic _Type = Type, i8 _Prefix = Prefix>
-		using Self = GenerativeUnit<_Type, M, S, Kg, A, K, Mol, Cd, Rad, Sr, _Prefix>;
+		using Sibling = GenerativeUnit<_Type, M, S, Kg, A, K, Mol, Cd, Rad, Sr, _Prefix>;
+
+		using Self = GenerativeUnit;
 
 	public:
 		/* Constructors */;
 
-		constexpr GenerativeUnit(const Self<> &value) : mData(value.mData) {}
-		constexpr GenerativeUnit(const Self<> &&value) : mData(value.mData) {}
-		constexpr GenerativeUnit() : mData(0) {}
-		constexpr GenerativeUnit(const Type data) : mData(data) {}
+		constexpr GenerativeUnit() = default;
+		constexpr GenerativeUnit(const Self &value) = default;
+		constexpr GenerativeUnit(Self &&value) = default;
+		constexpr GenerativeUnit(const Type data) noexcept : mData(data) {}
 		template<Arithmetic _Type = Type, i8 _Prefix = Prefix>
-		constexpr GenerativeUnit(const Self<_Type, _Prefix> value) : mData(ScaleUnit(value)){};
+		constexpr GenerativeUnit(const Sibling<_Type, _Prefix> value) noexcept : mData(ScaleUnit(value)){};
 
 		/* Assignment operators */;
 
-		constexpr Self<> &operator=(const Self<> &value) {
-			mData = value.mData;
-			return *this;
-		}
-		constexpr Self<> &operator=(const Self<> &&value) {
-			mData = value.mData;
-			return *this;
-		}
+		constexpr Self &operator=(const Self &value) = default;
+		constexpr Self &operator=(Self &&value) = default;
 		template<Arithmetic _Type = Type, i8 _Prefix = Prefix>
-		constexpr Self<> &operator=(const Self<_Type, _Prefix> value) {
+		constexpr Self &operator=(const Sibling<_Type, _Prefix> value) {
 			mData = ScaleUnit(value);
 			return *this;
 		}
 		template<Arithmetic _Type = Type, i8 _Prefix = Prefix>
-		constexpr Self<> &operator+=(const Self<_Type, _Prefix> value) {
+		constexpr Self &operator+=(const Sibling<_Type, _Prefix> value) {
 			mData += ScaleUnit(value);
 			return *this;
 		}
 		template<Arithmetic _Type = Type, i8 _Prefix = Prefix>
-		constexpr Self<> &operator-=(const Self<_Type, _Prefix> value) {
+		constexpr Self &operator-=(const Sibling<_Type, _Prefix> value) {
 			mData -= ScaleUnit(value);
 			return *this;
 		}
 		template<Arithmetic _Type = Type>
-		constexpr Self<> &operator*=(const Scale<_Type> value) {
+		constexpr Self &operator*=(const Scale<_Type> value) {
 			mData *= value.ToRaw();
 			return *this;
 		}
 		template<Arithmetic _Type = Type>
-		constexpr Self<> &operator/=(const Scale<_Type> value) {
+		constexpr Self &operator/=(const Scale<_Type> value) {
 			mData /= value.ToRaw();
 			return *this;
 		}
@@ -73,31 +69,31 @@ namespace Physics::Units::SI
 		/* Comparison operators */;
 
 		template<Arithmetic _Type = Type>
-		constexpr bool operator<(const Self<_Type> value) const {
+		constexpr bool operator<(const Sibling<_Type> value) const {
 			return mData < value.ToRaw();
 		}
 		template<Arithmetic _Type = Type>
-		constexpr bool operator>(const Self<_Type> value) const {
+		constexpr bool operator>(const Sibling<_Type> value) const {
 			return mData > value.ToRaw();
 		}
 		template<Arithmetic _Type = Type>
-		constexpr bool operator<=(const Self<_Type> value) const {
+		constexpr bool operator<=(const Sibling<_Type> value) const {
 			return mData <= value.ToRaw();
 		}
 		template<Arithmetic _Type = Type>
-		constexpr bool operator>=(const Self<_Type> value) const {
+		constexpr bool operator>=(const Sibling<_Type> value) const {
 			return mData >= value.ToRaw();
 		}
 		template<Arithmetic _Type = Type>
-		constexpr bool operator==(const Self<_Type> value) const {
+		constexpr bool operator==(const Sibling<_Type> value) const {
 			return mData == value.ToRaw();
 		}
 		template<Arithmetic _Type = Type>
-		constexpr bool operator!=(const Self<_Type> value) const {
+		constexpr bool operator!=(const Sibling<_Type> value) const {
 			return mData != value.ToRaw();
 		}
 		template<Arithmetic _Type = Type>
-		constexpr auto operator<=>(const Self<_Type> value) const {
+		constexpr auto operator<=>(const Sibling<_Type> value) const {
 			return mData <=> value.ToRaw();
 		}
 
@@ -110,17 +106,17 @@ namespace Physics::Units::SI
 		/* Arithmetic operators */;
 
 		constexpr auto operator-() const {
-			return Self<decltype(-Type())>{-mData};
+			return Sibling<decltype(-Type())>{-mData};
 		}
 		template<Arithmetic _Type = Type>
-		constexpr auto operator+(const Self<_Type> value) const {
+		constexpr auto operator+(const Sibling<_Type> value) const {
 			using NewType = decltype(Type() + _Type());
-			return Self<NewType>{mData + value.ToRaw()};
+			return Sibling<NewType>{mData + value.ToRaw()};
 		}
 		template<Arithmetic _Type = Type>
-		constexpr auto operator-(const Self<_Type> value) const {
+		constexpr auto operator-(const Sibling<_Type> value) const {
 			using NewType = decltype(Type() - _Type());
-			return Self<NewType>{mData - value.ToRaw()};
+			return Sibling<NewType>{mData - value.ToRaw()};
 		}
 		template<Arithmetic _Type, i8 _M, i8 _S, i8 _Kg, i8 _A, i8 _K, i8 _Mol, i8 _Cd, i8 _Rad, i8 _Sr, i8 _Prefix>
 		constexpr auto operator*(const GenerativeUnit<_Type, _M, _S, _Kg, _A, _K, _Mol, _Cd, _Rad, _Sr, _Prefix> value) const {
@@ -133,18 +129,18 @@ namespace Physics::Units::SI
 								  Rad - _Rad, Sr - _Sr, Prefix - _Prefix>{mData / value.ToRaw()};
 		}
 
-		friend std::ostream &operator<<(std::ostream &os, const Self<> &obj) {
+		friend std::ostream &operator<<(std::ostream &os, const Self &obj) {
 			os << obj.mData << ' ';
 			if constexpr(Prefix != 0)
 				os << "* ";
-			os << Self<>::GetTypeView();
+			os << Self::GetTypeView();
 			return os;
 		}
 
 		/* Other methods */;
 
 		template<Arithmetic _Type = Type>
-		constexpr Self<_Type> Cast() const {
+		constexpr Sibling<_Type> Cast() const {
 			return static_cast<_Type>(mData);
 		}
 
@@ -171,8 +167,8 @@ namespace Physics::Units::SI
 			static_assert(Rad % 2 == 0);
 			static_assert(Sr % 2 == 0);
 			static_assert(Prefix % 2 == 0);
-			using NewType = GenerativeUnit<std::conditional_t<std::is_same_v<Type, f128>, f128, f64>, M / 2, S / 2,
-										   Kg / 2, A / 2, K / 2, Mol / 2, Cd / 2, Rad / 2, Sr / 2, Prefix / 2>;
+			using RawType = std::conditional_t<std::is_same_v<Type, f128>, f128, f64>;
+			using NewType = GenerativeUnit<RawType, M / 2, S / 2, Kg / 2, A / 2, K / 2, Mol / 2, Cd / 2, Rad / 2, Sr / 2, Prefix / 2>;
 			return NewType{mData >= 0 && mData < std::numeric_limits<double>::infinity()
 							   ? SqrtNewtonRaphson(mData, mData, 0)
 							   : std::numeric_limits<f64>::quiet_NaN()};
@@ -192,7 +188,7 @@ namespace Physics::Units::SI
 
 	private:
 		template<Arithmetic _Type = Type, i8 _Prefix = Prefix>
-		static constexpr auto ScaleUnit(const Self<_Type, _Prefix> value) {
+		static constexpr auto ScaleUnit(const Sibling<_Type, _Prefix> value) {
 			using NewType = decltype(Type() * _Type());
 
 			if constexpr(_Prefix - Prefix > 0) {
