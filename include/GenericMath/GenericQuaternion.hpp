@@ -13,11 +13,11 @@ namespace GenericMath
 	public:
 		constexpr Quaternion() : Quaternion{Identity()} {}
 		constexpr Quaternion(T w, T x, T y, T z) : mScalar{w}, mVector{x, y, z} {}
-		constexpr Quaternion(const Quaternion &other) = default;
+		constexpr Quaternion(const Quaternion& other) = default;
 
 		template<std::floating_point U>
-		Quaternion(const Matrix3<U> &rotationMatrix) {
-			const auto &mat = rotationMatrix;
+		Quaternion(const Matrix3<U>& rotationMatrix) {
+			const auto& mat = rotationMatrix;
 			const double trace = mat(0, 0) + mat(1, 1) + mat(2, 2);
 
 			if(trace > 0.0) {
@@ -48,16 +48,16 @@ namespace GenericMath
 		}
 
 	public:
-		constexpr Quaternion &operator=(const Quaternion &other) = default;
+		constexpr Quaternion& operator=(const Quaternion& other) = default;
 
-		constexpr Quaternion &operator*=(const Quaternion &other) {
+		constexpr Quaternion& operator*=(const Quaternion& other) {
 			return *this = *this * other;
 		}
-		constexpr Quaternion &operator/=(const Quaternion &other) {
+		constexpr Quaternion& operator/=(const Quaternion& other) {
 			return *this = *this / other;
 		}
 
-		constexpr Quaternion operator*(const Quaternion &other) const {
+		constexpr Quaternion operator*(const Quaternion& other) const {
 			return Quaternion{
 				w() * other.w() - x() * other.x() - y() * other.y() - z() * other.z(),
 				w() * other.x() + x() * other.w() + y() * other.z() - z() * other.y(),
@@ -65,7 +65,7 @@ namespace GenericMath
 				w() * other.z() + z() * other.w() + x() * other.y() - y() * other.x(),
 			};
 		}
-		constexpr Quaternion operator/(const Quaternion &other) const {
+		constexpr Quaternion operator/(const Quaternion& other) const {
 			return *this * other.Inverse();
 		}
 
@@ -75,20 +75,20 @@ namespace GenericMath
 		}
 
 	public:
-		constexpr T &w() { return mScalar; }
-		constexpr T &x() { return mVector(0); }
-		constexpr T &y() { return mVector(1); }
-		constexpr T &z() { return mVector(2); }
+		constexpr T& w() { return mScalar; }
+		constexpr T& x() { return mVector(0); }
+		constexpr T& y() { return mVector(1); }
+		constexpr T& z() { return mVector(2); }
 
-		constexpr const T &w() const { return mScalar; }
-		constexpr const T &x() const { return mVector(0); }
-		constexpr const T &y() const { return mVector(1); }
-		constexpr const T &z() const { return mVector(2); }
+		constexpr const T& w() const { return mScalar; }
+		constexpr const T& x() const { return mVector(0); }
+		constexpr const T& y() const { return mVector(1); }
+		constexpr const T& z() const { return mVector(2); }
 
-		constexpr T &Scalar() { return mScalar; }
-		constexpr const T &Scalar() const { return mScalar; }
-		constexpr Vector3<T> &Vector() { return mVector; }
-		constexpr const Vector3<T> &Vector() const { return mVector; }
+		constexpr T& Scalar() { return mScalar; }
+		constexpr const T& Scalar() const { return mScalar; }
+		constexpr Vector3<T>& Vector() { return mVector; }
+		constexpr const Vector3<T>& Vector() const { return mVector; }
 
 	public:
 		static constexpr Quaternion<T> Identity() {

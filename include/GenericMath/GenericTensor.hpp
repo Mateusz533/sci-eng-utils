@@ -35,13 +35,13 @@ namespace GenericMath
 	public:
 		template<typename... Indices>
 			requires(sizeof...(Indices) == RANK && (std::is_same_v<Indices, TensorIdx> && ...))
-		constexpr Data &operator()(Indices... indices) noexcept {
+		constexpr Data& operator()(Indices... indices) noexcept {
 			return At(std::array<TensorIdx, RANK>{indices...});
 		}
 
 		template<typename... Indices>
 			requires(sizeof...(Indices) == RANK && (std::is_same_v<Indices, TensorIdx> && ...))
-		constexpr const Data &operator()(Indices... indices) const noexcept {
+		constexpr const Data& operator()(Indices... indices) const noexcept {
 			return At(std::array<TensorIdx, RANK>{indices...});
 		}
 
@@ -51,18 +51,18 @@ namespace GenericMath
 			return mData;
 		}
 
-		constexpr Data &At(std::span<const TensorIdx, RANK> indices) noexcept {
+		constexpr Data& At(std::span<const TensorIdx, RANK> indices) noexcept {
 			return At<RANK>(mData, indices);
 		}
-		constexpr const Data &At(std::span<const TensorIdx, RANK> indices) const noexcept {
+		constexpr const Data& At(std::span<const TensorIdx, RANK> indices) const noexcept {
 			return At<RANK>(mData, indices);
 		}
 
 		template<TensorIdx _RANK>
-		[[nodiscard]] constexpr Tensor<Data, RANK + _RANK, DIM> OuterProduct(const Tensor<Data, _RANK, DIM> &other) const noexcept {
+		[[nodiscard]] constexpr Tensor<Data, RANK + _RANK, DIM> OuterProduct(const Tensor<Data, _RANK, DIM>& other) const noexcept {
 			Tensor<Data, RANK + _RANK, DIM> result{};
 
-			ForEachIndex<RANK + _RANK>([&](const auto &resultIndices) {
+			ForEachIndex<RANK + _RANK>([&](const auto& resultIndices) {
 				const auto rIdxView = std::span<const TensorIdx, RANK + _RANK>(resultIndices);
 
 				const Data a = this->At(rIdxView.template subspan<0, RANK>());
@@ -75,14 +75,14 @@ namespace GenericMath
 
 		template<TensorIdx I, TensorIdx J, TensorIdx _RANK>
 			requires((0 <= I && I < RANK && 0 <= J && J < _RANK))
-		[[nodiscard]] constexpr Tensor<Data, RANK + _RANK - 2, DIM> InnerProduct(const Tensor<Data, _RANK, DIM> &other) const noexcept {
+		[[nodiscard]] constexpr Tensor<Data, RANK + _RANK - 2, DIM> InnerProduct(const Tensor<Data, _RANK, DIM>& other) const noexcept {
 			return InnerProduct(other, I, J);
 		}
 
 		template<TensorIdx _RANK>
 			requires(RANK >= 1 && _RANK >= 1)
 		[[nodiscard]] constexpr Tensor<Data, RANK + _RANK - 2, DIM>
-			InnerProduct(const Tensor<Data, _RANK, DIM> &other, TensorIdx i, TensorIdx j) const noexcept {
+			InnerProduct(const Tensor<Data, _RANK, DIM>& other, TensorIdx i, TensorIdx j) const noexcept {
 			if(!(0 <= i && i < RANK && 0 <= j && j < _RANK)) {
 				return Tensor<Data, RANK + _RANK - 2, DIM>{};
 			}
@@ -109,7 +109,7 @@ namespace GenericMath
 
 			Tensor<Data, RANK + _RANK - 2, DIM> result;
 
-			ForEachIndex<RANK + _RANK - 2>([&](const auto &resultIndices) {
+			ForEachIndex<RANK + _RANK - 2>([&](const auto& resultIndices) {
 				std::array<TensorIdx, RANK> lhsIndices;
 				if constexpr(RANK + _RANK - 2 > 0) {
 					for(TensorIdx p = 0; p < RANK; ++p)
@@ -164,7 +164,7 @@ namespace GenericMath
 
 			Tensor<Data, RANK - 2, DIM> result;
 
-			ForEachIndex<RANK - 2>([&](const auto &resultIndices) {
+			ForEachIndex<RANK - 2>([&](const auto& resultIndices) {
 				std::array<TensorIdx, RANK> sourceIndices;
 				if constexpr(RANK - 2 > 0) {
 					for(TensorIdx p = 0; p < RANK; ++p) {
@@ -186,7 +186,7 @@ namespace GenericMath
 
 	private:
 		template<TensorIdx N>
-		static constexpr Data &At(ArrayType<N> &array, std::span<const TensorIdx, N> indices) noexcept {
+		static constexpr Data& At(ArrayType<N>& array, std::span<const TensorIdx, N> indices) noexcept {
 			if constexpr(N == 0)
 				return array;
 			else
@@ -194,7 +194,7 @@ namespace GenericMath
 		}
 
 		template<TensorIdx N>
-		static constexpr const Data &At(const ArrayType<N> &array, std::span<const TensorIdx, N> indices) noexcept {
+		static constexpr const Data& At(const ArrayType<N>& array, std::span<const TensorIdx, N> indices) noexcept {
 			if constexpr(N == 0)
 				return array;
 			else
@@ -203,16 +203,16 @@ namespace GenericMath
 
 		// Generic N-dimensional index iteration: calls f(indices) for all indices in [0..DIM)^N
 		template<TensorIdx N, typename F>
-			requires(std::is_invocable_v<F, const std::array<TensorIdx, N> &>)
-		static constexpr void ForEachIndex(F &&f) {
+			requires(std::is_invocable_v<F, const std::array<TensorIdx, N>&>)
+		static constexpr void ForEachIndex(F&& f) {
 			std::array<TensorIdx, N> indices{};
 			ForEachIndex<N, F>(indices, std::forward<F>(f));
 		}
 
 		// Generic N-dimensional index iteration: calls f(indices) for all indices in [0..DIM)^N
 		template<TensorIdx N, typename F, TensorIdx POS = 0>
-			requires((0 <= POS && POS <= N) && std::is_invocable_v<F, const std::array<TensorIdx, N> &>)
-		static constexpr void ForEachIndex(std::array<TensorIdx, N> &indices, F &&f) {
+			requires((0 <= POS && POS <= N) && std::is_invocable_v<F, const std::array<TensorIdx, N>&>)
+		static constexpr void ForEachIndex(std::array<TensorIdx, N>& indices, F&& f) {
 			if constexpr(POS == N) {
 				f(indices);
 			} else {

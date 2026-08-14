@@ -29,6 +29,7 @@ BreakConstructorInitializers: BeforeColon
 ColumnLimit: 0
 CompactNamespaces: false
 Cpp11BracedListStyle: true
+DerivePointerAlignment: false
 FixNamespaceComments: false
 IncludeBlocks: Regroup
 IndentCaseLabels: true
@@ -39,7 +40,7 @@ Language: Cpp
 MaxEmptyLinesToKeep: 1
 NamespaceIndentation: All
 PackConstructorInitializers: CurrentLine
-PointerAlignment: Right
+PointerAlignment: Left
 SortIncludes: true
 SortUsingDeclarations: false
 SpaceAfterCStyleCast: false

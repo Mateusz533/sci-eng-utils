@@ -30,38 +30,38 @@ namespace Physics::Units::SI
 		/* Constructors */;
 
 		constexpr GenerativeUnit() = default;
-		constexpr GenerativeUnit(const Self &value) = default;
-		constexpr GenerativeUnit(Self &&value) = default;
+		constexpr GenerativeUnit(const Self& value) = default;
+		constexpr GenerativeUnit(Self&& value) = default;
 		constexpr GenerativeUnit(const Type data) noexcept : mData(data) {}
 		template<Arithmetic _Type = Type, i8 _Prefix = Prefix>
 		constexpr GenerativeUnit(const Sibling<_Type, _Prefix> value) noexcept : mData(ScaleUnit(value)){};
 
 		/* Assignment operators */;
 
-		constexpr Self &operator=(const Self &value) = default;
-		constexpr Self &operator=(Self &&value) = default;
+		constexpr Self& operator=(const Self& value) = default;
+		constexpr Self& operator=(Self&& value) = default;
 		template<Arithmetic _Type = Type, i8 _Prefix = Prefix>
-		constexpr Self &operator=(const Sibling<_Type, _Prefix> value) {
+		constexpr Self& operator=(const Sibling<_Type, _Prefix> value) {
 			mData = ScaleUnit(value);
 			return *this;
 		}
 		template<Arithmetic _Type = Type, i8 _Prefix = Prefix>
-		constexpr Self &operator+=(const Sibling<_Type, _Prefix> value) {
+		constexpr Self& operator+=(const Sibling<_Type, _Prefix> value) {
 			mData += ScaleUnit(value);
 			return *this;
 		}
 		template<Arithmetic _Type = Type, i8 _Prefix = Prefix>
-		constexpr Self &operator-=(const Sibling<_Type, _Prefix> value) {
+		constexpr Self& operator-=(const Sibling<_Type, _Prefix> value) {
 			mData -= ScaleUnit(value);
 			return *this;
 		}
 		template<Arithmetic _Type = Type>
-		constexpr Self &operator*=(const Scale<_Type> value) {
+		constexpr Self& operator*=(const Scale<_Type> value) {
 			mData *= value.ToRaw();
 			return *this;
 		}
 		template<Arithmetic _Type = Type>
-		constexpr Self &operator/=(const Scale<_Type> value) {
+		constexpr Self& operator/=(const Scale<_Type> value) {
 			mData /= value.ToRaw();
 			return *this;
 		}
@@ -129,7 +129,7 @@ namespace Physics::Units::SI
 								  Rad - _Rad, Sr - _Sr, Prefix - _Prefix>{mData / value.ToRaw()};
 		}
 
-		friend std::ostream &operator<<(std::ostream &os, const Self &obj) {
+		friend std::ostream& operator<<(std::ostream& os, const Self& obj) {
 			os << obj.mData << ' ';
 			if constexpr(Prefix != 0)
 				os << "* ";

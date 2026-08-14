@@ -78,17 +78,17 @@ namespace GenericMath
 		}
 		constexpr ~AbstractMatrix() = default;
 
-		constexpr Matrix &Self() { return static_cast<Matrix &>(*this); }
-		constexpr const Matrix &Self() const { return static_cast<const Matrix &>(*this); }
-		constexpr T &Data(Idx row, Idx col) { return Self()(row, col); }
-		constexpr const T &Data(Idx row, Idx col) const { return Self()(row, col); }
+		constexpr Matrix& Self() { return static_cast<Matrix&>(*this); }
+		constexpr const Matrix& Self() const { return static_cast<const Matrix&>(*this); }
+		constexpr T& Data(Idx row, Idx col) { return Self()(row, col); }
+		constexpr const T& Data(Idx row, Idx col) const { return Self()(row, col); }
 
 		static constexpr bool IsCloseToZeroEco(T value) {
 			return (std::abs(value) < T(1e-8));
 		}
 
 		template<typename Arg>
-		static constexpr auto ExtractIfMatrixLike(const Arg &v, auto r, auto c) {
+		static constexpr auto ExtractIfMatrixLike(const Arg& v, auto r, auto c) {
 			if constexpr(std::is_arithmetic_v<Arg>) {
 				return v;
 			} else {
@@ -96,30 +96,30 @@ namespace GenericMath
 			}
 		}
 		template<auto Function, typename... Args>
-		constexpr void ForEachElementCall(const Args &...args) const {
+		constexpr void ForEachElementCall(const Args&... args) const {
 			for(Idx row = 0; row < Self().GetRows(); ++row)
 				for(Idx col = 0; col < Self().GetCols(); ++col)
 					Function(ExtractIfMatrixLike(args, row, col)...);
 		}
 		template<auto Function, typename... Args>
-		constexpr void ForEachElementAssign(const Args &...args) {
+		constexpr void ForEachElementAssign(const Args&... args) {
 			for(Idx row = 0; row < Self().GetRows(); ++row)
 				for(Idx col = 0; col < Self().GetCols(); ++col)
 					Data(row, col) = Function(ExtractIfMatrixLike(args, row, col)...);
 		}
 		template<auto Function, typename U, typename... Args>
-		constexpr Matrix &AssignFrom(const Sibling<U> &sizeDescriptor, const Args &...args) {
+		constexpr Matrix& AssignFrom(const Sibling<U>& sizeDescriptor, const Args&... args) {
 			Self().ResizeIfDynamic(sizeDescriptor);
 			ForEachElementAssign<Function>(args...);
 			return Self();
 		}
 		template<auto Function, typename U, typename... Args>
-		static constexpr Matrix CreateFrom(const Sibling<U> &sizeDescriptor, const Args &...args) {
+		static constexpr Matrix CreateFrom(const Sibling<U>& sizeDescriptor, const Args&... args) {
 			Matrix result = Matrix::AllocateIfDynamic(sizeDescriptor);
 			result.template ForEachElementAssign<Function>(args...);
 			return result;
 		}
-		constexpr bool HasDifferentSize(const Matrix &compare) const {
+		constexpr bool HasDifferentSize(const Matrix& compare) const {
 			if constexpr(Matrix::IsRowDynamic()) {
 				if(Self().GetRows() != compare.GetRows()) {
 					return true;
@@ -134,14 +134,14 @@ namespace GenericMath
 		}
 
 	public:
-		constexpr Matrix &operator=(const Matrix &mat) {
+		constexpr Matrix& operator=(const Matrix& mat) {
 			return (this == &mat) ? Self() : AssignFrom<std::identity{}>(mat, mat);
 		}
 
 		template<typename U>
 		constexpr operator Sibling<U>() const { return Sibling<U>::template CreateFrom<std::identity{}>(Self(), Self()); }
 
-		constexpr bool operator==(const Matrix &compare) const {
+		constexpr bool operator==(const Matrix& compare) const {
 			if(HasDifferentSize(compare)) {
 				return false;
 			}
@@ -156,14 +156,14 @@ namespace GenericMath
 			return true;
 		}
 
-		constexpr bool operator!=(const Matrix &compare) const { return (!(Self() == compare)); }
-		constexpr Matrix &operator+=(const T scalar) { return Self() = Self() + scalar; }
-		constexpr Matrix &operator-=(const T scalar) { return Self() = Self() - scalar; }
-		constexpr Matrix &operator*=(const T scalar) { return Self() = Self() * scalar; }
-		constexpr Matrix &operator/=(const T scalar) { return Self() = Self() / scalar; }
-		constexpr Matrix &operator+=(const Matrix &mat) { return Self() = Self() + mat; }
-		constexpr Matrix &operator-=(const Matrix &mat) { return Self() = Self() - mat; }
-		constexpr Matrix &operator*=(const Matrix &mat) { return Self() = Self() * mat; }
+		constexpr bool operator!=(const Matrix& compare) const { return (!(Self() == compare)); }
+		constexpr Matrix& operator+=(const T scalar) { return Self() = Self() + scalar; }
+		constexpr Matrix& operator-=(const T scalar) { return Self() = Self() - scalar; }
+		constexpr Matrix& operator*=(const T scalar) { return Self() = Self() * scalar; }
+		constexpr Matrix& operator/=(const T scalar) { return Self() = Self() / scalar; }
+		constexpr Matrix& operator+=(const Matrix& mat) { return Self() = Self() + mat; }
+		constexpr Matrix& operator-=(const Matrix& mat) { return Self() = Self() - mat; }
+		constexpr Matrix& operator*=(const Matrix& mat) { return Self() = Self() * mat; }
 
 		constexpr Matrix operator-() const { return CreateFrom<std::negate<>{}>(Self(), Self()); }
 		constexpr Matrix operator+(const T scalar) const { return CreateFrom<std::plus<>{}>(Self(), Self(), scalar); }
@@ -171,20 +171,20 @@ namespace GenericMath
 		constexpr Matrix operator*(const T scalar) const { return CreateFrom<std::multiplies<>{}>(Self(), Self(), scalar); }
 		constexpr Matrix operator/(const T scalar) const { return (scalar == T(0)) ? CreateInvalid() : CreateFrom<std::divides<>{}>(Self(), Self(), scalar); }
 
-		friend constexpr Matrix operator+(const T scalar, const Matrix &mat) { return CreateFrom<std::plus<>{}>(mat, scalar, mat); }
-		friend constexpr Matrix operator-(const T scalar, const Matrix &mat) { return CreateFrom<std::minus<>{}>(mat, scalar, mat); }
-		friend constexpr Matrix operator*(const T scalar, const Matrix &mat) { return CreateFrom<std::multiplies<>{}>(mat, scalar, mat); }
+		friend constexpr Matrix operator+(const T scalar, const Matrix& mat) { return CreateFrom<std::plus<>{}>(mat, scalar, mat); }
+		friend constexpr Matrix operator-(const T scalar, const Matrix& mat) { return CreateFrom<std::minus<>{}>(mat, scalar, mat); }
+		friend constexpr Matrix operator*(const T scalar, const Matrix& mat) { return CreateFrom<std::multiplies<>{}>(mat, scalar, mat); }
 
-		constexpr Matrix operator+(const Matrix &mat) const {
+		constexpr Matrix operator+(const Matrix& mat) const {
 			return (HasDifferentSize(mat) ? CreateInvalid() : CreateFrom<std::plus<>{}>(Self(), Self(), mat));
 		}
 
-		constexpr Matrix operator-(const Matrix &mat) const {
+		constexpr Matrix operator-(const Matrix& mat) const {
 			return (HasDifferentSize(mat) ? CreateInvalid() : CreateFrom<std::minus<>{}>(Self(), Self(), mat));
 		}
 
 		template<typename U, Idx R, Idx C>
-		constexpr Sibling<decltype(T() * U()), ROWS, C> operator*(const Sibling<U, R, C> &mat) const
+		constexpr Sibling<decltype(T() * U()), ROWS, C> operator*(const Sibling<U, R, C>& mat) const
 			requires(COLS == R || Matrix::IsColDynamic() || Sibling<U, R, C>::IsRowDynamic())
 		{
 			using ResultType = Sibling<decltype(T() * U()), ROWS, C>;
@@ -210,7 +210,7 @@ namespace GenericMath
 	public:
 		/* Debug */
 		constexpr void Print() const {
-			ForEachElementCall<[](const auto &v) { std::cout << v << ", "; }>(Self());
+			ForEachElementCall<[](const auto& v) { std::cout << v << ", "; }>(Self());
 			std::cout << '\n';
 		}
 
@@ -319,8 +319,8 @@ namespace GenericMath
 			constexpr Vector(Idx rows, T initialValue) : Vector(rows) { VectorBase::SetHomogen(initialValue); }
 			constexpr ~Vector() = default;
 
-			constexpr T &operator()(Idx index) { return VectorBase::Self()(index, Idx(0)); }
-			constexpr const T &operator()(Idx index) const { return VectorBase::Self()(index, Idx(0)); }
+			constexpr T& operator()(Idx index) { return VectorBase::Self()(index, Idx(0)); }
+			constexpr const T& operator()(Idx index) const { return VectorBase::Self()(index, Idx(0)); }
 		};
 
 	public:
@@ -348,7 +348,7 @@ namespace GenericMath
 			}
 		}
 
-		constexpr void SetDiagonal(const Base::template Sibling<T, Base::ROWS, 1> &vec)
+		constexpr void SetDiagonal(const Base::template Sibling<T, Base::ROWS, 1>& vec)
 			requires(Matrix::IsStatic())
 		{
 			for(Idx i = 0; i < Self().GetRows(); ++i) {
@@ -363,7 +363,7 @@ namespace GenericMath
 		}
 
 		constexpr Matrix Inverse() const {
-			const auto &[Q, R] = QrDecomposition();
+			const auto& [Q, R] = QrDecomposition();
 
 			// Check if R is invertible (no zeros on the diagonal)
 			for(Idx i = 0; i < Self().GetRows(); ++i) {
@@ -380,7 +380,7 @@ namespace GenericMath
 
 				// Backward substitution
 				for(Idx i = Self().GetRows() - 1; i >= 0; --i) {
-					const auto &b_i = Q(col, i);  // b(i) = Q^T(i,col)
+					const auto& b_i = Q(col, i);  // b(i) = Q^T(i,col)
 
 					T sum = T(0);
 					for(Idx j = i + 1; j < Self().GetRows(); ++j) {
@@ -454,7 +454,7 @@ namespace GenericMath
 		}
 
 		constexpr Matrix InverseWithLu() const {
-			const auto &[LU, P] = LuDecomposition();
+			const auto& [LU, P] = LuDecomposition();
 			if(!LU.IsValid()) {
 				return CreateInvalid();
 			}
@@ -473,7 +473,7 @@ namespace GenericMath
 					}
 				}
 
-				auto &x = y;  // Cost reduction instead of vector copying
+				auto& x = y;  // Cost reduction instead of vector copying
 
 				// Solve U * x = y
 				for(Idx i = Self().GetRows() - 1; i >= 0; --i) {
@@ -535,7 +535,7 @@ namespace GenericMath
 		}
 
 		constexpr T Determinant() const {
-			const auto &[Q, R] = QrDecomposition();
+			const auto& [Q, R] = QrDecomposition();
 
 			T detR = T(1);
 			T detQ = T(1);
@@ -581,11 +581,11 @@ namespace GenericMath
 		constexpr AbstractVector(){};
 		constexpr ~AbstractVector() = default;
 
-		constexpr T &Data(Idx index) { return Base::Data(index, 0); }
-		constexpr const T &Data(Idx index) const { return Base::Data(index, 0); }
+		constexpr T& Data(Idx index) { return Base::Data(index, 0); }
+		constexpr const T& Data(Idx index) const { return Base::Data(index, 0); }
 
 	public:
-		constexpr T DotProduct(const Matrix &other) const {
+		constexpr T DotProduct(const Matrix& other) const {
 			T res = T(0);
 			for(Idx i = 0; i < other.GetRows(); ++i) {
 				res += Data(i) * other.Data(i);
@@ -609,15 +609,15 @@ namespace GenericMath
 			return true;
 		}
 
-		constexpr const T &x() const
+		constexpr const T& x() const
 			requires((1 <= ROWS && ROWS <= 3))
 		{ return Data(0); }
 
-		constexpr const T &y() const
+		constexpr const T& y() const
 			requires((2 <= ROWS && ROWS <= 3))
 		{ return Data(1); }
 
-		constexpr const T &z() const
+		constexpr const T& z() const
 			requires(ROWS == 3)
 		{ return Data(2); }
 
@@ -657,14 +657,14 @@ namespace GenericMath
 
 		public:
 			template<typename U>
-			constexpr CompactMatrixAllocator(const CompactMatrixAllocator<U, ROWS, COLS> &other) {
+			constexpr CompactMatrixAllocator(const CompactMatrixAllocator<U, ROWS, COLS>& other) {
 				ResizeIfDynamic(other);
 			}
 
-			constexpr Row &operator[](MatrixIdx row) {
+			constexpr Row& operator[](MatrixIdx row) {
 				return matrixData[row];
 			}
-			constexpr const Row &operator[](MatrixIdx row) const {
+			constexpr const Row& operator[](MatrixIdx row) const {
 				return matrixData[row];
 			}
 
@@ -685,7 +685,7 @@ namespace GenericMath
 			static constexpr MatrixIdx GetColsLimit() { return COLS_ALLOC; }
 
 			template<typename U>
-			constexpr void ResizeIfDynamic(const CompactMatrixAllocator<U, ROWS, COLS> &other) {
+			constexpr void ResizeIfDynamic(const CompactMatrixAllocator<U, ROWS, COLS>& other) {
 				mRows = other.mRows;
 				mCols = other.mCols;
 			}
@@ -725,17 +725,17 @@ namespace GenericMath
 
 		public:
 			template<typename U>
-			constexpr StdMatrixAllocator(const StdMatrixAllocator<U, ROWS, COLS> &other) {
+			constexpr StdMatrixAllocator(const StdMatrixAllocator<U, ROWS, COLS>& other) {
 				ResizeIfDynamic(other);
 			}
 
-			constexpr Row &operator[](MatrixIdx row) {
+			constexpr Row& operator[](MatrixIdx row) {
 				if constexpr(IS_DYNAMIC)
 					return reinterpret_cast<T(&)[]>(matrixData[row * GetCols()]);
 				else
 					return matrixData[row];
 			}
-			constexpr const Row &operator[](MatrixIdx row) const {
+			constexpr const Row& operator[](MatrixIdx row) const {
 				if constexpr(IS_DYNAMIC)
 					return reinterpret_cast<const T(&)[]>(matrixData[row * GetCols()]);
 				else
@@ -759,7 +759,7 @@ namespace GenericMath
 			static constexpr MatrixIdx GetColsLimit() { return (COLS == DYNAMIC_SIZE) ? std::numeric_limits<MatrixIdx>::max() : COLS; }
 
 			template<typename U>
-			constexpr void ResizeIfDynamic(const StdMatrixAllocator<U, ROWS, COLS> &other) {
+			constexpr void ResizeIfDynamic(const StdMatrixAllocator<U, ROWS, COLS>& other) {
 				mRows = other.mRows;
 				mCols = other.mCols;
 
@@ -788,9 +788,9 @@ namespace GenericMath
 		namespace
 		{
 			static_assert(sizeof(StdMatrixAllocator<double, 3, 5>) == 3 * 5 * sizeof(double));
-			static_assert(sizeof(StdMatrixAllocator<float, 0, 0>) == (1 + 1) * sizeof(void *));
-			static_assert(sizeof(StdMatrixAllocator<char, 0, 4>) == (1 + 1) * sizeof(void *));
-			static_assert(sizeof(StdMatrixAllocator<short, 2, 0>) == (1 + 1) * sizeof(void *));
+			static_assert(sizeof(StdMatrixAllocator<float, 0, 0>) == (1 + 1) * sizeof(void*));
+			static_assert(sizeof(StdMatrixAllocator<char, 0, 4>) == (1 + 1) * sizeof(void*));
+			static_assert(sizeof(StdMatrixAllocator<short, 2, 0>) == (1 + 1) * sizeof(void*));
 		}
 
 		template<class DataClass>
@@ -834,22 +834,22 @@ namespace GenericMath
 			return res;
 		}
 		template<typename U, Idx R, Idx C>
-		static constexpr Matrix AllocateIfDynamic(const Matrix<U, R, C> &other) {
+		static constexpr Matrix AllocateIfDynamic(const Matrix<U, R, C>& other) {
 			Matrix res;
 			res.ResizeIfDynamic(other);
 			return res;
 		}
 
-		constexpr T &At(Idx row, Idx col) { return (*this)(row, col); }
-		constexpr const T &At(Idx row, Idx col) const { return (*this)(row, col); }
+		constexpr T& At(Idx row, Idx col) { return (*this)(row, col); }
+		constexpr const T& At(Idx row, Idx col) const { return (*this)(row, col); }
 
-		constexpr T &operator()(Idx row, Idx col) { return (*this)[row][col]; }
-		constexpr const T &operator()(Idx row, Idx col) const { return (*this)[row][col]; }
+		constexpr T& operator()(Idx row, Idx col) { return (*this)[row][col]; }
+		constexpr const T& operator()(Idx row, Idx col) const { return (*this)[row][col]; }
 
-		constexpr T &operator()(Idx index)
+		constexpr T& operator()(Idx index)
 			requires(COLS == 1)
 		{ return (*this)(index, 0); }
-		constexpr const T &operator()(Idx index) const
+		constexpr const T& operator()(Idx index) const
 			requires(COLS == 1)
 		{ return (*this)(index, 0); }
 
@@ -868,7 +868,7 @@ namespace GenericMath
 			requires(IsStatic())
 		{ Base::SetHomogen(initialValue); }
 
-		constexpr Matrix(const std::array<T, ROWS> &data)
+		constexpr Matrix(const std::array<T, ROWS>& data)
 			requires(IsStatic() && COLS == 1)
 		{
 			for(Idx i = 0; i < ROWS; ++i)
@@ -880,7 +880,7 @@ namespace GenericMath
 			requires(IsStatic() && COLS == 1 && (std::is_same_v<Args, T> && ...) && sizeof...(Args) == ROWS)
 		{ Base::template Fill<0>(args...); }
 
-		constexpr Matrix(const std::array<std::array<T, COLS>, ROWS> &data)
+		constexpr Matrix(const std::array<std::array<T, COLS>, ROWS>& data)
 			requires(IsStatic() && COLS > 1)
 		{
 			for(Idx i = 0; i < ROWS; ++i)
@@ -889,14 +889,14 @@ namespace GenericMath
 		}
 
 		template<typename U>
-		constexpr Matrix(const Matrix<U, ROWS, COLS> &other) {
+		constexpr Matrix(const Matrix<U, ROWS, COLS>& other) {
 			Base::AssignFrom<std::identity{}>(other, other);
 		}
 
 #ifdef EIGEN_AVAILABLE
 		using SiblingEigenMatrix = Eigen::Matrix<T, IsRowDynamic() ? Eigen::Dynamic : ROWS, IsColDynamic() ? Eigen::Dynamic : COLS>;
 
-		constexpr Matrix(const SiblingEigenMatrix &eigenMatrix) {
+		constexpr Matrix(const SiblingEigenMatrix& eigenMatrix) {
 			ResizeIfDynamic(eigenMatrix.rows(), eigenMatrix.cols());
 			Base::ForEachElementAssign<std::identity{}>(eigenMatrix);
 		}
