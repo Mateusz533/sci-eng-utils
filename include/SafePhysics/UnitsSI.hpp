@@ -10,14 +10,14 @@
 namespace Physics::Units::SI
 {
 	template<Arithmetic Type, i8 M, i8 S, i8 Kg, i8 A, i8 K, i8 Mol, i8 Cd, i8 Rad, i8 Sr, i8 Prefix>
-		requires(bool(Prefix == 0 || (M || S || Kg || A || K || Mol || Cd || Rad || Sr)))
+		requires(Prefix == 0 || (M != 0 || S != 0 || Kg != 0 || A != 0 || K != 0 || Mol != 0 || Cd != 0 || Rad != 0 || Sr != 0))
 	class GenerativeUnit;
 
 	template<Arithmetic T = f64>
 	using Scale = GenerativeUnit<T, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>;
 
 	template<Arithmetic Type, i8 M, i8 S, i8 Kg, i8 A, i8 K, i8 Mol, i8 Cd, i8 Rad, i8 Sr, i8 Prefix>
-		requires(bool(Prefix == 0 || (M || S || Kg || A || K || Mol || Cd || Rad || Sr)))
+		requires(Prefix == 0 || (M != 0 || S != 0 || Kg != 0 || A != 0 || K != 0 || Mol != 0 || Cd != 0 || Rad != 0 || Sr != 0))
 	class GenerativeUnit
 	{
 	private:
@@ -106,27 +106,27 @@ namespace Physics::Units::SI
 		/* Arithmetic operators */;
 
 		constexpr auto operator-() const noexcept {
-			using NewType = decltype(-Type());
+			using NewType = decltype(-Type{});
 			return Sibling<NewType>{-mData};
 		}
 		template<Arithmetic _Type = Type>
 		constexpr auto operator+(const Sibling<_Type>& value) const noexcept {
-			using NewType = decltype(Type() + _Type());
+			using NewType = decltype(Type{} + _Type{});
 			return Sibling<NewType>{mData + value.ToRaw()};
 		}
 		template<Arithmetic _Type = Type>
 		constexpr auto operator-(const Sibling<_Type>& value) const noexcept {
-			using NewType = decltype(Type() - _Type());
+			using NewType = decltype(Type{} - _Type{});
 			return Sibling<NewType>{mData - value.ToRaw()};
 		}
 		template<Arithmetic _Type, i8 _M, i8 _S, i8 _Kg, i8 _A, i8 _K, i8 _Mol, i8 _Cd, i8 _Rad, i8 _Sr, i8 _Prefix>
 		constexpr auto operator*(const GenerativeUnit<_Type, _M, _S, _Kg, _A, _K, _Mol, _Cd, _Rad, _Sr, _Prefix> value) const noexcept {
-			return GenerativeUnit<decltype(Type() * _Type()), M + _M, S + _S, Kg + _Kg, A + _A, K + _K, Mol + _Mol, Cd + _Cd,
+			return GenerativeUnit<decltype(Type{} * _Type{}), M + _M, S + _S, Kg + _Kg, A + _A, K + _K, Mol + _Mol, Cd + _Cd,
 								  Rad + _Rad, Sr + _Sr, Prefix + _Prefix>{mData * value.ToRaw()};
 		}
 		template<Arithmetic _Type, i8 _M, i8 _S, i8 _Kg, i8 _A, i8 _K, i8 _Mol, i8 _Cd, i8 _Rad, i8 _Sr, i8 _Prefix>
 		constexpr auto operator/(const GenerativeUnit<_Type, _M, _S, _Kg, _A, _K, _Mol, _Cd, _Rad, _Sr, _Prefix> value) const noexcept {
-			return GenerativeUnit<decltype(Type() / _Type()), M - _M, S - _S, Kg - _Kg, A - _A, K - _K, Mol - _Mol, Cd - _Cd,
+			return GenerativeUnit<decltype(Type{} / _Type{}), M - _M, S - _S, Kg - _Kg, A - _A, K - _K, Mol - _Mol, Cd - _Cd,
 								  Rad - _Rad, Sr - _Sr, Prefix - _Prefix>{mData / value.ToRaw()};
 		}
 
@@ -192,7 +192,7 @@ namespace Physics::Units::SI
 	private:
 		template<Arithmetic _Type = Type, i8 _Prefix = Prefix>
 		static constexpr auto ScaleUnit(const Sibling<_Type, _Prefix> value) noexcept {
-			using NewType = decltype(Type() * _Type());
+			using NewType = decltype(Type{} * _Type{});
 
 			if constexpr(_Prefix - Prefix > 0) {
 				constexpr NewType scaleFactor = Pow10(_Prefix - Prefix);

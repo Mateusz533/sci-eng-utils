@@ -42,11 +42,11 @@ namespace Physics
 		}
 		template<Arithmetic T>
 		constexpr Joules<T> Energy(KiloGrams<T> mass, MetersPerSecond<T> velocity) noexcept {
-			return mass * velocity * velocity / Scale<T>(2);
+			return mass * velocity * velocity / Scale<T>{2};
 		}
 		template<Arithmetic T>
 		constexpr Joules<T> Energy(KiloGramMetersSquare<T> momentOfInertia, RadiansPerSecond<T> angularVelocity) noexcept {
-			return momentOfInertia * angularVelocity * angularVelocity / Scale<T>(2);
+			return momentOfInertia * angularVelocity * angularVelocity / Scale<T>{2};
 		}
 		template<Arithmetic T>
 		constexpr Watts<T> Power(Newtons<T> force, MetersPerSecond<T> velocity) noexcept {
@@ -92,14 +92,14 @@ namespace Physics
 		}
 		template<Arithmetic T>
 		constexpr Seconds<T> Period(Hertzes<T> frequency) noexcept {
-			return Scale<T>(1) / frequency;
+			return Scale<T>{1} / frequency;
 		}
 
 		/* Relativistic mechanics */;
 
 		template<Arithmetic T>
 		constexpr Scale<T> TimeDilation(MetersPerSecond<T> velocity) noexcept {
-			return Scale<T>(1) / (Scale<T>(1) - (velocity / Constants::SPEED_OF_LIGHT).template Power<2>()).Sqrt();
+			return Scale<T>{1} / (Scale<T>{1} - (velocity / Constants::SPEED_OF_LIGHT).template Power<2>()).Sqrt();
 		}
 
 		// TODO: Add more patterns
