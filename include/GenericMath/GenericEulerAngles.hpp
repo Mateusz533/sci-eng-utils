@@ -119,7 +119,7 @@ namespace GenericMath
 		}
 
 	private:
-		static constexpr T DIR = ((3u + uint(A0) - uint(A1)) % 3u == 1u) ? T(1) : T(-1);
+		static constexpr T DIR = ((3u + uint(A0) - uint(A1)) % 3u == 1u) ? T{1} : T{-1};
 		static constexpr T SINGULARITY_SCOPE_RAD = 1e-6;
 		std::array<T, 3> mAnglesRad;
 	};

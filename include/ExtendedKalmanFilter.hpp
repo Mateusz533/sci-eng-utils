@@ -1,6 +1,6 @@
 /*************************************************************************************************************
  *  Class for Discrete Extended Kalman Filter
- *  The system to be estimated is defined as a discrete nonlinear dynamic dystem:
+ *  The system to be estimated is defined as a discrete nonlinear dynamic system:
  *              x(k) = f[x(k-1), u(k-1)] + v(k)     ; x = Nx1,    u = Mx1
  *              y(k) = h[x(k)] + n(k)               ; y = Zx1
  *

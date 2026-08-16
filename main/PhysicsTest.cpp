@@ -5,11 +5,11 @@ using namespace Physics;
 using namespace Units;
 
 constexpr SI::KiloGramMetersSquare<f64> CylinderInertia(SI::RadialMeters<f64> radius, SI::KiloGrams<f64> mass) noexcept {
-	return SI::Scale<f64>(0.5) * mass * radius * radius;
+	return SI::Scale<f64>{0.5} * mass * radius * radius;
 }
 
 constexpr SI::Meters<f64> Distance(SI::MetersPerSecondSquare<f64> acceleration, SI::Seconds<f64> time, SI::MetersPerSecond<f64> startVelocity = 0) noexcept {
-	return (startVelocity + SI::Scale<f64>(0.5) * acceleration * time) * time;
+	return (startVelocity + SI::Scale<f64>{0.5} * acceleration * time) * time;
 }
 
 int main() {
@@ -18,17 +18,17 @@ int main() {
 	/*----------------------------------------------------------------------*/
 	std::cout << "\n--- Standard units tests ---\n\n";
 
-	constexpr SI::Meters<> distance(1);
-	constexpr SI::Seconds<> time(0);
+	constexpr SI::Meters<> distance{1};
+	constexpr SI::Seconds<> time{0};
 	static_assert(!distance == false);
 	static_assert(!time);
-	constexpr SI::KiloGrams<u16> mass(1);
+	constexpr SI::KiloGrams<u16> mass{1};
 	static_assert((-mass).ToRaw() < 0);
 
-	constexpr auto ingMM = SI::MilliMeters<>(1);
-	constexpr auto ingM = SI::Meters<>(1);
-	auto sumM = SI::Meters<>(1);
-	auto sumMM = SI::MilliMeters<>(1);
+	constexpr auto ingMM = SI::MilliMeters<>{1};
+	constexpr auto ingM = SI::Meters<>{1};
+	auto sumM = SI::Meters<>{1};
+	auto sumMM = SI::MilliMeters<>{1};
 	// 1 m += 1 mm = 1.001 m
 	sumM += ingMM;
 	// 1 mm += 1 m = 1001 mm

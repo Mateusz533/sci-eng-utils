@@ -19,11 +19,11 @@ namespace GenericMath
 	class KalmanImu : public ExtendedKalmanFilter<KalmanImu, U_LEN, X_LEN, Y_LEN>
 	{
 	private:
-		inline static constexpr float Q_init = 1e-6;
-		inline static constexpr float R_initAcc = 1e-1;
-		inline static constexpr float R_initMag = 1e-1;
-		inline static constexpr double ACC_Z0 = 1.0;
-		inline static constexpr double P_init = 1.0e-8;
+		static constexpr float Q_init = 1e-6;
+		static constexpr float R_initAcc = 1e-1;
+		static constexpr float R_initMag = 1e-1;
+		static constexpr double ACC_Z0 = 1.0;
+		static constexpr double P_init = 1.0e-8;
 
 	private:
 		Vector3d magneticDir{1.0, 0.0, 0.0};

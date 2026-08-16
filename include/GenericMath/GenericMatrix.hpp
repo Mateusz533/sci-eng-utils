@@ -69,7 +69,7 @@ namespace GenericMath
 		template<typename U, Idx R = ROWS, Idx C = COLS>
 		using Sibling = typename Detail::SiblingTrait<DataClass>::template Type<U, R, C>;
 
-		static constexpr T EPSILON = T(1e-13);
+		static constexpr T EPSILON = T{1e-13};
 
 	protected:
 		constexpr AbstractMatrix() {
@@ -84,7 +84,7 @@ namespace GenericMath
 		constexpr const T& Data(Idx row, Idx col) const { return Self()(row, col); }
 
 		static constexpr bool IsCloseToZeroEco(T value) {
-			return (std::abs(value) < T(1e-8));
+			return (std::abs(value) < T{1e-8});
 		}
 
 		template<typename Arg>
@@ -169,7 +169,7 @@ namespace GenericMath
 		constexpr Matrix operator+(const T scalar) const { return CreateFrom<std::plus<>{}>(Self(), Self(), scalar); }
 		constexpr Matrix operator-(const T scalar) const { return CreateFrom<std::minus<>{}>(Self(), Self(), scalar); }
 		constexpr Matrix operator*(const T scalar) const { return CreateFrom<std::multiplies<>{}>(Self(), Self(), scalar); }
-		constexpr Matrix operator/(const T scalar) const { return (scalar == T(0)) ? CreateInvalid() : CreateFrom<std::divides<>{}>(Self(), Self(), scalar); }
+		constexpr Matrix operator/(const T scalar) const { return (scalar == T{0}) ? CreateInvalid() : CreateFrom<std::divides<>{}>(Self(), Self(), scalar); }
 
 		friend constexpr Matrix operator+(const T scalar, const Matrix& mat) { return CreateFrom<std::plus<>{}>(mat, scalar, mat); }
 		friend constexpr Matrix operator-(const T scalar, const Matrix& mat) { return CreateFrom<std::minus<>{}>(mat, scalar, mat); }
@@ -184,10 +184,10 @@ namespace GenericMath
 		}
 
 		template<typename U, Idx R, Idx C>
-		constexpr Sibling<decltype(T() * U()), ROWS, C> operator*(const Sibling<U, R, C>& mat) const
+		constexpr Sibling<decltype(T{} * U{}), ROWS, C> operator*(const Sibling<U, R, C>& mat) const
 			requires(COLS == R || Matrix::IsColDynamic() || Sibling<U, R, C>::IsRowDynamic())
 		{
-			using ResultType = Sibling<decltype(T() * U()), ROWS, C>;
+			using ResultType = Sibling<decltype(T{} * U{}), ROWS, C>;
 
 			if constexpr(Matrix::IsColDynamic() || Sibling<U, R, C>::IsRowDynamic()) {
 				if(Self().GetCols() != mat.GetRows()) {
@@ -198,7 +198,7 @@ namespace GenericMath
 
 			for(Idx i = 0; i < Self().GetRows(); ++i) {
 				for(Idx j = 0; j < mat.GetCols(); ++j) {
-					res(i, j) = T(0);
+					res(i, j) = decltype(T{} * U{}){0};
 					for(Idx k = 0; k < Self().GetCols(); ++k) {
 						res(i, j) += Data(i, k) * mat(k, j);
 					}
@@ -259,7 +259,7 @@ namespace GenericMath
 			if constexpr(Matrix::IsDynamic()) {
 				Self().ResizeIfDynamic(0, 0);
 			} else {
-				Data(0, 0) = std::numeric_limits<double>::quiet_NaN();
+				Data(0, 0) = T{std::numeric_limits<double>::quiet_NaN()};
 			}
 		}
 
@@ -268,12 +268,12 @@ namespace GenericMath
 		}
 
 		constexpr void SetZero() {
-			SetHomogen(T(0));
+			SetHomogen(T{0});
 		}
 
-		constexpr void SetRandom(int32_t minRand, int32_t maxRand) {
-			const int32_t scope = (maxRand - minRand + 1);
-			ForEachElementAssign<[](auto minRand, auto scope) { return T((std::rand() % scope) + minRand); }>(minRand, scope);
+		constexpr void SetRandom(std::int32_t minRand, std::int32_t maxRand) {
+			const std::int32_t scope = (maxRand - minRand + 1);
+			ForEachElementAssign<[](auto minRand, auto scope) { return T{(std::rand() % scope) + minRand}; }>(minRand, scope);
 		}
 
 		constexpr auto Transpose() const {
@@ -343,7 +343,7 @@ namespace GenericMath
 		constexpr void SetDiagonal(const T val) {
 			for(Idx i = 0; i < Self().GetRows(); ++i) {
 				for(Idx j = 0; j < Self().GetCols(); ++j) {
-					Data(i, j) = (i == j) ? val : T(0);
+					Data(i, j) = (i == j) ? val : T{0};
 				}
 			}
 		}
@@ -353,13 +353,13 @@ namespace GenericMath
 		{
 			for(Idx i = 0; i < Self().GetRows(); ++i) {
 				for(Idx j = 0; j < Self().GetCols(); ++j) {
-					Data(i, j) = (i == j) ? vec(i) : T(0);
+					Data(i, j) = (i == j) ? vec(i) : T{0};
 				}
 			}
 		}
 
 		constexpr void SetIdentity() {
-			SetDiagonal(T(1));
+			SetDiagonal(T{1});
 		}
 
 		constexpr Matrix Inverse() const {
@@ -382,7 +382,7 @@ namespace GenericMath
 				for(Idx i = Self().GetRows() - 1; i >= 0; --i) {
 					const auto& b_i = Q(col, i);  // b(i) = Q^T(i,col)
 
-					T sum = T(0);
+					T sum = T{0};
 					for(Idx j = i + 1; j < Self().GetRows(); ++j) {
 						sum += R(i, j) * x(j);
 					}
@@ -405,7 +405,7 @@ namespace GenericMath
 				// Create Householder vector 'v' from a part of column 'k'
 				Vector v{Self().GetRows()};
 
-				T normSqCol = T(0);
+				T normSqCol = T{0};
 				for(Idx i = k; i < Self().GetRows(); ++i) {
 					const T colVal = R(i, k);
 					v(i) = colVal;
@@ -417,17 +417,17 @@ namespace GenericMath
 				}
 
 				const T normCol = std::sqrt(normSqCol);
-				v(k) += (v(k) >= T(0)) ? normCol : -normCol;
+				v(k) += (v(k) >= T{0}) ? normCol : -normCol;
 
 				// Normalization of 'v' moved to next loop
 				const T halfNormSqV = normCol * std::abs(v(k));
-				if(halfNormSqV < T(0.5) * EPSILON * EPSILON) {
+				if(halfNormSqV < T{0.5} * EPSILON * EPSILON) {
 					continue;
 				}
 
 				// Update matrix R: R = H * R
 				for(Idx j = k; j < Self().GetRows(); ++j) {
-					T dot = T(0);
+					T dot = T{0};
 					for(Idx i = k; i < Self().GetRows(); ++i) {
 						dot += v(i) * R(i, j);
 					}
@@ -439,7 +439,7 @@ namespace GenericMath
 
 				// Update matrix Q: Q = Q * H
 				for(Idx i = 0; i < Self().GetRows(); ++i) {
-					T dot = T(0);
+					T dot = T{0};
 					for(Idx j = k; j < Self().GetRows(); ++j) {
 						dot += v(j) * Q(i, j);
 					}
@@ -462,7 +462,7 @@ namespace GenericMath
 			Matrix inv;
 
 			for(Idx bInd = 0; bInd < Self().GetRows(); ++bInd) {
-				Vector y{Self().GetRows(), T(0)};
+				Vector y{Self().GetRows(), T{0}};
 				const Idx pbInd = P(bInd);
 				y(bInd) = 1.0;
 
@@ -537,13 +537,13 @@ namespace GenericMath
 		constexpr T Determinant() const {
 			const auto& [Q, R] = QrDecomposition();
 
-			T detR = T(1);
-			T detQ = T(1);
+			T detR = T{1};
+			T detQ = T{1};
 
 			// Determinant of an orthogonal matrix Q should be either +1 or -1
 			for(Idx i = 0; i < Self().GetRows(); ++i) {
-				if(Q(i, i) < T(0)) {
-					detQ *= -T(1);
+				if(Q(i, i) < T{0}) {
+					detQ *= -T{1};
 				}
 				detR *= R(i, i);
 			}
@@ -552,7 +552,7 @@ namespace GenericMath
 		}
 
 		constexpr T Trace() const {
-			T trace = T(0);
+			T trace = T{0};
 
 			for(Idx i = 0; i < Self().GetRows(); ++i) {
 				trace += Data(i, i);
@@ -586,7 +586,7 @@ namespace GenericMath
 
 	public:
 		constexpr T DotProduct(const Matrix& other) const {
-			T res = T(0);
+			T res = T{0};
 			for(Idx i = 0; i < other.GetRows(); ++i) {
 				res += Data(i) * other.Data(i);
 			}

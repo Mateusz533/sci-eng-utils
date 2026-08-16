@@ -1,5 +1,6 @@
 #pragma once
 //
+#include <cmath>
 #include <cstdlib>
 #include <numbers>
 #include <ratio>
@@ -417,6 +418,7 @@ namespace Physics::Units::NStd
 	namespace Detail
 	{
 		template<f64 VALUE>
+			requires((VALUE == 0) || std::isnormal(VALUE))
 		class FloatDecomposer
 		{
 		public:

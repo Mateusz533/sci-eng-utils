@@ -7,10 +7,10 @@
 namespace GenericMath
 {
 	template<std::floating_point T>
-	constexpr T DegreesToRadians(T angleDeg) { return angleDeg * T(std::numbers::pi / 180.0); }
+	constexpr T DegreesToRadians(T angleDeg) { return angleDeg * T{std::numbers::pi / 180.0}; }
 
 	template<std::floating_point T>
-	constexpr T RadiansToDegrees(T angleRad) { return angleRad * T(180.0 / std::numbers::pi); }
+	constexpr T RadiansToDegrees(T angleRad) { return angleRad * T{180.0 / std::numbers::pi}; }
 
 	inline double NormalizeRad(double angle) {
 		angle = std::fmod(angle, 2.0 * std::numbers::pi);
