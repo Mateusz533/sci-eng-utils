@@ -417,14 +417,11 @@ namespace Physics::Units::NStd
 	namespace Detail
 	{
 		template<f64 VALUE>
-		class FractionParser
+		class FloatDecomposer
 		{
 		public:
 			static consteval i64 Exponent() noexcept {
 				return FlooredLog2(std::abs(VALUE)) - 52L;
-			}
-			static consteval i64 Denominator() noexcept {
-				return 1L;
 			}
 			static consteval i64 Numerator() noexcept {
 				f64 value = VALUE;
@@ -443,13 +440,11 @@ namespace Physics::Units::NStd
 
 		template<Arithmetic Type, template<Arithmetic> class StdU, i64 ScNum, i64 ScDenom, i64 ScExp = 0, i64 OffNum = 0, i64 OffDenom = 1>
 		using Simplifier = GenerativeUnit<Type, StdU, typename Fraction<ScNum, ScDenom, ScExp>::Norm, typename Fraction<OffNum, OffDenom>::Norm>;
-
-		inline constexpr f64 DEG2RAD = std::numbers::pi / 180.0;
 	}
 
-#define GENERATE_NSTD_FROM_DOUBLE(Name, StdType, Scale) \
-	template<Arithmetic T = f64>                        \
-	using Name = Detail::Simplifier<T, StdType, Detail::FractionParser<Scale>::Numerator(), Detail::FractionParser<Scale>::Denominator(), Detail::FractionParser<Scale>::Exponent()>;
+#define GENERATE_NSTD_FROM_DOUBLE(Name, StdType, ScFloat, ScDenom) \
+	template<Arithmetic T = f64>                                   \
+	using Name = Detail::Simplifier<T, StdType, Detail::FloatDecomposer<ScFloat>::Numerator(), ScDenom, Detail::FloatDecomposer<ScFloat>::Exponent()>;
 
 #define GENERATE_NSTD_FROM_FRACTION(Name, StdType, ScNum, ScDenom) \
 	template<Arithmetic T = f64>                                   \
@@ -465,61 +460,61 @@ namespace Physics::Units::NStd
 
 	GENERATE_NSTD_FROM_FRACTION(Percents, SI::Scale, 1, 100)
 	GENERATE_NSTD_FROM_FRACTION(Permille, SI::Scale, 1, 1'000)
-	GENERATE_NSTD_FROM_DOUBLE(Degrees, SI::Radians, Detail::DEG2RAD)
-	// GENERATE_NSTD_FROM_DOUBLE(Arcminutes, SI::Radians, Detail::DEG2RAD / 60.0)
-	// GENERATE_NSTD_FROM_DOUBLE(Arcseconds, SI::Radians, Detail::DEG2RAD / 3'600.0)
+	GENERATE_NSTD_FROM_DOUBLE(Degrees, SI::Radians, std::numbers::pi, 180)
+	GENERATE_NSTD_FROM_DOUBLE(Arcminutes, SI::Radians, std::numbers::pi, 180 * 60)
+	GENERATE_NSTD_FROM_DOUBLE(Arcseconds, SI::Radians, std::numbers::pi, 180 * 60 * 60)
 
 	/* Distance */;
 
-	GENERATE_NSTD_FROM_FRACTION(Inches, SI::Meters, 25'400, 1'000'000)
-	GENERATE_NSTD_FROM_FRACTION(Feet, SI::Meters, 304'800, 1'000'000)
-	GENERATE_NSTD_FROM_FRACTION(Yards, SI::Meters, 914'400, 1'000'000)
-	GENERATE_NSTD_FROM_FRACTION(Chains, SI::Meters, 20'116'800, 1'000'000)
-	GENERATE_NSTD_FROM_FRACTION(Furlongs, SI::Meters, 201'168, 1'000)
-	GENERATE_NSTD_FROM_FRACTION(StatuteMiles, SI::Meters, 1'609'344, 1'000)
+	GENERATE_NSTD_FROM_FRACTION(Inches, SI::Meters, 9'144, 10'000 * 3 * 12)
+	GENERATE_NSTD_FROM_FRACTION(Feet, SI::Meters, 9'144, 10'000 * 3)
+	GENERATE_NSTD_FROM_FRACTION(Yards, SI::Meters, 9'144, 10'000)
+	GENERATE_NSTD_FROM_FRACTION(Chains, SI::Meters, 9'144 * 22, 10'000)
+	GENERATE_NSTD_FROM_FRACTION(Furlongs, SI::Meters, 9'144 * 22 * 10, 10'000)
+	GENERATE_NSTD_FROM_FRACTION(StatuteMiles, SI::Meters, 9'144 * 22 * 10 * 8, 10'000)
 	GENERATE_NSTD_FROM_FRACTION(NauticalMiles, SI::Meters, 1'852, 1)
 
 	/* Time */;
 
 	GENERATE_NSTD_FROM_FRACTION(Minutes, SI::Seconds, 60, 1)
-	GENERATE_NSTD_FROM_FRACTION(Hours, SI::Seconds, 3'600, 1)
-	GENERATE_NSTD_FROM_FRACTION(Days, SI::Seconds, 86'400, 1)
-	GENERATE_NSTD_FROM_FRACTION(Weeks, SI::Seconds, 604'800, 1)
+	GENERATE_NSTD_FROM_FRACTION(Hours, SI::Seconds, 60 * 60, 1)
+	GENERATE_NSTD_FROM_FRACTION(Days, SI::Seconds, 60 * 60 * 24, 1)
+	GENERATE_NSTD_FROM_FRACTION(Weeks, SI::Seconds, 60 * 60 * 24 * 7, 1)
 
 	/* Velocity */;
 
-	GENERATE_NSTD_FROM_FRACTION(Knots, SI::MetersPerSecond, 1'852, 3'600)
-	GENERATE_NSTD_FROM_FRACTION(MilesPerHour, SI::MetersPerSecond, 1'609'344, 3'600'000)
-	GENERATE_NSTD_FROM_FRACTION(FeetPerMinute, SI::MetersPerSecond, 5'080, 1'000'000)
-	GENERATE_NSTD_FROM_FRACTION(FeetPerSecond, SI::MetersPerSecond, 304'800, 1'000'000)
+	GENERATE_NSTD_FROM_FRACTION(Knots, SI::MetersPerSecond, 1'852, 60 * 60)
+	GENERATE_NSTD_FROM_FRACTION(MilesPerHour, SI::MetersPerSecond, 9'144 * 22 * 10 * 8, 10'000 * 60 * 60)
+	GENERATE_NSTD_FROM_FRACTION(FeetPerMinute, SI::MetersPerSecond, 9'144, 10'000 * 3 * 60)
+	GENERATE_NSTD_FROM_FRACTION(FeetPerSecond, SI::MetersPerSecond, 9'144, 10'000 * 3)
+
+	/* Volume */;
+
+	GENERATE_NSTD_FROM_FRACTION(UsFluidOunces, SI::MetersCube, 3'785'411'784, 1'000'000'000'000 * 4 * 2 * 16)
+	GENERATE_NSTD_FROM_FRACTION(UsPints, SI::MetersCube, 3'785'411'784, 1'000'000'000'000 * 4 * 2)
+	GENERATE_NSTD_FROM_FRACTION(UsQuarts, SI::MetersCube, 3'785'411'784, 1'000'000'000'000 * 4)
+	GENERATE_NSTD_FROM_FRACTION(UsGallons, SI::MetersCube, 3'785'411'784, 1'000'000'000'000)
+
+	GENERATE_NSTD_FROM_FRACTION(ImperialFluidOunces, SI::MetersCube, 4'546'090, 1'000'000'000L * 4 * 2 * 20)
+	GENERATE_NSTD_FROM_FRACTION(ImperialPints, SI::MetersCube, 4'546'090, 1'000'000'000L * 4 * 2)
+	GENERATE_NSTD_FROM_FRACTION(ImperialQuarts, SI::MetersCube, 4'546'090, 1'000'000'000L * 4)
+	GENERATE_NSTD_FROM_FRACTION(ImperialGallons, SI::MetersCube, 4'546'090, 1'000'000'000)
 
 	/* Pressure */;
 
 	GENERATE_NSTD_FROM_FRACTION(InchesOfMercury, SI::Pascals, 3'386'389, 1'000)
 	GENERATE_NSTD_FROM_FRACTION(Bars, SI::Pascals, 100'000, 1)
-	GENERATE_NSTD_FROM_FRACTION(MilliBars, SI::Pascals, 100, 1)
+	GENERATE_NSTD_FROM_FRACTION(MilliBars, SI::Pascals, 100'000, 1'000)
 	GENERATE_NSTD_FROM_FRACTION(Atmospheres, SI::Pascals, 101'325, 1)
-	GENERATE_NSTD_FROM_FRACTION(PoundsPerSquareInch, SI::Pascals, 4'448'221'615'260'500, 645'160'000'000)
+	GENERATE_NSTD_FROM_FRACTION(PoundsPerSquareInch, SI::Pascals, 453'592'370 * 9'806'650L, 25'400 * 25'400 * 1'000L)
 
 	/* Mass & Force */;
 
-	GENERATE_NSTD_FROM_FRACTION(Ounces, SI::KiloGrams, 28'349'523'125, 1'000'000'000'000)
+	GENERATE_NSTD_FROM_FRACTION(Ounces, SI::KiloGrams, 453'592'370, 1'000'000'000 * 16L)
 	GENERATE_NSTD_FROM_FRACTION(PoundsMass, SI::KiloGrams, 453'592'370, 1'000'000'000)
-	GENERATE_NSTD_FROM_FRACTION(ShortTons, SI::KiloGrams, 907'184'740, 1'000'000)
-	GENERATE_NSTD_FROM_FRACTION(Slug, SI::KiloGrams, 4'448'221'615'260'500, 304'800'000'000'000)
-	GENERATE_NSTD_FROM_FRACTION(PoundsForce, SI::Newtons, 4'448'221'615'260'500, 1'000'000'000'000'000)
-
-	/* Volume */;
-
-	GENERATE_NSTD_FROM_FRACTION(UsFluidOunces, SI::MetersCube, 3'785'411'784, 128'000'000'000'000)
-	GENERATE_NSTD_FROM_FRACTION(UsPints, SI::MetersCube, 3'785'411'784, 8'000'000'000'000)
-	GENERATE_NSTD_FROM_FRACTION(UsQuarts, SI::MetersCube, 3'785'411'784, 4'000'000'000'000)
-	GENERATE_NSTD_FROM_FRACTION(UsGallons, SI::MetersCube, 3'785'411'784, 1'000'000'000'000)
-
-	GENERATE_NSTD_FROM_FRACTION(ImperialFluidOunces, SI::MetersCube, 4'546'090, 160'000'000'000)
-	GENERATE_NSTD_FROM_FRACTION(ImperialPints, SI::MetersCube, 4'546'090, 8'000'000'000)
-	GENERATE_NSTD_FROM_FRACTION(ImperialQuarts, SI::MetersCube, 4'546'090, 4'000'000'000)
-	GENERATE_NSTD_FROM_FRACTION(ImperialGallons, SI::MetersCube, 4'546'090, 1'000'000'000)
+	GENERATE_NSTD_FROM_FRACTION(ShortTons, SI::KiloGrams, 453'592'370 * 2'000L, 1'000'000'000)
+	GENERATE_NSTD_FROM_FRACTION(Slug, SI::KiloGrams, 453'592'370 * 9'806'650L, 3'048 * 100'000 * 1'000'000L)
+	GENERATE_NSTD_FROM_FRACTION(PoundsForce, SI::Newtons, 453'592'370 * 9'806'650L, 1'000'000'000 * 1'000'000L)
 
 	/* Power, Energy, Torque */;
 
@@ -527,7 +522,7 @@ namespace Physics::Units::NStd
 	GENERATE_NSTD_FROM_FRACTION(FootPoundsForce, SI::Joules, 13'558'179'483'314'004, 10'000'000'000'000'000)
 	GENERATE_NSTD_FROM_FRACTION(Btu, SI::Joules, 1055, 1)
 	GENERATE_NSTD_FROM_FRACTION(PoundForceFeet, SI::NewtonMeters, 13'558'179'483'314'004, 10'000'000'000'000'000)
-	GENERATE_NSTD_FROM_FRACTION(PoundForceInches, SI::NewtonMeters, 13'558'179'483'314'004, 1'200'000'000'000'000'000)
+	GENERATE_NSTD_FROM_FRACTION(PoundForceInches, SI::NewtonMeters, 13'558'179'483'314'004, 10'000'000'000'000'000 * 12)
 
 	/* Temperature */;
 
