@@ -1,6 +1,8 @@
 #pragma once
 //
+#include <cstdlib>
 #include <numbers>
+#include <ratio>
 #include <type_traits>
 //
 #include "UnitsSI.hpp"
@@ -9,40 +11,62 @@ namespace Physics::Units::NStd
 {
 	namespace Detail
 	{
-		template<i64 Numerator = 0, i64 Denominator = 1>
+		static consteval i64 CeiledExp2(i64 value) noexcept {
+			i64 result = 1;
+			while(--value >= 0) {
+				result *= 2L;
+			}
+			return result;
+		}
+		static consteval i64 FlooredLog2(f64 value) noexcept {
+			if(value <= 0) return 0;
+			i64 log = 0;
+			while(value > 1.0) {
+				value /= 2.0;
+				++log;
+			}
+			while(value < 1.0) {
+				value *= 2.0;
+				--log;
+			}
+			return log;
+		}
+		static consteval i64 ExtractOddPart(i64 value) noexcept {
+			while(value != 0 && value % 2 == 0) {
+				value /= 2;
+			}
+			return value;
+		}
+		static consteval i64 ExtractExp2(i64 value) noexcept {
+			i64 log = 0;
+			while(value != 0 && value % 2 == 0) {
+				value /= 2;
+				++log;
+			}
+			return log;
+		}
+
+		template<i64 Numerator = 0, i64 Denominator = 1, i64 Exponent = 0>
 			requires(Denominator > 0)
 		class Fraction;
 
 		template<class T>
-		concept NormedFraction = std::is_same_v<T, Fraction<T::Num, T::Denom>>;
+		concept NormedFraction = std::is_same_v<T, Fraction<T::Num, T::Denom, T::Exp>>;
 
-		template<i64 Numerator, i64 Denominator>
+		template<i64 Numerator, i64 Denominator, i64 Exponent>
 			requires(Denominator > 0)
 		class Fraction
 		{
-		private:
-			template<i64 A, i64 B>
-				requires(B > 0)
-			static consteval i64 GreatestCommonDivisor() noexcept {
-				i64 a = A < 0 ? -A : A;
-				i64 b = B;
-				while(b != 0) {
-					i64 temp = b;
-					b = a % b;
-					a = temp;
-				}
-				return a;
-			}
-
 		public:
-			static constexpr i64 Num = Numerator / GreatestCommonDivisor<Numerator, Denominator>();
-			static constexpr i64 Denom = Denominator / GreatestCommonDivisor<Numerator, Denominator>();
+			static constexpr i64 Num = std::ratio<ExtractOddPart(Numerator), ExtractOddPart(Denominator)>::num;
+			static constexpr i64 Denom = std::ratio<ExtractOddPart(Numerator), ExtractOddPart(Denominator)>::den;
+			static constexpr i64 Exp = (Num == 0L) ? 0L : (Exponent + ExtractExp2(Numerator) - ExtractExp2(Denominator));
 
 			static consteval bool IsNormalized() noexcept {
-				return GreatestCommonDivisor<Numerator, Denominator>() == 1;
+				return Num == Numerator && Denom == Denominator && Exp == Exponent;
 			}
 			static consteval bool IsIdentity() noexcept {
-				return Numerator == 1 && Denominator == 1;
+				return Numerator == 1 && Denominator == 1 && Exponent == 0;
 			}
 			static consteval bool IsZero() noexcept {
 				return Numerator == 0;
@@ -52,20 +76,23 @@ namespace Physics::Units::NStd
 			}
 			template<Arithmetic T = f64>
 			static consteval T ToDecimal() noexcept {
-				return static_cast<T>(Num) / static_cast<T>(Denom);
+				return static_cast<T>(Num) / static_cast<T>(Denom) *
+					   static_cast<T>(CeiledExp2(Exp)) / static_cast<T>(CeiledExp2(-Exp));	// TODO: Consider accuracy
 			}
 
-			using Norm = Fraction<Num, Denom>;
-			using Opposite = Fraction<-Num, Denom>;
+			using Norm = Fraction<Num, Denom, Exp>;
+			using Opposite = Fraction<-Num, Denom, Exp>;
 
 			template<NormedFraction Other>
-			using Sum = Fraction<Num * Other::Denom + Denom * Other::Num, Denom * Other::Denom>::Norm;
+			using Sum = Fraction<Num * Other::Denom * CeiledExp2(Exp - Other::Exp) + Denom * Other::Num * CeiledExp2(Other::Exp - Exp),
+								 Denom * Other::Denom, std::min(Exp, Other::Exp)>::Norm;
 			template<NormedFraction Other>
-			using Diff = Fraction<Num * Other::Denom - Denom * Other::Num, Denom * Other::Denom>::Norm;
+			using Diff = Fraction<Num * Other::Denom * CeiledExp2(Exp - Other::Exp) - Denom * Other::Num * CeiledExp2(Other::Exp - Exp),
+								  Denom * Other::Denom, std::min(Exp, Other::Exp)>::Norm;
 			template<NormedFraction Other>
-			using Product = Fraction<Num * Other::Num, Denom * Other::Denom>::Norm;
+			using Product = Fraction<Num * Other::Num, Denom * Other::Denom, Exp + Other::Exp>::Norm;
 			template<NormedFraction Other>
-			using Quotient = Fraction<Num * Other::Denom, Denom * Other::Num>::Norm;
+			using Quotient = Fraction<Num * Other::Denom, Denom * Other::Num, Exp - Other::Exp>::Norm;
 		};
 
 		class SymbolicBase
@@ -246,7 +273,7 @@ namespace Physics::Units::NStd
 			requires(OtherUnit::template HasSameScale<Scale>() && HasSameStdUnitBase<OtherUnit>())
 		constexpr auto operator+(const OtherUnit& value) const noexcept {
 			using RawType = decltype(Type{} + OtherUnit{}.ToRaw());
-			using ResultOffset = Offset::template Sum<Detail::Fraction<OtherUnit::GetOffsetNumerator(), OtherUnit::GetOffsetDenominator()>>;
+			using ResultOffset = Offset::template Sum<typename OtherUnit::OffsetT>;
 			using AccType = decltype(AccuracyType{} * OtherUnit::SCALE);
 			using NewUnit = AdaptiveSibling<RawType, StandardUnit, Scale, ResultOffset, AccType>;
 			return NewUnit{mData + value.ToRaw()};
@@ -265,7 +292,7 @@ namespace Physics::Units::NStd
 			requires(OtherUnit::template HasSameScale<Scale>() && HasSameStdUnitBase<OtherUnit>())
 		constexpr auto operator-(const OtherUnit& value) const noexcept {
 			using RawType = decltype(Type{} - OtherUnit{}.ToRaw());
-			using ResultOffset = Offset::template Diff<Detail::Fraction<OtherUnit::GetOffsetNumerator(), OtherUnit::GetOffsetDenominator()>>;
+			using ResultOffset = Offset::template Diff<typename OtherUnit::OffsetT>;
 			using AccType = decltype(AccuracyType{} * OtherUnit::SCALE);
 			using NewUnit = AdaptiveSibling<RawType, StandardUnit, Scale, ResultOffset, AccType>;
 			return NewUnit{mData - value.ToRaw()};
@@ -353,18 +380,8 @@ namespace Physics::Units::NStd
 			}
 		}
 
-		static consteval auto GetScaleNumerator() noexcept {
-			return Scale::Num;
-		}
-		static consteval auto GetScaleDenominator() noexcept {
-			return Scale::Denom;
-		}
-		static consteval auto GetOffsetNumerator() noexcept {
-			return Offset::Num;
-		}
-		static consteval auto GetOffsetDenominator() noexcept {
-			return Offset::Denom;
-		}
+		using OffsetT = Offset;
+		using ScaleT = Scale;
 
 	private:
 		template<Arithmetic _Type = Type>
@@ -399,58 +416,40 @@ namespace Physics::Units::NStd
 
 	namespace Detail
 	{
+		template<f64 VALUE>
 		class FractionParser
 		{
-		private:
-			static consteval i64 Exp2(i64 value) noexcept {
-				if(value < 0) return 0;
-				i64 result = 1;
-				while(--value >= 0) {
-					result *= 2L;
-				}
-				return result;
-			}
-			static consteval i64 FlooredLog2(f64 value) noexcept {
-				if(value <= 0) return 0;
-				i64 log = 0;
-				while(value > 1.0) {
-					value /= 2.0;
-					++log;
-				}
-				while(value < 1.0) {
-					value *= 2.0;
-					--log;
-				}
-				return log;
-			}
-			static consteval i64 CalcExponent(f64 value) noexcept {
-				return FlooredLog2(std::abs(value));
-			}
-
 		public:
-			static consteval i64 Denominator(f64 value) noexcept {
-				const i64 exp = CalcExponent(value);
-				return Exp2(exp < 0L ? 62L : 62L - exp);
+			static consteval i64 Exponent() noexcept {
+				return FlooredLog2(std::abs(VALUE)) - 52L;
 			}
-			static consteval i64 Numerator(f64 value) noexcept {
-				return value * Denominator(value);
+			static consteval i64 Denominator() noexcept {
+				return 1L;
 			}
-			static consteval bool IsConvertible(f64 value) noexcept {
-				const i64 exp = CalcExponent(value);
-				return exp > -11 && exp < 63;
+			static consteval i64 Numerator() noexcept {
+				f64 value = VALUE;
+				i64 exp = -Exponent();
+				while(exp < 0) {
+					value /= 2.0;
+					++exp;
+				}
+				while(exp > 0) {
+					value *= 2.0;
+					--exp;
+				}
+				return static_cast<i64>(value);
 			}
 		};
 
-		template<Arithmetic Type, template<Arithmetic> class StdU, i64 ScNum, i64 ScDenom, i64 OffNum = 0, i64 OffDenom = 1>
-		using Simplifier = GenerativeUnit<Type, StdU, typename Fraction<ScNum, ScDenom>::Norm, typename Fraction<OffNum, OffDenom>::Norm>;
+		template<Arithmetic Type, template<Arithmetic> class StdU, i64 ScNum, i64 ScDenom, i64 ScExp = 0, i64 OffNum = 0, i64 OffDenom = 1>
+		using Simplifier = GenerativeUnit<Type, StdU, typename Fraction<ScNum, ScDenom, ScExp>::Norm, typename Fraction<OffNum, OffDenom>::Norm>;
 
 		inline constexpr f64 DEG2RAD = std::numbers::pi / 180.0;
 	}
 
-#define GENERATE_NSTD_FROM_DOUBLE(Name, StdType, Scale)                                                        \
-	static_assert(Detail::FractionParser::IsConvertible(Scale), "Value '" #Scale "' out of supported range!"); \
-	template<Arithmetic T = f64>                                                                               \
-	using Name = Detail::Simplifier<T, StdType, Detail::FractionParser::Numerator(Scale), Detail::FractionParser::Denominator(Scale)>;
+#define GENERATE_NSTD_FROM_DOUBLE(Name, StdType, Scale) \
+	template<Arithmetic T = f64>                        \
+	using Name = Detail::Simplifier<T, StdType, Detail::FractionParser<Scale>::Numerator(), Detail::FractionParser<Scale>::Denominator(), Detail::FractionParser<Scale>::Exponent()>;
 
 #define GENERATE_NSTD_FROM_FRACTION(Name, StdType, ScNum, ScDenom) \
 	template<Arithmetic T = f64>                                   \
@@ -458,7 +457,7 @@ namespace Physics::Units::NStd
 
 #define GENERATE_OFFSETTABLE_NSTD_FROM_FRACTION(Name, StdType, ScNum, ScDenom, OffNum, OffDenom) \
 	template<Arithmetic T = f64>                                                                 \
-	using Name = Detail::Simplifier<T, StdType, ScNum, ScDenom, OffNum, OffDenom>;
+	using Name = Detail::Simplifier<T, StdType, ScNum, ScDenom, 0, OffNum, OffDenom>;
 
 	/* --- GENERATE NEEDED UNITS HERE --- */
 
