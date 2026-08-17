@@ -108,6 +108,14 @@ namespace Physics::Units::NStd
 	class GenerativeUnit : Detail::SymbolicBase
 	{
 	private:
+		using Self = GenerativeUnit;
+
+		template<Arithmetic _Type = Type, template<Arithmetic> class _StandardUnit = StandardUnit>
+		using Sibling = GenerativeUnit<_Type, _StandardUnit, Scale, Offset, AccuracyType>;
+
+		using OffsetType = Offset;
+		using ScaleType = Scale;
+
 		static consteval bool HasNoOffset() noexcept {
 			return Offset::IsZero();
 		}
@@ -119,21 +127,11 @@ namespace Physics::Units::NStd
 			return std::is_same_v<Scale, _Scale>;
 		}
 
-		template<Arithmetic _Type = Type, template<Arithmetic> class _StandardUnit = StandardUnit>
-		using Sibling = GenerativeUnit<_Type, _StandardUnit, Scale, Offset, AccuracyType>;
-
-		using Self = GenerativeUnit;
-
-		template<Arithmetic _Type = Type, template<Arithmetic> class _StandardUnit = StandardUnit, Detail::NormedFraction _Scale = Scale,
-				 Detail::NormedFraction _Offset = Offset, Arithmetic _AccuracyType = AccuracyType>
-		using AdaptiveSibling = std::conditional_t<_Scale::IsIdentity() && _Offset::IsZero(), _StandardUnit<_Type>,
-												   GenerativeUnit<_Type, _StandardUnit, _Scale, _Offset, _AccuracyType>>;
-
-		template<class Base>
+		template<class ComplexType>
 		struct Decomposer {
 			template<Arithmetic T>
-			using OuterType = decltype(Base{}.template Cast<T>());
-			using InnerType = decltype(Base{}.ToRaw());
+			using OuterType = decltype(ComplexType{}.template Cast<T>());
+			using InnerType = decltype(ComplexType{}.ToRaw());
 		};
 		template<class Complex>
 		struct StdToSibling {
@@ -267,17 +265,23 @@ namespace Physics::Units::NStd
 
 		/* Arithmetic operators */;
 
-		constexpr AdaptiveSibling<decltype(-Type{}), StandardUnit, Scale, typename Offset::Opposite> operator-() const noexcept {
-			return -mData;
+		constexpr auto operator-() const noexcept {
+			using NewUnit = GenerativeUnit<decltype(-Type{}), StandardUnit, Scale, typename Offset::Opposite, AccuracyType>;
+			return NewUnit{-mData};
 		}
 		template<Detail::NonStandardUnit OtherUnit = Self>
 			requires(OtherUnit::template HasSameScale<Scale>() && HasSameStdUnitBase<OtherUnit>())
 		constexpr auto operator+(const OtherUnit& value) const noexcept {
 			using RawType = decltype(Type{} + OtherUnit{}.ToRaw());
-			using ResultOffset = Offset::template Sum<typename OtherUnit::OffsetT>;
+			using ResultOffset = Offset::template Sum<typename OtherUnit::OffsetType>;
 			using AccType = decltype(AccuracyType{} * OtherUnit::SCALE);
-			using NewUnit = AdaptiveSibling<RawType, StandardUnit, Scale, ResultOffset, AccType>;
-			return NewUnit{mData + value.ToRaw()};
+
+			if constexpr(Scale::IsIdentity() && ResultOffset::IsZero()) {
+				return StandardUnit<RawType>{mData + value.ToRaw()};
+			} else {
+				using NewUnit = GenerativeUnit<RawType, StandardUnit, Scale, ResultOffset, AccType>;
+				return NewUnit{mData + value.ToRaw()};
+			}
 		}
 		template<Arithmetic _Type = Type>
 			requires(HasIdentScale())
@@ -293,10 +297,15 @@ namespace Physics::Units::NStd
 			requires(OtherUnit::template HasSameScale<Scale>() && HasSameStdUnitBase<OtherUnit>())
 		constexpr auto operator-(const OtherUnit& value) const noexcept {
 			using RawType = decltype(Type{} - OtherUnit{}.ToRaw());
-			using ResultOffset = Offset::template Diff<typename OtherUnit::OffsetT>;
+			using ResultOffset = Offset::template Diff<typename OtherUnit::OffsetType>;
 			using AccType = decltype(AccuracyType{} * OtherUnit::SCALE);
-			using NewUnit = AdaptiveSibling<RawType, StandardUnit, Scale, ResultOffset, AccType>;
-			return NewUnit{mData - value.ToRaw()};
+
+			if constexpr(Scale::IsIdentity() && ResultOffset::IsZero()) {
+				return StandardUnit<RawType>{mData - value.ToRaw()};
+			} else {
+				using NewUnit = GenerativeUnit<RawType, StandardUnit, Scale, ResultOffset, AccType>;
+				return NewUnit{mData - value.ToRaw()};
+			}
 		}
 		template<Arithmetic _Type = Type>
 			requires(HasIdentScale())
@@ -316,8 +325,13 @@ namespace Physics::Units::NStd
 			using ComposeType = decltype(StandardUnit<Type>{} * _StandardUnit<_Type>{});
 			using AccType = decltype(AccuracyType{} * _AccuracyType{});
 			using ResultScale = Scale::template Product<_Scale>;
-			using NewUnit = AdaptiveSibling<RawType, Decomposer<ComposeType>::template OuterType, ResultScale, Detail::Fraction<0, 1>, AccType>;
-			return NewUnit{mData * value.ToRaw()};
+
+			if constexpr(ResultScale::IsIdentity()) {
+				return ComposeType{mData * value.ToRaw()};
+			} else {
+				using NewUnit = GenerativeUnit<RawType, Decomposer<ComposeType>::template OuterType, ResultScale, Detail::Fraction<0, 1>, AccType>;
+				return NewUnit{mData * value.ToRaw()};
+			}
 		}
 		template<typename _StdUnitT = StandardUnit<Type>>
 			requires(HasNoOffset())
@@ -338,8 +352,13 @@ namespace Physics::Units::NStd
 			using ComposeType = decltype(StandardUnit<Type>{} / _StandardUnit<_Type>{});
 			using AccType = decltype(AccuracyType{} / _AccuracyType{});
 			using ResultScale = Scale::template Quotient<_Scale>;
-			using NewUnit = AdaptiveSibling<RawType, Decomposer<ComposeType>::template OuterType, ResultScale, Detail::Fraction<0, 1>, AccType>;
-			return NewUnit{mData / value.ToRaw()};
+
+			if constexpr(ResultScale::IsIdentity()) {
+				return ComposeType{mData / value.ToRaw()};
+			} else {
+				using NewUnit = GenerativeUnit<RawType, Decomposer<ComposeType>::template OuterType, ResultScale, Detail::Fraction<0, 1>, AccType>;
+				return NewUnit{mData / value.ToRaw()};
+			}
 		}
 		template<typename _StdUnitT = StandardUnit<Type>>
 			requires(HasNoOffset())
@@ -380,9 +399,6 @@ namespace Physics::Units::NStd
 				return mData * SCALE + OFFSET;
 			}
 		}
-
-		using OffsetT = Offset;
-		using ScaleT = Scale;
 
 	private:
 		template<Arithmetic _Type = Type>

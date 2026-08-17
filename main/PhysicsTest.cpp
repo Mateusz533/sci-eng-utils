@@ -63,13 +63,9 @@ int main() {
 	std::cout << "1 meter in inches: " << resultInch << std::endl;
 	std::cout << "1 meter after double conversion: " << resultInch.ToStandardUnit<>() << std::endl;
 
-	[[maybe_unused]] NStd::Degrees<> degree;
-	std::cout << "Offset Numerator:   " << NStd::Degrees<>::OffsetT::Num << std::endl;
-	std::cout << "Offset Denominator: " << NStd::Degrees<>::OffsetT::Denom << std::endl;
-	std::cout << "Scale Numerator:    " << NStd::Degrees<>::ScaleT::Num << std::endl;
-	std::cout << "Scale Denominator:  " << NStd::Degrees<>::ScaleT::Denom << std::endl;
-	std::cout << "Degree per radian:  " << 1.0 * NStd::Degrees<>::ScaleT::ToDecimal() << std::endl;
-	std::cout << "Radian per degree:  " << 1.0 / NStd::Degrees<>::ScaleT::ToDecimal() << std::endl;
+	NStd::Degrees<> degree{1};
+	std::cout << "Degree per radian:  " << degree.ToStandardUnit().ToRaw() / degree.ToRaw() << std::endl;
+	std::cout << "Radian per degree:  " << degree.ToRaw() / degree.ToStandardUnit().ToRaw() << std::endl;
 
 	std::cout << "  0 *F = " << NStd::DegreesFahrenheit<>{0}.ToStandardUnit() << std::endl;
 	std::cout << "100 *F = " << NStd::DegreesFahrenheit<>{100}.ToStandardUnit() << std::endl;
