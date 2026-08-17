@@ -1,5 +1,6 @@
 #include "EulerAnglesTest.hpp"
 #include "MatrixTest.hpp"
+#include "PhysicsTest.hpp"
 #include "TensorTest.hpp"
 
 int main(int argc, char** argv) {
