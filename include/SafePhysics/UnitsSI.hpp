@@ -9,20 +9,20 @@
 
 namespace Physics::Units::SI
 {
-	template<Arithmetic Type, i8 M, i8 S, i8 Kg, i8 A, i8 K, i8 Mol, i8 Cd, i8 Rad, i8 Sr, i8 Prefix>
-		requires(Prefix == 0 || (M != 0 || S != 0 || Kg != 0 || A != 0 || K != 0 || Mol != 0 || Cd != 0 || Rad != 0 || Sr != 0))
+	template<Arithmetic Type, i8 M, i8 S, i8 KG, i8 A, i8 K, i8 MOL, i8 CD, i8 RAD, i8 SR, i8 PREFIX>
+		requires(PREFIX == 0 || (M != 0 || S != 0 || KG != 0 || A != 0 || K != 0 || MOL != 0 || CD != 0 || RAD != 0 || SR != 0))
 	class GenerativeUnit;
 
 	template<Arithmetic T = f64>
 	using Scale = GenerativeUnit<T, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>;
 
-	template<Arithmetic Type, i8 M, i8 S, i8 Kg, i8 A, i8 K, i8 Mol, i8 Cd, i8 Rad, i8 Sr, i8 Prefix>
-		requires(Prefix == 0 || (M != 0 || S != 0 || Kg != 0 || A != 0 || K != 0 || Mol != 0 || Cd != 0 || Rad != 0 || Sr != 0))
+	template<Arithmetic Type, i8 M, i8 S, i8 KG, i8 A, i8 K, i8 MOL, i8 CD, i8 RAD, i8 SR, i8 PREFIX>
+		requires(PREFIX == 0 || (M != 0 || S != 0 || KG != 0 || A != 0 || K != 0 || MOL != 0 || CD != 0 || RAD != 0 || SR != 0))
 	class GenerativeUnit
 	{
 	private:
-		template<Arithmetic _Type = Type, i8 _Prefix = Prefix>
-		using Sibling = GenerativeUnit<_Type, M, S, Kg, A, K, Mol, Cd, Rad, Sr, _Prefix>;
+		template<Arithmetic OtherType = Type, i8 OTHER_PREFIX = PREFIX>
+		using Sibling = GenerativeUnit<OtherType, M, S, KG, A, K, MOL, CD, RAD, SR, OTHER_PREFIX>;
 
 		using Self = GenerativeUnit;
 
@@ -33,67 +33,67 @@ namespace Physics::Units::SI
 		constexpr GenerativeUnit(const Self& value) = default;
 		constexpr GenerativeUnit(Self&& value) = default;
 		constexpr GenerativeUnit(Type data) noexcept : mData(data) {}
-		template<Arithmetic _Type = Type, i8 _Prefix = Prefix>
-		constexpr GenerativeUnit(const Sibling<_Type, _Prefix>& value) noexcept : mData(ScaleUnit(value)){};
+		template<Arithmetic OtherType = Type, i8 OTHER_PREFIX = PREFIX>
+		constexpr GenerativeUnit(const Sibling<OtherType, OTHER_PREFIX>& value) noexcept : mData(ScaleUnit(value)){};
 
 		/* Assignment operators */;
 
 		constexpr Self& operator=(const Self& value) = default;
 		constexpr Self& operator=(Self&& value) = default;
-		template<Arithmetic _Type = Type, i8 _Prefix = Prefix>
-		constexpr Self& operator=(const Sibling<_Type, _Prefix>& value) noexcept {
+		template<Arithmetic OtherType = Type, i8 OTHER_PREFIX = PREFIX>
+		constexpr Self& operator=(const Sibling<OtherType, OTHER_PREFIX>& value) noexcept {
 			mData = ScaleUnit(value);
 			return *this;
 		}
-		template<Arithmetic _Type = Type, i8 _Prefix = Prefix>
-		constexpr Self& operator+=(const Sibling<_Type, _Prefix>& value) noexcept {
+		template<Arithmetic OtherType = Type, i8 OTHER_PREFIX = PREFIX>
+		constexpr Self& operator+=(const Sibling<OtherType, OTHER_PREFIX>& value) noexcept {
 			mData += ScaleUnit(value);
 			return *this;
 		}
-		template<Arithmetic _Type = Type, i8 _Prefix = Prefix>
-		constexpr Self& operator-=(const Sibling<_Type, _Prefix>& value) noexcept {
+		template<Arithmetic OtherType = Type, i8 OTHER_PREFIX = PREFIX>
+		constexpr Self& operator-=(const Sibling<OtherType, OTHER_PREFIX>& value) noexcept {
 			mData -= ScaleUnit(value);
 			return *this;
 		}
-		template<Arithmetic _Type = Type>
-		constexpr Self& operator*=(const Scale<_Type>& value) noexcept {
+		template<Arithmetic OtherType = Type>
+		constexpr Self& operator*=(const Scale<OtherType>& value) noexcept {
 			mData *= value.ToRaw();
 			return *this;
 		}
-		template<Arithmetic _Type = Type>
-		constexpr Self& operator/=(const Scale<_Type>& value) noexcept {
+		template<Arithmetic OtherType = Type>
+		constexpr Self& operator/=(const Scale<OtherType>& value) noexcept {
 			mData /= value.ToRaw();
 			return *this;
 		}
 
 		/* Comparison operators */;
 
-		template<Arithmetic _Type = Type>
-		constexpr bool operator<(const Sibling<_Type>& value) const noexcept {
+		template<Arithmetic OtherType = Type>
+		constexpr bool operator<(const Sibling<OtherType>& value) const noexcept {
 			return mData < value.ToRaw();
 		}
-		template<Arithmetic _Type = Type>
-		constexpr bool operator>(const Sibling<_Type>& value) const noexcept {
+		template<Arithmetic OtherType = Type>
+		constexpr bool operator>(const Sibling<OtherType>& value) const noexcept {
 			return mData > value.ToRaw();
 		}
-		template<Arithmetic _Type = Type>
-		constexpr bool operator<=(const Sibling<_Type>& value) const noexcept {
+		template<Arithmetic OtherType = Type>
+		constexpr bool operator<=(const Sibling<OtherType>& value) const noexcept {
 			return mData <= value.ToRaw();
 		}
-		template<Arithmetic _Type = Type>
-		constexpr bool operator>=(const Sibling<_Type>& value) const noexcept {
+		template<Arithmetic OtherType = Type>
+		constexpr bool operator>=(const Sibling<OtherType>& value) const noexcept {
 			return mData >= value.ToRaw();
 		}
-		template<Arithmetic _Type = Type>
-		constexpr bool operator==(const Sibling<_Type>& value) const noexcept {
+		template<Arithmetic OtherType = Type>
+		constexpr bool operator==(const Sibling<OtherType>& value) const noexcept {
 			return mData == value.ToRaw();
 		}
-		template<Arithmetic _Type = Type>
-		constexpr bool operator!=(const Sibling<_Type>& value) const noexcept {
+		template<Arithmetic OtherType = Type>
+		constexpr bool operator!=(const Sibling<OtherType>& value) const noexcept {
 			return mData != value.ToRaw();
 		}
-		template<Arithmetic _Type = Type>
-		constexpr auto operator<=>(const Sibling<_Type>& value) const noexcept {
+		template<Arithmetic OtherType = Type>
+		constexpr auto operator<=>(const Sibling<OtherType>& value) const noexcept {
 			return mData <=> value.ToRaw();
 		}
 
@@ -109,30 +109,32 @@ namespace Physics::Units::SI
 			using NewType = decltype(-Type{});
 			return Sibling<NewType>{-mData};
 		}
-		template<Arithmetic _Type = Type>
-		constexpr auto operator+(const Sibling<_Type>& value) const noexcept {
-			using NewType = decltype(Type{} + _Type{});
+		template<Arithmetic OtherType = Type>
+		constexpr auto operator+(const Sibling<OtherType>& value) const noexcept {
+			using NewType = decltype(Type{} + OtherType{});
 			return Sibling<NewType>{mData + value.ToRaw()};
 		}
-		template<Arithmetic _Type = Type>
-		constexpr auto operator-(const Sibling<_Type>& value) const noexcept {
-			using NewType = decltype(Type{} - _Type{});
+		template<Arithmetic OtherType = Type>
+		constexpr auto operator-(const Sibling<OtherType>& value) const noexcept {
+			using NewType = decltype(Type{} - OtherType{});
 			return Sibling<NewType>{mData - value.ToRaw()};
 		}
-		template<Arithmetic _Type, i8 _M, i8 _S, i8 _Kg, i8 _A, i8 _K, i8 _Mol, i8 _Cd, i8 _Rad, i8 _Sr, i8 _Prefix>
-		constexpr auto operator*(const GenerativeUnit<_Type, _M, _S, _Kg, _A, _K, _Mol, _Cd, _Rad, _Sr, _Prefix> value) const noexcept {
-			return GenerativeUnit<decltype(Type{} * _Type{}), M + _M, S + _S, Kg + _Kg, A + _A, K + _K, Mol + _Mol, Cd + _Cd,
-								  Rad + _Rad, Sr + _Sr, Prefix + _Prefix>{mData * value.ToRaw()};
+		template<Arithmetic OtherType, i8 N_M, i8 N_S, i8 N_KG, i8 N_A, i8 N_K, i8 N_MOL, i8 N_CD, i8 N_RAD, i8 N_SR, i8 OTHER_PREFIX>
+		constexpr auto operator*(const GenerativeUnit<OtherType, N_M, N_S, N_KG, N_A, N_K, N_MOL, N_CD, N_RAD, N_SR, OTHER_PREFIX> value) const noexcept {
+			using NewType = GenerativeUnit<decltype(Type{} * OtherType{}), M + N_M, S + N_S, KG + N_KG, A + N_A, K + N_K,
+										   MOL + N_MOL, CD + N_CD, RAD + N_RAD, SR + N_SR, PREFIX + OTHER_PREFIX>;
+			return NewType{mData * value.ToRaw()};
 		}
-		template<Arithmetic _Type, i8 _M, i8 _S, i8 _Kg, i8 _A, i8 _K, i8 _Mol, i8 _Cd, i8 _Rad, i8 _Sr, i8 _Prefix>
-		constexpr auto operator/(const GenerativeUnit<_Type, _M, _S, _Kg, _A, _K, _Mol, _Cd, _Rad, _Sr, _Prefix> value) const noexcept {
-			return GenerativeUnit<decltype(Type{} / _Type{}), M - _M, S - _S, Kg - _Kg, A - _A, K - _K, Mol - _Mol, Cd - _Cd,
-								  Rad - _Rad, Sr - _Sr, Prefix - _Prefix>{mData / value.ToRaw()};
+		template<Arithmetic OtherType, i8 N_M, i8 N_S, i8 N_KG, i8 N_A, i8 N_K, i8 N_MOL, i8 N_CD, i8 N_RAD, i8 N_SR, i8 OTHER_PREFIX>
+		constexpr auto operator/(const GenerativeUnit<OtherType, N_M, N_S, N_KG, N_A, N_K, N_MOL, N_CD, N_RAD, N_SR, OTHER_PREFIX> value) const noexcept {
+			using NewType = GenerativeUnit<decltype(Type{} / OtherType{}), M - N_M, S - N_S, KG - N_KG, A - N_A, K - N_K,
+										   MOL - N_MOL, CD - N_CD, RAD - N_RAD, SR - N_SR, PREFIX - OTHER_PREFIX>;
+			return NewType{mData / value.ToRaw()};
 		}
 
 		friend std::ostream& operator<<(std::ostream& os, const Self& obj) {
 			os << obj.mData << ' ';
-			if constexpr(Prefix != 0) {
+			if constexpr(PREFIX != 0) {
 				os << "* ";
 			}
 			os << Self::GetTypeView();
@@ -141,9 +143,9 @@ namespace Physics::Units::SI
 
 		/* Other methods */;
 
-		template<Arithmetic _Type = Type>
-		constexpr Sibling<_Type> Cast() const noexcept {
-			return static_cast<_Type>(mData);
+		template<Arithmetic OtherType = Type>
+		constexpr Sibling<OtherType> Cast() const noexcept {
+			return static_cast<OtherType>(mData);
 		}
 
 		constexpr Type ToRaw() const noexcept {
@@ -162,23 +164,23 @@ namespace Physics::Units::SI
 		constexpr auto Sqrt() const noexcept {
 			static_assert(M % 2 == 0);
 			static_assert(S % 2 == 0);
-			static_assert(Kg % 2 == 0);
+			static_assert(KG % 2 == 0);
 			static_assert(A % 2 == 0);
 			static_assert(K % 2 == 0);
-			static_assert(Mol % 2 == 0);
-			static_assert(Cd % 2 == 0);
-			static_assert(Rad % 2 == 0);
-			static_assert(Sr % 2 == 0);
-			static_assert(Prefix % 2 == 0);
+			static_assert(MOL % 2 == 0);
+			static_assert(CD % 2 == 0);
+			static_assert(RAD % 2 == 0);
+			static_assert(SR % 2 == 0);
+			static_assert(PREFIX % 2 == 0);
 			using RawType = std::conditional_t<std::is_same_v<Type, f128>, f128, f64>;
-			using NewType = GenerativeUnit<RawType, M / 2, S / 2, Kg / 2, A / 2, K / 2, Mol / 2, Cd / 2, Rad / 2, Sr / 2, Prefix / 2>;
+			using NewType = GenerativeUnit<RawType, M / 2, S / 2, KG / 2, A / 2, K / 2, MOL / 2, CD / 2, RAD / 2, SR / 2, PREFIX / 2>;
 			return NewType{mData >= 0 && mData < std::numeric_limits<double>::infinity()
 							   ? SqrtNewtonRaphson(mData, mData, 0)
 							   : std::numeric_limits<f64>::quiet_NaN()};
 		}
 
 		static consteval bool HasNoPrefix() noexcept {
-			return Prefix == 0;
+			return PREFIX == 0;
 		}
 
 		static consteval std::string_view GetTypeView() noexcept {
@@ -190,15 +192,15 @@ namespace Physics::Units::SI
 		}
 
 	private:
-		template<Arithmetic _Type = Type, i8 _Prefix = Prefix>
-		static constexpr auto ScaleUnit(const Sibling<_Type, _Prefix> value) noexcept {
-			using NewType = decltype(Type{} * _Type{});
+		template<Arithmetic OtherType = Type, i8 OTHER_PREFIX = PREFIX>
+		static constexpr auto ScaleUnit(const Sibling<OtherType, OTHER_PREFIX> value) noexcept {
+			using NewType = decltype(Type{} * OtherType{});
 
-			if constexpr(_Prefix - Prefix > 0) {
-				constexpr NewType scaleFactor = Pow10(_Prefix - Prefix);
+			if constexpr(OTHER_PREFIX - PREFIX > 0) {
+				constexpr NewType scaleFactor = Pow10(OTHER_PREFIX - PREFIX);
 				return value.ToRaw() * scaleFactor;
-			} else if constexpr(_Prefix - Prefix < 0) {
-				constexpr NewType scaleFactor = Pow10(Prefix - _Prefix);
+			} else if constexpr(OTHER_PREFIX - PREFIX < 0) {
+				constexpr NewType scaleFactor = Pow10(PREFIX - OTHER_PREFIX);
 				return value.ToRaw() / scaleFactor;
 			} else {
 				return value.ToRaw();
@@ -218,16 +220,16 @@ namespace Physics::Units::SI
 
 		static consteval auto GetTypeText() noexcept {
 			constexpr auto text = Utils::CompileTime::String("").Join(
-				DimensionToString<Prefix>("10"),
+				DimensionToString<PREFIX>("10"),
 				DimensionToString<M>("m"),
 				DimensionToString<S>("s"),
-				DimensionToString<Kg>("kg"),
+				DimensionToString<KG>("kg"),
 				DimensionToString<A>("A"),
 				DimensionToString<K>("K"),
-				DimensionToString<Mol>("mol"),
-				DimensionToString<Cd>("cd"),
-				DimensionToString<Rad>("rad"),
-				DimensionToString<Sr>("sr"));
+				DimensionToString<MOL>("mol"),
+				DimensionToString<CD>("cd"),
+				DimensionToString<RAD>("rad"),
+				DimensionToString<SR>("sr"));
 
 			if constexpr(text.Size() != 0) {
 				constexpr auto prefixSize = Utils::CompileTime::String(" * ").Size();
