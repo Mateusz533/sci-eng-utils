@@ -2,6 +2,7 @@
 #include <array>
 #include <chrono>
 #include <cmath>
+#include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
@@ -9,11 +10,11 @@
 //
 #include "GenericMath/GenericMatrix.hpp"
 
-constexpr int N = 3;
-constexpr int MAX_SAMPLES = 300'000;
+constexpr std::size_t N = 3;
+constexpr std::size_t MAX_SAMPLES = 300'000;
 
 template<class Matrix3d>
-inline Matrix3d makeMatrix(const std::array<double, N * N>& values) {
+inline Matrix3d MakeMatrix(const std::array<double, N * N>& values) {
 	Matrix3d res;
 	for(std::size_t i = 0; i < N; ++i)
 		for(std::size_t j = 0; j < N; ++j)
@@ -23,7 +24,7 @@ inline Matrix3d makeMatrix(const std::array<double, N * N>& values) {
 }
 
 template<class Matrix3d>
-inline auto inverseMatrix(const Matrix3d& mat) {
+inline auto InverseMatrix(const Matrix3d& mat) {
 	if constexpr(std::is_same_v<Matrix3d, Eigen::Matrix3d>)
 		return Matrix3d(mat.inverse());
 	else if constexpr(std::is_same_v<Matrix3d, GenericMath::Matrix3d>)
@@ -32,7 +33,7 @@ inline auto inverseMatrix(const Matrix3d& mat) {
 }
 
 template<class Matrix3d>
-inline bool validateMatrix(const Matrix3d& mat) {
+inline bool ValidateMatrix(const Matrix3d& mat) {
 	if constexpr(std::is_same_v<Matrix3d, Eigen::Matrix3d>)
 		return true;
 	else if constexpr(std::is_same_v<Matrix3d, GenericMath::Matrix3d>)
@@ -41,7 +42,7 @@ inline bool validateMatrix(const Matrix3d& mat) {
 }
 
 template<class Matrix3d>
-inline double maxDiff(const Matrix3d& mat) {
+inline double MaxDiff(const Matrix3d& mat) {
 	double max = 0.0;
 	for(std::size_t i = 0; i < N; ++i) {
 		for(std::size_t j = 0; j < N; ++j) {
@@ -53,7 +54,7 @@ inline double maxDiff(const Matrix3d& mat) {
 }
 
 template<class Matrix3d>
-inline void printMatrix(const Matrix3d& mat) {
+inline void PrintMatrix(const Matrix3d& mat) {
 	for(std::size_t i = 0; i < N; ++i) {
 		for(std::size_t j = 0; j < N; ++j)
 			printf("% 13.6f\t", mat(i, j));
@@ -61,12 +62,12 @@ inline void printMatrix(const Matrix3d& mat) {
 	}
 }
 
-inline bool isSingular(const std::array<double, N * N>& matrixArray) {
+inline bool IsSingular(const std::array<double, N * N>& matrixArray) {
 	bool singular = false;
-	for(int i = 0; i < N; ++i) {
+	for(std::size_t i = 0; i < N; ++i) {
 		bool anyNonZeroInRow = false;
 		bool anyNonZeroInCol = false;
-		for(int j = 0; j < N; ++j) {
+		for(std::size_t j = 0; j < N; ++j) {
 			anyNonZeroInRow = anyNonZeroInRow || matrixArray[i + N * j] != 0;
 			anyNonZeroInCol = anyNonZeroInCol || matrixArray[j + N * i] != 0;
 		}
@@ -79,23 +80,23 @@ inline bool isSingular(const std::array<double, N * N>& matrixArray) {
 }
 
 template<class Matrix3d>
-inline double testInversionForMatrix(const std::array<double, N * N>& data, int count) {
+inline double TestInversionForMatrix(const std::array<double, N * N>& data, int count) {
 	try {
-		const Matrix3d mat = makeMatrix<Matrix3d>(data);
+		const Matrix3d mat = MakeMatrix<Matrix3d>(data);
 		// Matrix3d matInv = mat.InverseWithLu();
-		const Matrix3d matInv = inverseMatrix(mat);
+		const Matrix3d matInv = InverseMatrix(mat);
 		const Matrix3d matIdent = mat * matInv;
-		const double diff = maxDiff(matIdent - Matrix3d::Identity());
-		const bool isValid = validateMatrix(matInv);
+		const double diff = MaxDiff(matIdent - Matrix3d::Identity());
+		const bool isValid = ValidateMatrix(matInv);
 
 		if(!isValid || diff > 1e-11) {
 			std::cout << "Permutation #" << count << ":\n";
 			std::cout << "Matrix:\n";
-			printMatrix(mat);
+			PrintMatrix(mat);
 			std::cout << "Inverse:\n";
-			printMatrix(matInv);
+			PrintMatrix(matInv);
 			std::cout << "Ident:\n";
-			printMatrix(matIdent);
+			PrintMatrix(matIdent);
 			std::cout << "Max diff: " << diff << "\n";
 			std::cout << "-----------------------------------------------------------\n";
 		}
@@ -103,8 +104,8 @@ inline double testInversionForMatrix(const std::array<double, N * N>& data, int 
 
 	} catch(const std::exception& ex) {
 		std::cout << "Permutation #" << count << ": singular matrix.\n";
-		const GenericMath::Matrix3d mat = makeMatrix<GenericMath::Matrix3d>(data);
-		printMatrix(mat);
+		const GenericMath::Matrix3d mat = MakeMatrix<GenericMath::Matrix3d>(data);
+		PrintMatrix(mat);
 		std::cout << "Determinant: " << mat.Determinant() << "\n";
 		std::cout << "-----------------------------------------------------------\n";
 		return 0.0;
@@ -112,7 +113,7 @@ inline double testInversionForMatrix(const std::array<double, N * N>& data, int 
 }
 
 template<class Matrix3d>
-void matrixGeneralTest() {
+void MatrixGeneralTest() {
 	std::array<double, N * N> randomNumbers = {12321, 73434, 5424,
 											   8787, 35346, 9037,
 											   5824, 9573, 2973};
@@ -121,10 +122,10 @@ void matrixGeneralTest() {
 	const auto startTime = std::chrono::high_resolution_clock::now();
 
 	double maxDiff = 0.0;
-	int count = 0;
+	std::size_t count = 0;
 	do {
 		if(count >= MAX_SAMPLES) break;
-		maxDiff = std::max(maxDiff, testInversionForMatrix<Matrix3d>(randomNumbers, ++count));
+		maxDiff = std::max(maxDiff, TestInversionForMatrix<Matrix3d>(randomNumbers, ++count));
 	} while(std::next_permutation(randomNumbers.begin(), randomNumbers.end()));
 
 	const auto endTime = std::chrono::high_resolution_clock::now();
@@ -137,17 +138,17 @@ void matrixGeneralTest() {
 }
 
 template<class Matrix3d>
-void matrixSpecialTest() {
+void MatrixSpecialTest() {
 	std::array<double, N * N> specialNumbers = {1, 0, 0,
 												0, 2, 0,
 												0, 0, 3};
 	std::sort(specialNumbers.begin(), specialNumbers.end());
 
 	double maxDiff = 0.0;
-	int count = 0;
+	std::size_t count = 0;
 	do {
-		if(!isSingular(specialNumbers)) {
-			maxDiff = std::max(maxDiff, testInversionForMatrix<Matrix3d>(specialNumbers, ++count));
+		if(!IsSingular(specialNumbers)) {
+			maxDiff = std::max(maxDiff, TestInversionForMatrix<Matrix3d>(specialNumbers, ++count));
 		}
 	} while(std::next_permutation(specialNumbers.begin(), specialNumbers.end()));
 
@@ -160,15 +161,15 @@ int main() {
 	std::cout << "-----------------------------------------------------------\n";
 	std::cout << "-------------------------- Eigen --------------------------\n";
 	std::cout << "-----------------------------------------------------------\n";
-	matrixSpecialTest<Eigen::Matrix3d>();
+	MatrixSpecialTest<Eigen::Matrix3d>();
 	std::cout << "-----------------------------------------------------------\n";
-	matrixGeneralTest<Eigen::Matrix3d>();
+	MatrixGeneralTest<Eigen::Matrix3d>();
 	std::cout << "-----------------------------------------------------------\n";
 	std::cout << "------------------------- Generic -------------------------\n";
 	std::cout << "-----------------------------------------------------------\n";
-	matrixSpecialTest<GenericMath::Matrix3d>();
+	MatrixSpecialTest<GenericMath::Matrix3d>();
 	std::cout << "-----------------------------------------------------------\n";
-	matrixGeneralTest<GenericMath::Matrix3d>();
+	MatrixGeneralTest<GenericMath::Matrix3d>();
 
 	return 0;
 }

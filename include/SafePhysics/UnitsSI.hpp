@@ -120,13 +120,13 @@ namespace Physics::Units::SI
 			return Sibling<NewType>{mData - value.ToRaw()};
 		}
 		template<Arithmetic OtherType, i8 N_M, i8 N_S, i8 N_KG, i8 N_A, i8 N_K, i8 N_MOL, i8 N_CD, i8 N_RAD, i8 N_SR, i8 OTHER_PREFIX>
-		constexpr auto operator*(const GenerativeUnit<OtherType, N_M, N_S, N_KG, N_A, N_K, N_MOL, N_CD, N_RAD, N_SR, OTHER_PREFIX> value) const noexcept {
+		constexpr auto operator*(const GenerativeUnit<OtherType, N_M, N_S, N_KG, N_A, N_K, N_MOL, N_CD, N_RAD, N_SR, OTHER_PREFIX>& value) const noexcept {
 			using NewType = GenerativeUnit<decltype(Type{} * OtherType{}), M + N_M, S + N_S, KG + N_KG, A + N_A, K + N_K,
 										   MOL + N_MOL, CD + N_CD, RAD + N_RAD, SR + N_SR, PREFIX + OTHER_PREFIX>;
 			return NewType{mData * value.ToRaw()};
 		}
 		template<Arithmetic OtherType, i8 N_M, i8 N_S, i8 N_KG, i8 N_A, i8 N_K, i8 N_MOL, i8 N_CD, i8 N_RAD, i8 N_SR, i8 OTHER_PREFIX>
-		constexpr auto operator/(const GenerativeUnit<OtherType, N_M, N_S, N_KG, N_A, N_K, N_MOL, N_CD, N_RAD, N_SR, OTHER_PREFIX> value) const noexcept {
+		constexpr auto operator/(const GenerativeUnit<OtherType, N_M, N_S, N_KG, N_A, N_K, N_MOL, N_CD, N_RAD, N_SR, OTHER_PREFIX>& value) const noexcept {
 			using NewType = GenerativeUnit<decltype(Type{} / OtherType{}), M - N_M, S - N_S, KG - N_KG, A - N_A, K - N_K,
 										   MOL - N_MOL, CD - N_CD, RAD - N_RAD, SR - N_SR, PREFIX - OTHER_PREFIX>;
 			return NewType{mData / value.ToRaw()};
@@ -184,30 +184,30 @@ namespace Physics::Units::SI
 		}
 
 		static consteval std::string_view GetTypeView() noexcept {
-			return sTypeText.View();
+			return TYPE_TEXT.View();
 		}
 
 		static consteval std::string_view GetTypeCString() noexcept {
-			return sTypeText.CString();
+			return TYPE_TEXT.CString();
 		}
 
 	private:
 		template<Arithmetic OtherType = Type, i8 OTHER_PREFIX = PREFIX>
-		static constexpr auto ScaleUnit(const Sibling<OtherType, OTHER_PREFIX> value) noexcept {
+		static constexpr auto ScaleUnit(const Sibling<OtherType, OTHER_PREFIX>& value) noexcept {
 			using NewType = decltype(Type{} * OtherType{});
 
 			if constexpr(OTHER_PREFIX - PREFIX > 0) {
-				constexpr NewType scaleFactor = Pow10(OTHER_PREFIX - PREFIX);
-				return value.ToRaw() * scaleFactor;
+				constexpr NewType SCALE_FACTOR = Pow10(OTHER_PREFIX - PREFIX);
+				return value.ToRaw() * SCALE_FACTOR;
 			} else if constexpr(OTHER_PREFIX - PREFIX < 0) {
-				constexpr NewType scaleFactor = Pow10(PREFIX - OTHER_PREFIX);
-				return value.ToRaw() / scaleFactor;
+				constexpr NewType SCALE_FACTOR = Pow10(PREFIX - OTHER_PREFIX);
+				return value.ToRaw() / SCALE_FACTOR;
 			} else {
 				return value.ToRaw();
 			}
 		}
 
-		static consteval i64 Pow10(const u8 pow) noexcept {
+		static consteval i64 Pow10(u8 pow) noexcept {
 			if(pow > 0) {
 				return 10L * Pow10(pow - 1);
 			}
@@ -219,7 +219,7 @@ namespace Physics::Units::SI
 		}
 
 		static consteval auto GetTypeText() noexcept {
-			constexpr auto text = Utils::CompileTime::String("").Join(
+			constexpr auto TEXT = Utils::CompileTime::String("").Join(
 				DimensionToString<PREFIX>("10"),
 				DimensionToString<M>("m"),
 				DimensionToString<S>("s"),
@@ -231,9 +231,9 @@ namespace Physics::Units::SI
 				DimensionToString<RAD>("rad"),
 				DimensionToString<SR>("sr"));
 
-			if constexpr(text.Size() != 0) {
-				constexpr auto prefixSize = Utils::CompileTime::String(" * ").Size();
-				return text.template SubString<prefixSize, text.Size() - prefixSize>();
+			if constexpr(TEXT.Size() != 0) {
+				constexpr auto PREFIX_SIZE = Utils::CompileTime::String(" * ").Size();
+				return TEXT.template SubString<PREFIX_SIZE, TEXT.Size() - PREFIX_SIZE>();
 			} else {
 				return Utils::CompileTime::String("(dimensionless)");
 			}
@@ -252,35 +252,35 @@ namespace Physics::Units::SI
 		}
 
 	private:
-		static constexpr auto sTypeText = GetTypeText();
+		static constexpr auto TYPE_TEXT = GetTypeText();
 		Type mData;
 	};
 
-#define GENERATE_SI_UNIT(Name, M, S, Kg, A, K, Mol, Cd, Rad, Sr, BaseShift)                 \
-	template<Arithmetic T = f64>                                                            \
-	using Nano##Name = GenerativeUnit<T, M, S, Kg, A, K, Mol, Cd, Rad, Sr, BaseShift - 9>;  \
-	template<Arithmetic T = f64>                                                            \
-	using Micro##Name = GenerativeUnit<T, M, S, Kg, A, K, Mol, Cd, Rad, Sr, BaseShift - 6>; \
-	template<Arithmetic T = f64>                                                            \
-	using Milli##Name = GenerativeUnit<T, M, S, Kg, A, K, Mol, Cd, Rad, Sr, BaseShift - 3>; \
-	template<Arithmetic T = f64>                                                            \
-	using Centi##Name = GenerativeUnit<T, M, S, Kg, A, K, Mol, Cd, Rad, Sr, BaseShift - 2>; \
-	template<Arithmetic T = f64>                                                            \
-	using Deci##Name = GenerativeUnit<T, M, S, Kg, A, K, Mol, Cd, Rad, Sr, BaseShift - 1>;  \
-	template<Arithmetic T = f64>                                                            \
-	using Name = GenerativeUnit<T, M, S, Kg, A, K, Mol, Cd, Rad, Sr, BaseShift>;            \
-	template<Arithmetic T = f64>                                                            \
-	using Deca##Name = GenerativeUnit<T, M, S, Kg, A, K, Mol, Cd, Rad, Sr, BaseShift + 1>;  \
-	template<Arithmetic T = f64>                                                            \
-	using Hecto##Name = GenerativeUnit<T, M, S, Kg, A, K, Mol, Cd, Rad, Sr, BaseShift + 2>; \
-	template<Arithmetic T = f64>                                                            \
-	using Kilo##Name = GenerativeUnit<T, M, S, Kg, A, K, Mol, Cd, Rad, Sr, BaseShift + 3>;  \
-	template<Arithmetic T = f64>                                                            \
-	using Mega##Name = GenerativeUnit<T, M, S, Kg, A, K, Mol, Cd, Rad, Sr, BaseShift + 6>;  \
-	template<Arithmetic T = f64>                                                            \
-	using Giga##Name = GenerativeUnit<T, M, S, Kg, A, K, Mol, Cd, Rad, Sr, BaseShift + 9>;  \
-	template<Arithmetic T = f64, i8 Power = 0>                                              \
-	using Any##Name = GenerativeUnit<T, M, S, Kg, A, K, Mol, Cd, Rad, Sr, BaseShift + Power>;
+#define GENERATE_SI_UNIT(Name, M, S, Kg, A, K, Mol, Cd, Rad, Sr, BaseShift)                   \
+	template<Arithmetic T = f64>                                                              \
+	using Nano##Name = GenerativeUnit<T, M, S, Kg, A, K, Mol, Cd, Rad, Sr, (BaseShift) - 9>;  \
+	template<Arithmetic T = f64>                                                              \
+	using Micro##Name = GenerativeUnit<T, M, S, Kg, A, K, Mol, Cd, Rad, Sr, (BaseShift) - 6>; \
+	template<Arithmetic T = f64>                                                              \
+	using Milli##Name = GenerativeUnit<T, M, S, Kg, A, K, Mol, Cd, Rad, Sr, (BaseShift) - 3>; \
+	template<Arithmetic T = f64>                                                              \
+	using Centi##Name = GenerativeUnit<T, M, S, Kg, A, K, Mol, Cd, Rad, Sr, (BaseShift) - 2>; \
+	template<Arithmetic T = f64>                                                              \
+	using Deci##Name = GenerativeUnit<T, M, S, Kg, A, K, Mol, Cd, Rad, Sr, (BaseShift) - 1>;  \
+	template<Arithmetic T = f64> /* NOLINTNEXTLINE(bugprone-macro-parentheses) */             \
+	using Name = GenerativeUnit<T, M, S, Kg, A, K, Mol, Cd, Rad, Sr, BaseShift>;              \
+	template<Arithmetic T = f64>                                                              \
+	using Deca##Name = GenerativeUnit<T, M, S, Kg, A, K, Mol, Cd, Rad, Sr, (BaseShift) + 1>;  \
+	template<Arithmetic T = f64>                                                              \
+	using Hecto##Name = GenerativeUnit<T, M, S, Kg, A, K, Mol, Cd, Rad, Sr, (BaseShift) + 2>; \
+	template<Arithmetic T = f64>                                                              \
+	using Kilo##Name = GenerativeUnit<T, M, S, Kg, A, K, Mol, Cd, Rad, Sr, (BaseShift) + 3>;  \
+	template<Arithmetic T = f64>                                                              \
+	using Mega##Name = GenerativeUnit<T, M, S, Kg, A, K, Mol, Cd, Rad, Sr, (BaseShift) + 6>;  \
+	template<Arithmetic T = f64>                                                              \
+	using Giga##Name = GenerativeUnit<T, M, S, Kg, A, K, Mol, Cd, Rad, Sr, (BaseShift) + 9>;  \
+	template<Arithmetic T = f64, i8 Power = 0>                                                \
+	using Any##Name = GenerativeUnit<T, M, S, Kg, A, K, Mol, Cd, Rad, Sr, (BaseShift) + Power>;
 
 	/* --- GENERATE NEEDED UNITS HERE --- */
 

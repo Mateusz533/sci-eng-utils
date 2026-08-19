@@ -29,8 +29,8 @@ namespace GenericMath
 		requires(DIM > 0 && RANK >= 0)
 	class Tensor
 	{
-		template<TensorIdx _RANK>
-		using ArrayType = typename Private::MultiArrayComposer<Data, DIM, _RANK>::ArrayType;
+		template<TensorIdx OTHER_RANK>
+		using ArrayType = typename Private::MultiArrayComposer<Data, DIM, OTHER_RANK>::ArrayType;
 
 	public:
 		template<typename... Indices>
@@ -58,38 +58,38 @@ namespace GenericMath
 			return At<RANK>(mData, indices);
 		}
 
-		template<TensorIdx _RANK>
-		[[nodiscard]] constexpr Tensor<Data, RANK + _RANK, DIM> OuterProduct(const Tensor<Data, _RANK, DIM>& other) const noexcept {
-			Tensor<Data, RANK + _RANK, DIM> result{};
+		template<TensorIdx OTHER_RANK>
+		[[nodiscard]] constexpr Tensor<Data, RANK + OTHER_RANK, DIM> OuterProduct(const Tensor<Data, OTHER_RANK, DIM>& other) const noexcept {
+			Tensor<Data, RANK + OTHER_RANK, DIM> result{};
 
-			ForEachIndex<RANK + _RANK>([&](const auto& resultIndices) {
-				const auto rIdxView = std::span<const TensorIdx, RANK + _RANK>(resultIndices);
+			ForEachIndex<RANK + OTHER_RANK>([&](const auto& resultIndices) {
+				const auto rIdxView = std::span<const TensorIdx, RANK + OTHER_RANK>(resultIndices);
 
 				const Data a = this->At(rIdxView.template subspan<0, RANK>());
-				const Data b = other.At(rIdxView.template subspan<RANK, _RANK>());
+				const Data b = other.At(rIdxView.template subspan<RANK, OTHER_RANK>());
 				result.At(resultIndices) = a * b;
 			});
 
 			return result;
 		}
 
-		template<TensorIdx I, TensorIdx J, TensorIdx _RANK>
-			requires((0 <= I && I < RANK && 0 <= J && J < _RANK))
-		[[nodiscard]] constexpr Tensor<Data, RANK + _RANK - 2, DIM> InnerProduct(const Tensor<Data, _RANK, DIM>& other) const noexcept {
+		template<TensorIdx I, TensorIdx J, TensorIdx OTHER_RANK>
+			requires((0 <= I && I < RANK && 0 <= J && J < OTHER_RANK))
+		[[nodiscard]] constexpr Tensor<Data, RANK + OTHER_RANK - 2, DIM> InnerProduct(const Tensor<Data, OTHER_RANK, DIM>& other) const noexcept {
 			return InnerProduct(other, I, J);
 		}
 
-		template<TensorIdx _RANK>
-			requires(RANK >= 1 && _RANK >= 1)
-		[[nodiscard]] constexpr Tensor<Data, RANK + _RANK - 2, DIM>
-			InnerProduct(const Tensor<Data, _RANK, DIM>& other, TensorIdx i, TensorIdx j) const noexcept {
-			if(!(0 <= i && i < RANK && 0 <= j && j < _RANK)) {
-				return Tensor<Data, RANK + _RANK - 2, DIM>{};
+		template<TensorIdx OTHER_RANK>
+			requires(RANK >= 1 && OTHER_RANK >= 1)
+		[[nodiscard]] constexpr Tensor<Data, RANK + OTHER_RANK - 2, DIM>
+			InnerProduct(const Tensor<Data, OTHER_RANK, DIM>& other, TensorIdx i, TensorIdx j) const noexcept {
+			if(!(0 <= i && i < RANK && 0 <= j && j < OTHER_RANK)) {
+				return Tensor<Data, RANK + OTHER_RANK - 2, DIM>{};
 			}
 
 			// mapping from (R+S-2) result indices to (R) and (S) indices excluding contracted positions
 			std::array<TensorIdx, RANK> lhsIndicesMap;
-			std::array<TensorIdx, _RANK> rhsIndicesMap;
+			std::array<TensorIdx, OTHER_RANK> rhsIndicesMap;
 
 			TensorIdx currentIndex = 0;
 			for(TensorIdx p = 0; p < RANK; ++p) {
@@ -99,7 +99,7 @@ namespace GenericMath
 				}
 				lhsIndicesMap[p] = currentIndex++;
 			}
-			for(TensorIdx p = 0; p < _RANK; ++p) {
+			for(TensorIdx p = 0; p < OTHER_RANK; ++p) {
 				if(p == j) {
 					rhsIndicesMap[p] = TensorIdx(0);
 					continue;
@@ -107,18 +107,18 @@ namespace GenericMath
 				rhsIndicesMap[p] = currentIndex++;
 			}
 
-			Tensor<Data, RANK + _RANK - 2, DIM> result;
+			Tensor<Data, RANK + OTHER_RANK - 2, DIM> result;
 
-			ForEachIndex<RANK + _RANK - 2>([&](const auto& resultIndices) {
+			ForEachIndex<RANK + OTHER_RANK - 2>([&](const auto& resultIndices) {
 				std::array<TensorIdx, RANK> lhsIndices;
-				if constexpr(RANK + _RANK - 2 > 0) {
+				if constexpr(RANK + OTHER_RANK - 2 > 0) {
 					for(TensorIdx p = 0; p < RANK; ++p)
 						lhsIndices[p] = resultIndices[lhsIndicesMap[p]];
 				}
 
-				std::array<TensorIdx, _RANK> rhsIndices;
-				if constexpr(RANK + _RANK - 2 > 0) {
-					for(TensorIdx p = 0; p < _RANK; ++p)
+				std::array<TensorIdx, OTHER_RANK> rhsIndices;
+				if constexpr(RANK + OTHER_RANK - 2 > 0) {
+					for(TensorIdx p = 0; p < OTHER_RANK; ++p)
 						rhsIndices[p] = resultIndices[rhsIndicesMap[p]];
 				}
 

@@ -2,8 +2,6 @@
 //
 #include <gtest/gtest.h>
 //
-#include <array>
-//
 #include "GenericMath/GenericTensor.hpp"
 
 namespace TensorTest

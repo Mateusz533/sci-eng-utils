@@ -1,0 +1,63 @@
+Checks: >
+  -*,
+  readability-identifier-naming,
+  readability-avoid-const-params-in-decls,
+  modernize-*,
+  bugprone-*,
+  performance-*,
+  -modernize-use-trailing-return-type,
+  -modernize-use-nodiscard,
+  -modernize-return-braced-init-list,
+  -modernize-use-equals-delete,
+  -performance-noexcept-move-constructor,
+  -performance-enum-size,
+  -performance-no-automatic-move,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-narrowing-conversions,
+  -bugprone-empty-catch
+
+# WarningsAsErrors: >
+#   readability-identifier-naming
+
+CheckOptions:
+  # Namespaces / types / callables: PascalCase
+  - key: readability-identifier-naming.NamespaceCase
+    value: CamelCase
+  - key: readability-identifier-naming.ClassCase
+    value: CamelCase
+  - key: readability-identifier-naming.StructCase
+    value: CamelCase
+  - key: readability-identifier-naming.EnumCase
+    value: CamelCase
+  - key: readability-identifier-naming.UnionCase
+    value: CamelCase
+  - key: readability-identifier-naming.TypeAliasCase
+    value: aNy_CasE
+  - key: readability-identifier-naming.FunctionCase
+    value: CamelCase
+  - key: readability-identifier-naming.MethodCase
+    value: CamelCase
+
+  # Variables / members / parameters: camelCase (clang-tidy names it camelBack)
+  - key: readability-identifier-naming.VariableCase
+    value: camelBack
+  - key: readability-identifier-naming.ParameterCase
+    value: camelBack
+  - key: readability-identifier-naming.ConstantParameterCase
+    value: camelBack
+  - key: readability-identifier-naming.MemberCase
+    value: camelBack
+  - key: readability-identifier-naming.ConstantMemberCase
+    value: camelBack
+  - key: readability-identifier-naming.LocalConstantCase
+    value: camelBack
+
+  # Constants / macros: UPPER_CASE
+  - key: readability-identifier-naming.ConstexprVariableCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.MacroDefinitionCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.ConstantCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.StaticConstantCase
+    value: UPPER_CASE

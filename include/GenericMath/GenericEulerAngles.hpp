@@ -45,15 +45,16 @@ namespace GenericMath
 			return EulerAngles{DIR * angle0, DIR * angle1, DIR * angle2};
 		}
 		static constexpr EulerAngles FromQuaternion(const Quaternion<T>& q) {
+			const auto& s = q.Scalar();
 			const auto& v = q.Vector();
 			const auto &v0 = v(int(A0)), &v1 = v(int(A1)), &v2 = v(int(A2));
 
-			const auto angle1 = std::asin(std::clamp(2.0 * (q.w() * v1 - DIR * v0 * v2), -1.0, 1.0));
+			const auto angle1 = std::asin(std::clamp(2.0 * (s * v1 - DIR * v0 * v2), -1.0, 1.0));
 			const bool noSingularity = std::cos(angle1) > SINGULARITY_SCOPE_RAD;
-			const auto angle0 = noSingularity ? std::atan2(2.0 * (q.w() * v0 + DIR * v1 * v2), 1.0 - 2.0 * (v1 * v1 + v0 * v0))
-											  : 2.0 * std::atan2(v0, q.w());  // or `0.0`
-			const auto angle2 = noSingularity ? std::atan2(2.0 * (q.w() * v2 + DIR * v1 * v0), 1.0 - 2.0 * (v1 * v1 + v2 * v2))
-											  : 0.0;  // or `2.0 * std::atan2(v2, q.w())`
+			const auto angle0 = noSingularity ? std::atan2(2.0 * (s * v0 + DIR * v1 * v2), 1.0 - 2.0 * (v1 * v1 + v0 * v0))
+											  : 2.0 * std::atan2(v0, s);  // or `0.0`
+			const auto angle2 = noSingularity ? std::atan2(2.0 * (s * v2 + DIR * v1 * v0), 1.0 - 2.0 * (v1 * v1 + v2 * v2))
+											  : 0.0;  // or `2.0 * std::atan2(v2, s)`
 
 			return EulerAngles{angle0, angle1, angle2};
 		}

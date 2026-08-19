@@ -303,7 +303,7 @@ namespace GenericMath
 		using Base::Self, Base::Data, Base::CreateInvalid;
 		using Base::EPSILON;
 
-		constexpr AbstractSquareMatrix(){};
+		constexpr AbstractSquareMatrix() = default;
 		constexpr ~AbstractSquareMatrix() = default;
 
 	private:
@@ -578,7 +578,7 @@ namespace GenericMath
 		using Base::Self, Base::CreateInvalid;
 		using Base::EPSILON, Base::ROWS;
 
-		constexpr AbstractVector(){};
+		constexpr AbstractVector() = default;
 		constexpr ~AbstractVector() = default;
 
 		constexpr T& Data(Idx index) { return Base::Data(index, 0); }
@@ -609,15 +609,15 @@ namespace GenericMath
 			return true;
 		}
 
-		constexpr const T& x() const
+		constexpr const T& X() const
 			requires((1 <= ROWS && ROWS <= 3))
 		{ return Data(0); }
 
-		constexpr const T& y() const
+		constexpr const T& Y() const
 			requires((2 <= ROWS && ROWS <= 3))
 		{ return Data(1); }
 
-		constexpr const T& z() const
+		constexpr const T& Z() const
 			requires(ROWS == 3)
 		{ return Data(2); }
 

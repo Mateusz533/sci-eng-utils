@@ -14,6 +14,7 @@ namespace GenericMath
 		constexpr Quaternion() : Quaternion{Identity()} {}
 		constexpr Quaternion(T w, T x, T y, T z) : mScalar{w}, mVector{x, y, z} {}
 		constexpr Quaternion(const Quaternion& other) = default;
+		constexpr Quaternion(Quaternion&& other) = default;
 
 		template<std::floating_point U>
 		Quaternion(const Matrix3<U>& rotationMatrix) {
@@ -22,33 +23,34 @@ namespace GenericMath
 
 			if(trace > 0.0) {
 				const double s = 2.0 * std::sqrt(trace + 1.0);
-				w() = 0.25 * s;
-				x() = (mat(2, 1) - mat(1, 2)) / s;
-				y() = (mat(0, 2) - mat(2, 0)) / s;
-				z() = (mat(1, 0) - mat(0, 1)) / s;
+				W() = 0.25 * s;
+				X() = (mat(2, 1) - mat(1, 2)) / s;
+				Y() = (mat(0, 2) - mat(2, 0)) / s;
+				Z() = (mat(1, 0) - mat(0, 1)) / s;
 			} else if(mat(0, 0) > mat(1, 1) && mat(0, 0) > mat(2, 2)) {
 				const double s = 2.0 * std::sqrt(1.0 + mat(0, 0) - mat(1, 1) - mat(2, 2));
-				w() = (mat(2, 1) - mat(1, 2)) / s;
-				x() = 0.25 * s;
-				y() = (mat(0, 1) + mat(1, 0)) / s;
-				z() = (mat(0, 2) + mat(2, 0)) / s;
+				W() = (mat(2, 1) - mat(1, 2)) / s;
+				X() = 0.25 * s;
+				Y() = (mat(0, 1) + mat(1, 0)) / s;
+				Z() = (mat(0, 2) + mat(2, 0)) / s;
 			} else if(mat(1, 1) > mat(2, 2)) {
 				const double s = 2.0 * std::sqrt(1.0 + mat(1, 1) - mat(0, 0) - mat(2, 2));
-				w() = (mat(0, 2) - mat(2, 0)) / s;
-				x() = (mat(0, 1) + mat(1, 0)) / s;
-				y() = 0.25 * s;
-				z() = (mat(1, 2) + mat(2, 1)) / s;
+				W() = (mat(0, 2) - mat(2, 0)) / s;
+				X() = (mat(0, 1) + mat(1, 0)) / s;
+				Y() = 0.25 * s;
+				Z() = (mat(1, 2) + mat(2, 1)) / s;
 			} else {
 				const double s = 2.0 * std::sqrt(1.0 + mat(2, 2) - mat(0, 0) - mat(1, 1));
-				w() = (mat(1, 0) - mat(0, 1)) / s;
-				x() = (mat(0, 2) + mat(2, 0)) / s;
-				y() = (mat(1, 2) + mat(2, 1)) / s;
-				z() = 0.25 * s;
+				W() = (mat(1, 0) - mat(0, 1)) / s;
+				X() = (mat(0, 2) + mat(2, 0)) / s;
+				Y() = (mat(1, 2) + mat(2, 1)) / s;
+				Z() = 0.25 * s;
 			}
 		}
 
 	public:
 		constexpr Quaternion& operator=(const Quaternion& other) = default;
+		constexpr Quaternion& operator=(Quaternion&& other) = default;
 
 		constexpr Quaternion& operator*=(const Quaternion& other) {
 			return *this = *this * other;
@@ -59,10 +61,10 @@ namespace GenericMath
 
 		constexpr Quaternion operator*(const Quaternion& other) const {
 			return Quaternion{
-				w() * other.w() - x() * other.x() - y() * other.y() - z() * other.z(),
-				w() * other.x() + x() * other.w() + y() * other.z() - z() * other.y(),
-				w() * other.y() + y() * other.w() + z() * other.x() - x() * other.z(),
-				w() * other.z() + z() * other.w() + x() * other.y() - y() * other.x(),
+				W() * other.W() - X() * other.X() - Y() * other.Y() - Z() * other.Z(),
+				W() * other.X() + X() * other.W() + Y() * other.Z() - Z() * other.Y(),
+				W() * other.Y() + Y() * other.W() + Z() * other.X() - X() * other.Z(),
+				W() * other.Z() + Z() * other.W() + X() * other.Y() - Y() * other.X(),
 			};
 		}
 		constexpr Quaternion operator/(const Quaternion& other) const {
@@ -71,19 +73,19 @@ namespace GenericMath
 
 		template<std::floating_point U>
 		operator Quaternion<U>() const {
-			return Quaternion<U>{w(), x(), y(), z()};
+			return Quaternion<U>{W(), X(), Y(), Z()};
 		}
 
 	public:
-		constexpr T& w() { return mScalar; }
-		constexpr T& x() { return mVector(0); }
-		constexpr T& y() { return mVector(1); }
-		constexpr T& z() { return mVector(2); }
+		constexpr T& W() { return mScalar; }
+		constexpr T& X() { return mVector(0); }
+		constexpr T& Y() { return mVector(1); }
+		constexpr T& Z() { return mVector(2); }
 
-		constexpr const T& w() const { return mScalar; }
-		constexpr const T& x() const { return mVector(0); }
-		constexpr const T& y() const { return mVector(1); }
-		constexpr const T& z() const { return mVector(2); }
+		constexpr const T& W() const { return mScalar; }
+		constexpr const T& X() const { return mVector(0); }
+		constexpr const T& Y() const { return mVector(1); }
+		constexpr const T& Z() const { return mVector(2); }
 
 		constexpr T& Scalar() { return mScalar; }
 		constexpr const T& Scalar() const { return mScalar; }
@@ -98,30 +100,30 @@ namespace GenericMath
 		constexpr Quaternion Normalize() const {
 			const double normInv = 1.0 / Norm();
 			return Quaternion{
-				w() * normInv,
-				x() * normInv,
-				y() * normInv,
-				z() * normInv,
+				W() * normInv,
+				X() * normInv,
+				Y() * normInv,
+				Z() * normInv,
 			};
 		}
 
 		constexpr Quaternion Inverse() const {
 			const double factor = 1.0 / SquareSum();
 			return Quaternion{
-				+w() * factor,
-				-x() * factor,
-				-y() * factor,
-				-z() * factor,
+				+W() * factor,
+				-X() * factor,
+				-Y() * factor,
+				-Z() * factor,
 			};
 		}
 
 		constexpr Matrix3<T> ToRotationMatrix() const {
 			Matrix3<T> result;
 
-			const double wSq = w() * w();
-			const double xSq = x() * x();
-			const double ySq = y() * y();
-			const double zSq = z() * z();
+			const double wSq = W() * W();
+			const double xSq = X() * X();
+			const double ySq = Y() * Y();
+			const double zSq = Z() * Z();
 
 			const double invSqNorm = 1.0 / (xSq + ySq + zSq + wSq);
 
@@ -129,14 +131,14 @@ namespace GenericMath
 			result(1, 1) = (-xSq + ySq - zSq + wSq);
 			result(2, 2) = (-xSq - ySq + zSq + wSq);
 
-			result(1, 0) = 2.0 * (x() * y() + z() * w());
-			result(0, 1) = 2.0 * (x() * y() - z() * w());
+			result(1, 0) = 2.0 * (X() * Y() + Z() * W());
+			result(0, 1) = 2.0 * (X() * Y() - Z() * W());
 
-			result(2, 0) = 2.0 * (x() * z() - y() * w());
-			result(0, 2) = 2.0 * (x() * z() + y() * w());
+			result(2, 0) = 2.0 * (X() * Z() - Y() * W());
+			result(0, 2) = 2.0 * (X() * Z() + Y() * W());
 
-			result(2, 1) = 2.0 * (y() * z() + x() * w());
-			result(1, 2) = 2.0 * (y() * z() - x() * w());
+			result(2, 1) = 2.0 * (Y() * Z() + X() * W());
+			result(1, 2) = 2.0 * (Y() * Z() - X() * W());
 
 			return result * invSqNorm;
 		}
@@ -147,7 +149,7 @@ namespace GenericMath
 
 	private:
 		constexpr double SquareSum() const {
-			return x() * x() + y() * y() + z() * z() + w() * w();
+			return X() * X() + Y() * Y() + Z() * Z() + W() * W();
 		}
 
 	private:

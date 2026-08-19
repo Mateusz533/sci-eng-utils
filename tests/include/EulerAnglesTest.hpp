@@ -9,7 +9,7 @@
 namespace EulerAnglesTest
 {
 	constexpr double EPS = 1e-6;
-	constexpr int N = 18;
+	constexpr long N = 18;
 
 	using namespace GenericMath;
 
@@ -32,9 +32,9 @@ namespace EulerAnglesTest
 	}
 
 	inline bool QuaternionEqualAndNormed(const Quaternion<double>& l, const Quaternion<double>& r) {
-		return ((std::abs(l.w() - r.w()) < EPS && std::abs(l.x() - r.x()) < EPS && std::abs(l.y() - r.y()) < EPS && std::abs(l.z() - r.z()) < EPS) ||
-				(std::abs(l.w() + r.w()) < EPS && std::abs(l.x() + r.x()) < EPS && std::abs(l.y() + r.y()) < EPS && std::abs(l.z() + r.z()) < EPS)) &&
-			   std::abs(l.w() * l.w() + l.x() * l.x() + l.y() * l.y() + l.z() * l.z() - 1.0) < EPS;
+		return ((std::abs(l.W() - r.W()) < EPS && std::abs(l.X() - r.X()) < EPS && std::abs(l.Y() - r.Y()) < EPS && std::abs(l.Z() - r.Z()) < EPS) ||
+				(std::abs(l.W() + r.W()) < EPS && std::abs(l.X() + r.X()) < EPS && std::abs(l.Y() + r.Y()) < EPS && std::abs(l.Z() + r.Z()) < EPS)) &&
+			   std::abs(l.W() * l.W() + l.X() * l.X() + l.Y() * l.Y() + l.Z() * l.Z() - 1.0) < EPS;
 	}
 
 	inline bool MatrixEqual(const Matrix3<double>& l, const Matrix3<double>& r) {
@@ -56,13 +56,13 @@ namespace EulerAnglesTest
 				const double pitch = 180. * j / N;
 
 				// singularity
-				if(!useSingularity && (N == 2 * j || -N == 2 * j)) {
+				if(!useSingularity && (N == 2L * j || -N == 2L * j)) {
 					continue;
 				}
 
 				for(int k = -N; k < N; ++k) {
 					const double yaw = 180. * k / N;
-					data.push_back({roll, pitch, yaw});
+					data.emplace_back(roll, pitch, yaw);
 				}
 			}
 		}
@@ -86,9 +86,9 @@ namespace EulerAnglesTest
 		const auto scope = GetScopeDeg();
 		for(const auto& vec : scope) {
 			const auto rotZYX = StdEulerAnglesd::FromVectorDegRPY(vec).ToMatrix();
-			const auto rotX = StdEulerAnglesd::FromVectorDegRPY({vec.x(), 0.0, 0.0}).ToMatrix();
-			const auto rotY = StdEulerAnglesd::FromVectorDegRPY({0.0, vec.y(), 0.0}).ToMatrix();
-			const auto rotZ = StdEulerAnglesd::FromVectorDegRPY({0.0, 0.0, vec.z()}).ToMatrix();
+			const auto rotX = StdEulerAnglesd::FromVectorDegRPY({vec.X(), 0.0, 0.0}).ToMatrix();
+			const auto rotY = StdEulerAnglesd::FromVectorDegRPY({0.0, vec.Y(), 0.0}).ToMatrix();
+			const auto rotZ = StdEulerAnglesd::FromVectorDegRPY({0.0, 0.0, vec.Z()}).ToMatrix();
 			successCounter += MatrixEqual(rotZYX, rotZ * rotY * rotX);
 		}
 		EXPECT_EQ(successCounter, scope.size());
@@ -109,9 +109,9 @@ namespace EulerAnglesTest
 		const auto scope = GetScopeDeg();
 		for(const auto& vec : scope) {
 			const auto rotZYX = StdEulerAnglesd::FromVectorDegRPY(vec).ToQuaternion();
-			const auto rotX = StdEulerAnglesd::FromVectorDegRPY({vec.x(), 0.0, 0.0}).ToQuaternion();
-			const auto rotY = StdEulerAnglesd::FromVectorDegRPY({0.0, vec.y(), 0.0}).ToQuaternion();
-			const auto rotZ = StdEulerAnglesd::FromVectorDegRPY({0.0, 0.0, vec.z()}).ToQuaternion();
+			const auto rotX = StdEulerAnglesd::FromVectorDegRPY({vec.X(), 0.0, 0.0}).ToQuaternion();
+			const auto rotY = StdEulerAnglesd::FromVectorDegRPY({0.0, vec.Y(), 0.0}).ToQuaternion();
+			const auto rotZ = StdEulerAnglesd::FromVectorDegRPY({0.0, 0.0, vec.Z()}).ToQuaternion();
 			successCounter += QuaternionEqualAndNormed(rotZYX, rotZ * rotY * rotX);
 		}
 		EXPECT_EQ(successCounter, scope.size());
@@ -148,10 +148,10 @@ namespace EulerAnglesTest
 		long successCounter = 0;
 		const auto scope = GetScopeDeg();
 		for(const auto& vec : scope) {
-			const auto rotYZX = EulerAnglesLocalYZX<double>::FromDegrees(vec.y(), vec.z(), vec.x()).ToMatrix();
-			const auto rotY = EulerAnglesLocalYZX<double>::FromDegrees(vec.y(), 0.0, 0.0).ToMatrix();
-			const auto rotZ = EulerAnglesLocalYZX<double>::FromDegrees(0.0, vec.z(), 0.0).ToMatrix();
-			const auto rotX = EulerAnglesLocalYZX<double>::FromDegrees(0.0, 0.0, vec.x()).ToMatrix();
+			const auto rotYZX = EulerAnglesLocalYZX<double>::FromDegrees(vec.Y(), vec.Z(), vec.X()).ToMatrix();
+			const auto rotY = EulerAnglesLocalYZX<double>::FromDegrees(vec.Y(), 0.0, 0.0).ToMatrix();
+			const auto rotZ = EulerAnglesLocalYZX<double>::FromDegrees(0.0, vec.Z(), 0.0).ToMatrix();
+			const auto rotX = EulerAnglesLocalYZX<double>::FromDegrees(0.0, 0.0, vec.X()).ToMatrix();
 			successCounter += MatrixEqual(rotYZX, rotY * rotZ * rotX);
 		}
 		EXPECT_EQ(successCounter, scope.size());
@@ -161,10 +161,10 @@ namespace EulerAnglesTest
 		long successCounter = 0;
 		const auto scope = GetScopeDeg();
 		for(const auto& vec : scope) {
-			const auto rotYZX = EulerAnglesLocalYZX<double>::FromDegrees(vec.y(), vec.z(), vec.x()).ToQuaternion();
-			const auto rotY = EulerAnglesLocalYZX<double>::FromDegrees(vec.y(), 0.0, 0.0).ToQuaternion();
-			const auto rotZ = EulerAnglesLocalYZX<double>::FromDegrees(0.0, vec.z(), 0.0).ToQuaternion();
-			const auto rotX = EulerAnglesLocalYZX<double>::FromDegrees(0.0, 0.0, vec.x()).ToQuaternion();
+			const auto rotYZX = EulerAnglesLocalYZX<double>::FromDegrees(vec.Y(), vec.Z(), vec.X()).ToQuaternion();
+			const auto rotY = EulerAnglesLocalYZX<double>::FromDegrees(vec.Y(), 0.0, 0.0).ToQuaternion();
+			const auto rotZ = EulerAnglesLocalYZX<double>::FromDegrees(0.0, vec.Z(), 0.0).ToQuaternion();
+			const auto rotX = EulerAnglesLocalYZX<double>::FromDegrees(0.0, 0.0, vec.X()).ToQuaternion();
 			successCounter += QuaternionEqualAndNormed(rotYZX, rotY * rotZ * rotX);
 		}
 		EXPECT_EQ(successCounter, scope.size());

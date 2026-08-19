@@ -52,19 +52,19 @@ namespace Physics::Units::NStd
 		class Fraction;
 
 		template<class T>
-		concept NormedFraction = std::is_same_v<T, Fraction<T::Num, T::Denom, T::Exp>>;
+		concept NormedFraction = std::is_same_v<T, Fraction<T::NUM, T::DEN, T::EXP>>;
 
 		template<i64 Numerator, i64 Denominator, i64 Exponent>
 			requires(Denominator > 0)
 		class Fraction
 		{
 		public:
-			static constexpr i64 Num = std::ratio<ExtractOddPart(Numerator), ExtractOddPart(Denominator)>::num;
-			static constexpr i64 Denom = std::ratio<ExtractOddPart(Numerator), ExtractOddPart(Denominator)>::den;
-			static constexpr i64 Exp = (Num == 0L) ? 0L : (Exponent + ExtractExp2(Numerator) - ExtractExp2(Denominator));
+			static constexpr i64 NUM = std::ratio<ExtractOddPart(Numerator), ExtractOddPart(Denominator)>::num;
+			static constexpr i64 DEN = std::ratio<ExtractOddPart(Numerator), ExtractOddPart(Denominator)>::den;
+			static constexpr i64 EXP = (NUM == 0L) ? 0L : (Exponent + ExtractExp2(Numerator) - ExtractExp2(Denominator));
 
 			static consteval bool IsNormalized() noexcept {
-				return Num == Numerator && Denom == Denominator && Exp == Exponent;
+				return NUM == Numerator && DEN == Denominator && EXP == Exponent;
 			}
 			static consteval bool IsIdentity() noexcept {
 				return Numerator == 1 && Denominator == 1 && Exponent == 0;
@@ -77,23 +77,23 @@ namespace Physics::Units::NStd
 			}
 			template<Arithmetic T = f64>
 			static consteval T ToDecimal() noexcept {
-				return static_cast<T>(Num) / static_cast<T>(Denom) *
-					   static_cast<T>(CeiledExp2(Exp)) / static_cast<T>(CeiledExp2(-Exp));	// TODO: Consider accuracy
+				return static_cast<T>(NUM) / static_cast<T>(DEN) *
+					   static_cast<T>(CeiledExp2(EXP)) / static_cast<T>(CeiledExp2(-EXP));	// TODO: Consider accuracy
 			}
 
-			using Norm = Fraction<Num, Denom, Exp>;
-			using Opposite = Fraction<-Num, Denom, Exp>;
+			using Norm = Fraction<NUM, DEN, EXP>;
+			using Opposite = Fraction<-NUM, DEN, EXP>;
 
 			template<NormedFraction Other>
-			using Sum = Fraction<Num * Other::Denom * CeiledExp2(Exp - Other::Exp) + Denom * Other::Num * CeiledExp2(Other::Exp - Exp),
-								 Denom * Other::Denom, std::min(Exp, Other::Exp)>::Norm;
+			using Sum = Fraction<NUM * Other::DEN * CeiledExp2(EXP - Other::EXP) + DEN * Other::NUM * CeiledExp2(Other::EXP - EXP),
+								 DEN * Other::DEN, std::min(EXP, Other::EXP)>::Norm;
 			template<NormedFraction Other>
-			using Diff = Fraction<Num * Other::Denom * CeiledExp2(Exp - Other::Exp) - Denom * Other::Num * CeiledExp2(Other::Exp - Exp),
-								  Denom * Other::Denom, std::min(Exp, Other::Exp)>::Norm;
+			using Diff = Fraction<NUM * Other::DEN * CeiledExp2(EXP - Other::EXP) - DEN * Other::NUM * CeiledExp2(Other::EXP - EXP),
+								  DEN * Other::DEN, std::min(EXP, Other::EXP)>::Norm;
 			template<NormedFraction Other>
-			using Product = Fraction<Num * Other::Num, Denom * Other::Denom, Exp + Other::Exp>::Norm;
+			using Product = Fraction<NUM * Other::NUM, DEN * Other::DEN, EXP + Other::EXP>::Norm;
 			template<NormedFraction Other>
-			using Quotient = Fraction<Num * Other::Denom, Denom * Other::Num, Exp - Other::Exp>::Norm;
+			using Quotient = Fraction<NUM * Other::DEN, DEN * Other::NUM, EXP - Other::EXP>::Norm;
 		};
 
 		class SymbolicBase
@@ -463,16 +463,16 @@ namespace Physics::Units::NStd
 		using Simplifier = GenerativeUnit<Type, StdU, typename Fraction<ScNum, ScDenom, ScExp>::Norm, typename Fraction<OffNum, OffDenom>::Norm>;
 	}
 
-#define GENERATE_NSTD_FROM_DOUBLE(Name, StdType, ScFloat, ScDenom) \
-	template<Arithmetic T = f64>                                   \
+#define GENERATE_NSTD_FROM_DOUBLE(Name, StdType, ScFloat, ScDenom)               \
+	template<Arithmetic T = f64> /* NOLINTNEXTLINE(bugprone-macro-parentheses)*/ \
 	using Name = Detail::Simplifier<T, StdType, Detail::FloatDecomposer<ScFloat>::Numerator(), ScDenom, Detail::FloatDecomposer<ScFloat>::Exponent()>;
 
-#define GENERATE_NSTD_FROM_FRACTION(Name, StdType, ScNum, ScDenom) \
-	template<Arithmetic T = f64>                                   \
+#define GENERATE_NSTD_FROM_FRACTION(Name, StdType, ScNum, ScDenom)               \
+	template<Arithmetic T = f64> /* NOLINTNEXTLINE(bugprone-macro-parentheses)*/ \
 	using Name = Detail::Simplifier<T, StdType, ScNum, ScDenom>;
 
 #define GENERATE_OFFSETTABLE_NSTD_FROM_FRACTION(Name, StdType, ScNum, ScDenom, OffNum, OffDenom) \
-	template<Arithmetic T = f64>                                                                 \
+	template<Arithmetic T = f64> /* NOLINTNEXTLINE(bugprone-macro-parentheses)*/                 \
 	using Name = Detail::Simplifier<T, StdType, ScNum, ScDenom, 0, OffNum, OffDenom>;
 
 	/* --- GENERATE NEEDED UNITS HERE --- */
@@ -481,9 +481,9 @@ namespace Physics::Units::NStd
 
 	GENERATE_NSTD_FROM_FRACTION(Percents, SI::Scale, 1, 100)
 	GENERATE_NSTD_FROM_FRACTION(Permille, SI::Scale, 1, 1'000)
-	GENERATE_NSTD_FROM_DOUBLE(Degrees, SI::Radians, std::numbers::pi, 180)
-	GENERATE_NSTD_FROM_DOUBLE(Arcminutes, SI::Radians, std::numbers::pi, 180 * 60)
-	GENERATE_NSTD_FROM_DOUBLE(Arcseconds, SI::Radians, std::numbers::pi, 180 * 60 * 60)
+	GENERATE_NSTD_FROM_DOUBLE(Degrees, SI::Radians, std::numbers::pi, 180L)
+	GENERATE_NSTD_FROM_DOUBLE(Arcminutes, SI::Radians, std::numbers::pi, 180L * 60)
+	GENERATE_NSTD_FROM_DOUBLE(Arcseconds, SI::Radians, std::numbers::pi, 180L * 60 * 60)
 
 	/* Distance */;
 
@@ -608,7 +608,7 @@ namespace Physics::Units::NStd
 	/* Temperature */;
 
 	GENERATE_OFFSETTABLE_NSTD_FROM_FRACTION(DegreesCelsius, SI::Kelvins, 1, 1, 273'150, 1'000)
-	GENERATE_OFFSETTABLE_NSTD_FROM_FRACTION(DegreesFahrenheit, SI::Kelvins, 5, 9, 9 * 273'150 - 4 * 40'000, 9 * 1'000)
+	GENERATE_OFFSETTABLE_NSTD_FROM_FRACTION(DegreesFahrenheit, SI::Kelvins, 5, 9, 9 * 273'150L - 4 * 40'000L, 9 * 1'000L)
 	GENERATE_NSTD_FROM_FRACTION(DegreesRankin, SI::Kelvins, 5, 9)
 
 #undef GENERATE_NSTD_FROM_DOUBLE

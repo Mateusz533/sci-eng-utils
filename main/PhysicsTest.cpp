@@ -18,21 +18,21 @@ int main() {
 	/*----------------------------------------------------------------------*/
 	std::cout << "\n--- Standard units tests ---\n\n";
 
-	constexpr SI::Meters<> distance{1};
-	constexpr SI::Seconds<> time{0};
-	static_assert(!distance == false);
-	static_assert(!time);
-	constexpr SI::KiloGrams<u16> mass{1};
-	static_assert((-mass).ToRaw() < 0);
+	constexpr SI::Meters<> DISTANCE{1};
+	constexpr SI::Seconds<> TIME{0};
+	static_assert(!DISTANCE == false);
+	static_assert(!TIME);
+	constexpr SI::KiloGrams<u16> MASS{1};
+	static_assert((-MASS).ToRaw() < 0);
 
-	constexpr auto ingMM = SI::MilliMeters<>{1};
-	constexpr auto ingM = SI::Meters<>{1};
+	constexpr auto ING_MM = SI::MilliMeters<>{1};
+	constexpr auto ING_M = SI::Meters<>{1};
 	auto sumM = SI::Meters<>{1};
 	auto sumMM = SI::MilliMeters<>{1};
 	// 1 m += 1 mm = 1.001 m
-	sumM += ingMM;
+	sumM += ING_MM;
 	// 1 mm += 1 m = 1001 mm
-	sumMM += ingM;
+	sumMM += ING_M;
 	// 1 m + 1 mm = ERROR
 	// ingM + ingMM;
 	std::cout << "1.001 m: " << sumM << std::endl;
@@ -59,7 +59,7 @@ int main() {
 	/*----------------------------------------------------------------------*/
 	std::cout << "\n--- NStd units tests ---\n\n";
 
-	NStd::Inches<double> resultInch = ingM;
+	NStd::Inches<double> resultInch = ING_M;
 	std::cout << "1 meter in inches: " << resultInch << std::endl;
 	std::cout << "1 meter after double conversion: " << resultInch.ToStandardUnit<>() << std::endl;
 

@@ -9,7 +9,7 @@
 namespace MatrixTest
 {
 	constexpr double EPS = 1e-6;
-	constexpr int N = 18;
+	constexpr long N = 18;
 
 	using namespace GenericMath;
 
