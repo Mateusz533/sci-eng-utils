@@ -74,11 +74,11 @@ namespace GenericMath
 	template<class ConcreateFilter, MatrixIdx U_LEN, MatrixIdx X_LEN, MatrixIdx Y_LEN>
 	concept KalmanFilter = std::derived_from<ConcreateFilter, ExtendedKalmanFilter<ConcreateFilter, U_LEN, X_LEN, Y_LEN>> &&
 						   requires(ConcreateFilter filter, Matrix<double, X_LEN, X_LEN> F, Matrix<double, Y_LEN, X_LEN> H,
-									Vector<double, U_LEN> u, Vector<double, X_LEN> x_est, Vector<double, Y_LEN> y_est, double dt) {
-							   { filter.CalcJacobianF(F, x_est, u, dt) } -> std::same_as<bool>;
-							   { filter.NonlinearUpdateX(x_est, x_est, u, dt) } -> std::same_as<bool>;
-							   { filter.CalcJacobianH(H, x_est, u) } -> std::same_as<bool>;
-							   { filter.NonlinearUpdateY(y_est, x_est, u) } -> std::same_as<bool>;
+									Vector<double, U_LEN> u, Vector<double, X_LEN> x, Vector<double, Y_LEN> y_est, double dt) {
+							   { filter.CalcJacobianF(F, x, u, dt) } -> std::same_as<bool>;
+							   { filter.NonlinearUpdateX(x, x, u, dt) } -> std::same_as<bool>;
+							   { filter.CalcJacobianH(H, x) } -> std::same_as<bool>;
+							   { filter.NonlinearUpdateY(y_est, x) } -> std::same_as<bool>;
 						   };
 
 	template<class ConcreateFilter, MatrixIdx U_LEN, MatrixIdx X_LEN, MatrixIdx Y_LEN>
@@ -108,18 +108,18 @@ namespace GenericMath
 
 			y_est.SetZero();
 			y_diff.SetZero();
-			x_est = x_init;
+			x = x_init;
 			P = P_init;
 		}
 
-		constexpr void SetCovarianceMatrices(const StateCovMatrix& Q, const OutputCovMatrix& R) {
+		constexpr void SetCovarianceMatrices(const StateCovMatrix& newQ, const OutputCovMatrix& newR) {
 			/* Initialization:
 			 *  Q, R       = Covariance matrices of process & measurement. As this implementation
 			 *               the noise as AWGN (and same value for every variable), this is set
 			 *               to Q=diag(QInit,...,QInit) and R=diag(RInit,...,RInit).
 			 */
-			this->Q = Q;
-			this->R = R;
+			this->Q = newQ;
+			this->R = newR;
 		}
 
 		constexpr bool Update(const OutputVector& y, const InputVector& u, double dt) {
@@ -128,13 +128,13 @@ namespace GenericMath
 			/* =============== Calculate the Jacobian matrix of f (i.e. F) =============== */
 			/* F = d(f(..))/dx |x(k-1|k-1),u(k-1)                               ...{EKF_1} */
 			StateCovMatrix F;
-			if(!Self().CalcJacobianF(F, x_est, u, dt)) {
+			if(!Self().CalcJacobianF(F, x, u, dt)) {
 				return false;
 			}
 
 			/* =========================== Prediction of x & P =========================== */
 			/* x(k|k-1) = f[x(k-1|k-1), u(k-1)]                                 ...{EKF_2} */
-			if(!Self().NonlinearUpdateX(x_est, x_est, u, dt)) {
+			if(!Self().NonlinearUpdateX(x, x, u, dt)) {
 				return false;
 			}
 
@@ -144,7 +144,7 @@ namespace GenericMath
 			/* =============== Calculate the Jacobian matrix of h (i.e. H) =============== */
 			/* H = d(h(..))/dx |x(k|k-1)                                        ...{EKF_4} */
 			StateToOutputMatrix H;
-			if(!Self().CalcJacobianH(H, x_est, u)) {
+			if(!Self().CalcJacobianH(H, x)) {
 				return false;
 			}
 
@@ -160,12 +160,12 @@ namespace GenericMath
 			}
 
 			/* x(k|k) = x(k|k-1) + K*[y(k) - h(x(k|k-1))]                       ...{EKF_7} */
-			if(!Self().NonlinearUpdateY(y_est, x_est, u)) {
+			if(!Self().NonlinearUpdateY(y_est, x)) {
 				return false;
 			}
 
 			y_diff = y - y_est;
-			x_est = x_est + K * y_diff;
+			x = x + K * y_diff;
 
 			/* P(k|k) = (I - K*H)*P(k|k-1)                                      ...{EKF_8} */
 			P = (StateCovMatrix::Identity() - K * H) * P;
@@ -174,7 +174,7 @@ namespace GenericMath
 		}
 
 	public:
-		constexpr const StateVector& GetX() const { return x_est; }
+		constexpr const StateVector& GetX() const { return x; }
 		constexpr const OutputVector& GetY() const { return y_est; }
 		constexpr const StateCovMatrix& GetP() const { return P; }
 		constexpr const OutputVector& GetErrY() const { return y_diff; }
@@ -187,7 +187,7 @@ namespace GenericMath
 		OutputCovMatrix R;
 
 	private:
-		StateVector x_est;
+		StateVector x;
 		OutputVector y_est;
 		StateCovMatrix P;
 		OutputVector y_diff;

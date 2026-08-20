@@ -51,8 +51,8 @@ int main() {
 	std::cout << "Electric constant value: " << Constants::ELECTRIC_CONSTANT << std::endl;
 
 	// Patterns
-	constexpr SI::MetersPerSecond<f128> _99percentSpeedOfLight{SI::Scale<>{0.99} * Constants::SPEED_OF_LIGHT};
-	std::cout << "Gamma for 99 \% speed of light: " << Calculate::TimeDilation(_99percentSpeedOfLight) << std::endl;
+	constexpr SI::MetersPerSecond<f128> V_99_PERCENT_SPEED_OF_LIGHT{SI::Scale<>{0.99} * Constants::SPEED_OF_LIGHT};
+	std::cout << "Gamma for 99 \% speed of light: " << Calculate::TimeDilation(V_99_PERCENT_SPEED_OF_LIGHT) << std::endl;
 
 	/*----------------------------------------------------------------------*/
 	/*-------------------------- NStd Units tests --------------------------*/

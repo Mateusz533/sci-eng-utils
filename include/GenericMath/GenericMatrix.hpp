@@ -707,10 +707,10 @@ namespace GenericMath
 
 		namespace
 		{
-			static_assert(sizeof(CompactMatrixAllocator<double, 3, 5>) == 3 * 5 * sizeof(double));
-			static_assert(sizeof(CompactMatrixAllocator<float, 0, 0>) == 2 * sizeof(MatrixIdx) + (MAX_MATRIX_ALLOCATION_SIZE * MAX_MATRIX_ALLOCATION_SIZE) * sizeof(float));
-			static_assert(sizeof(CompactMatrixAllocator<char, 0, 4>) == sizeof(MatrixIdx) + (MAX_MATRIX_ALLOCATION_SIZE * 4) * sizeof(char));
-			static_assert(sizeof(CompactMatrixAllocator<short, 2, 0>) == sizeof(MatrixIdx) + (2 * MAX_MATRIX_ALLOCATION_SIZE) * sizeof(short));
+			static_assert(sizeof(CompactMatrixAllocator<double, 3, 5>) == 3L * 5 * sizeof(double));
+			static_assert(sizeof(CompactMatrixAllocator<float, 0, 0>) == 2 * sizeof(MatrixIdx) + (1L * MAX_MATRIX_ALLOCATION_SIZE * MAX_MATRIX_ALLOCATION_SIZE) * sizeof(float));
+			static_assert(sizeof(CompactMatrixAllocator<char, 0, 4>) == sizeof(MatrixIdx) + (MAX_MATRIX_ALLOCATION_SIZE * 4L) * sizeof(char));
+			static_assert(sizeof(CompactMatrixAllocator<short, 2, 0>) == sizeof(MatrixIdx) + (2L * MAX_MATRIX_ALLOCATION_SIZE) * sizeof(short));
 		}
 
 		template<typename T, MatrixIdx ROWS, MatrixIdx COLS>
@@ -787,7 +787,7 @@ namespace GenericMath
 
 		namespace
 		{
-			static_assert(sizeof(StdMatrixAllocator<double, 3, 5>) == 3 * 5 * sizeof(double));
+			static_assert(sizeof(StdMatrixAllocator<double, 3, 5>) == 3L * 5 * sizeof(double));
 			static_assert(sizeof(StdMatrixAllocator<float, 0, 0>) == (1 + 1) * sizeof(void*));
 			static_assert(sizeof(StdMatrixAllocator<char, 0, 4>) == (1 + 1) * sizeof(void*));
 			static_assert(sizeof(StdMatrixAllocator<short, 2, 0>) == (1 + 1) * sizeof(void*));

@@ -19,23 +19,23 @@ namespace GenericMath
 	class KalmanImu : public ExtendedKalmanFilter<KalmanImu, U_LEN, X_LEN, Y_LEN>
 	{
 	private:
-		static constexpr float Q_init = 1e-6;
-		static constexpr float R_initAcc = 1e-1;
-		static constexpr float R_initMag = 1e-1;
+		static constexpr double Q_INIT = 1e-6;
+		static constexpr double R_INIT_ACC = 1e-1;
+		static constexpr double R_INIT_MAG = 1e-1;
 		static constexpr double ACC_Z0 = 1.0;
-		static constexpr double P_init = 1.0e-8;
+		static constexpr double P_INIT = 1.0e-8;
 
 	private:
-		Vector3d magneticDir{1.0, 0.0, 0.0};
+		Vector3d refMagDir{1.0, 0.0, 0.0};
 
 	public:
 		constexpr KalmanImu() : ExtendedKalmanFilter() {}
 
 		constexpr bool Init() {
-			constexpr StateVector identityQ{1.0, 0.0, 0.0, 0.0};
+			constexpr StateVector IDENT_QUAT{1.0, 0.0, 0.0, 0.0};
 
-			ExtendedKalmanFilter::Init(identityQ, StateCovMatrix::Identity() * P_init);
-			SetCovarianceMatrices(Q_init, R_initAcc, R_initMag);
+			ExtendedKalmanFilter::Init(IDENT_QUAT, StateCovMatrix::Identity() * P_INIT);
+			SetCovarianceMatrices(Q_INIT, R_INIT_ACC, R_INIT_MAG);
 
 			return true;
 		}
@@ -45,18 +45,18 @@ namespace GenericMath
 			R.SetDiagonal({R_initAcc, R_initAcc, R_initAcc, R_initMag, R_initMag, R_initMag});
 		}
 
-		constexpr void SetEarthMagneticVector(const Vector3d& magneticDir) {
-			this->magneticDir = magneticDir;
+		constexpr void SetEarthMagneticVector(const Vector3d& newMagneticDir) {
+			this->refMagDir = newMagneticDir;
 		}
 
-		constexpr bool Update(const Vector3d& gyroRps, Vector3d accG, Vector3d mag, double yawRad, double dT) {
+		constexpr bool Update(const Vector3d& gyroRps, Vector3d accG, Vector3d magDir, double dt) {
 			InputVector u;
 
 			/* Input 1:3 = gyroscope */
 
-			u(0) = gyroRps.x();
-			u(1) = gyroRps.y();
-			u(2) = gyroRps.z();
+			u(0) = gyroRps.X();
+			u(1) = gyroRps.Y();
+			u(2) = gyroRps.Z();
 
 			OutputVector y;
 
@@ -64,21 +64,21 @@ namespace GenericMath
 
 			accG.Normalize();
 
-			y(0) = accG.x();
-			y(1) = accG.y();
-			y(2) = accG.z();
+			y(0) = accG.X();
+			y(1) = accG.Y();
+			y(2) = accG.Z();
 
 			/* Output 4:6 = magnetometer */
 
-			mag.Normalize();
+			magDir.Normalize();
 
-			y(3) = mag.x();
-			y(4) = mag.y();
-			y(5) = mag.z();
+			y(3) = magDir.X();
+			y(4) = magDir.Y();
+			y(5) = magDir.Z();
 
 			/* Calculate */
 
-			if(!ExtendedKalmanFilter::Update(y, u, dT)) {
+			if(!ExtendedKalmanFilter::Update(y, u, dt)) {
 				Init();
 				return false;
 			}
@@ -93,7 +93,7 @@ namespace GenericMath
 
 		/* Nonlinear & linearization function ------------------------------------------------------------------------------- */
 
-		static constexpr bool NonlinearUpdateX(StateVector& x_next, const StateVector x, const InputVector& u, double dt) {
+		static constexpr bool NonlinearUpdateX(StateVector& x_next, const StateVector& x, const InputVector& u, double dt) {
 			/* Insert the nonlinear update transformation here
 			 *          x(k+1) = f[x(k), u(k)]
 			 *
@@ -110,10 +110,10 @@ namespace GenericMath
 			 *  q3 = q3 + q3_dot * dT;
 			 */
 
-			const auto& q0 = x(0);
-			const auto& q1 = x(1);
-			const auto& q2 = x(2);
-			const auto& q3 = x(3);
+			const auto q0 = x(0);
+			const auto q1 = x(1);
+			const auto q2 = x(2);
+			const auto q3 = x(3);
 
 			const auto& u0 = u(0);
 			const auto& u1 = u(1);
@@ -133,7 +133,7 @@ namespace GenericMath
 			return true;
 		}
 
-		constexpr bool NonlinearUpdateY(OutputVector& y_est, const StateVector& x, const InputVector& u) {
+		constexpr bool NonlinearUpdateY(OutputVector& y, const StateVector& x) {
 			/* Insert the nonlinear measurement transformation here
 			 *          y(k)   = h[x(k), u(k)]
 			 *
@@ -156,26 +156,26 @@ namespace GenericMath
 			const auto q2_2 = q2 * q2;
 			const auto q3_2 = q3 * q3;
 
-			y_est(0) = (2.0 * (q1 * q3 - q0 * q2)) * ACC_Z0;
-			y_est(1) = (2.0 * (q2 * q3 + q0 * q1)) * ACC_Z0;
-			y_est(2) = (q0_2 - q1_2 - q2_2 + q3_2) * ACC_Z0;
+			y(0) = (2.0 * (q1 * q3 - q0 * q2)) * ACC_Z0;
+			y(1) = (2.0 * (q2 * q3 + q0 * q1)) * ACC_Z0;
+			y(2) = (q0_2 - q1_2 - q2_2 + q3_2) * ACC_Z0;
 
-			y_est(3) = (q0_2 + q1_2 - q2_2 - q3_2) * magneticDir(0) +
-					   (2.0 * (q1 * q2 + q0 * q3)) * magneticDir(1) +
-					   (2.0 * (q1 * q3 - q0 * q2)) * magneticDir(2);
+			y(3) = (q0_2 + q1_2 - q2_2 - q3_2) * refMagDir(0) +
+				   (2.0 * (q1 * q2 + q0 * q3)) * refMagDir(1) +
+				   (2.0 * (q1 * q3 - q0 * q2)) * refMagDir(2);
 
-			y_est(4) = (2.0 * (q1 * q2 - q0 * q3)) * magneticDir(0) +
-					   (q0_2 - q1_2 + q2_2 - q3_2) * magneticDir(1) +
-					   (2.0 * (q2 * q3 + q0 * q1)) * magneticDir(2);
+			y(4) = (2.0 * (q1 * q2 - q0 * q3)) * refMagDir(0) +
+				   (q0_2 - q1_2 + q2_2 - q3_2) * refMagDir(1) +
+				   (2.0 * (q2 * q3 + q0 * q1)) * refMagDir(2);
 
-			y_est(5) = (2.0 * (q1 * q3 + q0 * q2)) * magneticDir(0) +
-					   (2.0 * (q2 * q3 - q0 * q1)) * magneticDir(1) +
-					   (q0_2 - q1_2 - q2_2 + q3_2) * magneticDir(2);
+			y(5) = (2.0 * (q1 * q3 + q0 * q2)) * refMagDir(0) +
+				   (2.0 * (q2 * q3 - q0 * q1)) * refMagDir(1) +
+				   (q0_2 - q1_2 - q2_2 + q3_2) * refMagDir(2);
 
 			return true;
 		}
 
-		static constexpr bool CalcJacobianF(StateCovMatrix& F, const StateVector& x, const InputVector& u, double dt) {
+		static constexpr bool CalcJacobianF(StateCovMatrix& F, [[maybe_unused]] const StateVector& x, const InputVector& u, double dt) {
 			/* In UpdateNonlinearX():
 			 *  q0 = q0 + q0_dot * dT;
 			 *  q1 = q1 + q1_dot * dT;
@@ -210,7 +210,7 @@ namespace GenericMath
 			return true;
 		}
 
-		constexpr bool CalcJacobianH(StateToOutputMatrix& H, const StateVector& x, const InputVector& u) const {
+		constexpr bool CalcJacobianH(StateToOutputMatrix& H, const StateVector& x) const {
 			/* In UpdateNonlinearY():
 			 *
 			 * The measurement output is the gravitational and magnetic projection to the body:
@@ -230,30 +230,30 @@ namespace GenericMath
 			H(0, 0) = -2 * q2 * ACC_Z0;
 			H(1, 0) = +2 * q1 * ACC_Z0;
 			H(2, 0) = +2 * q0 * ACC_Z0;
-			H(3, 0) = +2 * q0 * magneticDir(0) + 2 * q3 * magneticDir(1) - 2 * q2 * magneticDir(2);
-			H(4, 0) = -2 * q3 * magneticDir(0) + 2 * q0 * magneticDir(1) + 2 * q1 * magneticDir(2);
-			H(5, 0) = +2 * q2 * magneticDir(0) - 2 * q1 * magneticDir(1) + 2 * q0 * magneticDir(2);
+			H(3, 0) = +2 * q0 * refMagDir(0) + 2 * q3 * refMagDir(1) - 2 * q2 * refMagDir(2);
+			H(4, 0) = -2 * q3 * refMagDir(0) + 2 * q0 * refMagDir(1) + 2 * q1 * refMagDir(2);
+			H(5, 0) = +2 * q2 * refMagDir(0) - 2 * q1 * refMagDir(1) + 2 * q0 * refMagDir(2);
 
 			H(0, 1) = +2 * q3 * ACC_Z0;
 			H(1, 1) = +2 * q0 * ACC_Z0;
 			H(2, 1) = -2 * q1 * ACC_Z0;
-			H(3, 1) = +2 * q1 * magneticDir(0) + 2 * q2 * magneticDir(1) + 2 * q3 * magneticDir(2);
-			H(4, 1) = +2 * q2 * magneticDir(0) - 2 * q1 * magneticDir(1) + 2 * q0 * magneticDir(2);
-			H(5, 1) = +2 * q3 * magneticDir(0) - 2 * q0 * magneticDir(1) - 2 * q1 * magneticDir(2);
+			H(3, 1) = +2 * q1 * refMagDir(0) + 2 * q2 * refMagDir(1) + 2 * q3 * refMagDir(2);
+			H(4, 1) = +2 * q2 * refMagDir(0) - 2 * q1 * refMagDir(1) + 2 * q0 * refMagDir(2);
+			H(5, 1) = +2 * q3 * refMagDir(0) - 2 * q0 * refMagDir(1) - 2 * q1 * refMagDir(2);
 
 			H(0, 2) = -2 * q0 * ACC_Z0;
 			H(1, 2) = +2 * q3 * ACC_Z0;
 			H(2, 2) = -2 * q2 * ACC_Z0;
-			H(3, 2) = -2 * q2 * magneticDir(0) + 2 * q1 * magneticDir(1) - 2 * q0 * magneticDir(2);
-			H(4, 2) = +2 * q1 * magneticDir(0) + 2 * q2 * magneticDir(1) + 2 * q3 * magneticDir(2);
-			H(5, 2) = +2 * q0 * magneticDir(0) + 2 * q3 * magneticDir(1) - 2 * q2 * magneticDir(2);
+			H(3, 2) = -2 * q2 * refMagDir(0) + 2 * q1 * refMagDir(1) - 2 * q0 * refMagDir(2);
+			H(4, 2) = +2 * q1 * refMagDir(0) + 2 * q2 * refMagDir(1) + 2 * q3 * refMagDir(2);
+			H(5, 2) = +2 * q0 * refMagDir(0) + 2 * q3 * refMagDir(1) - 2 * q2 * refMagDir(2);
 
 			H(0, 3) = +2 * q1 * ACC_Z0;
 			H(1, 3) = +2 * q2 * ACC_Z0;
 			H(2, 3) = +2 * q3 * ACC_Z0;
-			H(3, 3) = -2 * q3 * magneticDir(0) + 2 * q0 * magneticDir(1) + 2 * q1 * magneticDir(2);
-			H(4, 3) = -2 * q0 * magneticDir(0) - 2 * q3 * magneticDir(1) + 2 * q2 * magneticDir(2);
-			H(5, 3) = +2 * q1 * magneticDir(0) + 2 * q2 * magneticDir(1) + 2 * q3 * magneticDir(2);
+			H(3, 3) = -2 * q3 * refMagDir(0) + 2 * q0 * refMagDir(1) + 2 * q1 * refMagDir(2);
+			H(4, 3) = -2 * q0 * refMagDir(0) - 2 * q3 * refMagDir(1) + 2 * q2 * refMagDir(2);
+			H(5, 3) = +2 * q1 * refMagDir(0) + 2 * q2 * refMagDir(1) + 2 * q3 * refMagDir(2);
 
 			return true;
 		}
