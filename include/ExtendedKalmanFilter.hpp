@@ -51,11 +51,10 @@
  *
  *
  *        *Additional Information:
- *              - Pada contoh di atas X~(k=0|k=0) = [0]. Untuk mempercepat konvergensi bisa
- *                  digunakan informasi plant-spesific. Misal pada implementasi Kalman Filter
- *                  untuk sensor IMU (Inertial measurement unit) dengan X = [quaternion], dengan
- *                  asumsi IMU awalnya menghadap ke atas tanpa rotasi: X~(k=0|k=0) = [1, 0, 0, 0]'
- *
+ * 				- In the example above, X~(k=0|k=0) = [0]. To speed up convergence, plant-specific
+ *					information can be used. For example, in the implementation of the Kalman Filter
+ * 					for an IMU (Inertial Measurement Unit) sensor with X = [quaternion], assuming
+ *					the IMU is initially facing upwards without rotation: X~(k=0|k=0) = [1, 0, 0, 0]'
  *
  * Based on implementation from: https://github.com/pronenewbits
  ************************************************************************************************************/
