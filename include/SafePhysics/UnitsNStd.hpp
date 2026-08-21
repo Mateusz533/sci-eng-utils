@@ -12,14 +12,14 @@ namespace Physics::Units::NStd
 {
 	namespace Detail
 	{
-		static consteval i64 CeiledExp2(i64 value) noexcept {
+		consteval i64 CeiledExp2(i64 value) noexcept {
 			i64 result = 1;
 			while(--value >= 0) {
 				result *= 2L;
 			}
 			return result;
 		}
-		static consteval i64 FlooredLog2(f64 value) noexcept {
+		consteval i64 FlooredLog2(f64 value) noexcept {
 			if(value <= 0) return 0;
 			i64 log = 0;
 			while(value > 1.0) {
@@ -32,13 +32,13 @@ namespace Physics::Units::NStd
 			}
 			return log;
 		}
-		static consteval i64 ExtractOddPart(i64 value) noexcept {
+		consteval i64 ExtractOddPart(i64 value) noexcept {
 			while(value != 0 && value % 2 == 0) {
 				value /= 2;
 			}
 			return value;
 		}
-		static consteval i64 ExtractExp2(i64 value) noexcept {
+		consteval i64 ExtractExp2(i64 value) noexcept {
 			i64 log = 0;
 			while(value != 0 && value % 2 == 0) {
 				value /= 2;
@@ -47,33 +47,33 @@ namespace Physics::Units::NStd
 			return log;
 		}
 
-		template<i64 Numerator = 0, i64 Denominator = 1, i64 Exponent = 0>
-			requires(Denominator > 0)
+		template<i64 NUMERATOR = 0, i64 DENOMINATOR = 1, i64 EXPONENT = 0>
+			requires(DENOMINATOR > 0)
 		class Fraction;
 
 		template<class T>
 		concept NormedFraction = std::is_same_v<T, Fraction<T::NUM, T::DEN, T::EXP>>;
 
-		template<i64 Numerator, i64 Denominator, i64 Exponent>
-			requires(Denominator > 0)
+		template<i64 NUMERATOR, i64 DENOMINATOR, i64 EXPONENT>
+			requires(DENOMINATOR > 0)
 		class Fraction
 		{
 		public:
-			static constexpr i64 NUM = std::ratio<ExtractOddPart(Numerator), ExtractOddPart(Denominator)>::num;
-			static constexpr i64 DEN = std::ratio<ExtractOddPart(Numerator), ExtractOddPart(Denominator)>::den;
-			static constexpr i64 EXP = (NUM == 0L) ? 0L : (Exponent + ExtractExp2(Numerator) - ExtractExp2(Denominator));
+			static constexpr i64 NUM = std::ratio<ExtractOddPart(NUMERATOR), ExtractOddPart(DENOMINATOR)>::num;
+			static constexpr i64 DEN = std::ratio<ExtractOddPart(NUMERATOR), ExtractOddPart(DENOMINATOR)>::den;
+			static constexpr i64 EXP = (NUM == 0L) ? 0L : (EXPONENT + ExtractExp2(NUMERATOR) - ExtractExp2(DENOMINATOR));
 
 			static consteval bool IsNormalized() noexcept {
-				return NUM == Numerator && DEN == Denominator && EXP == Exponent;
+				return NUM == NUMERATOR && DEN == DENOMINATOR && EXP == EXPONENT;
 			}
 			static consteval bool IsIdentity() noexcept {
-				return Numerator == 1 && Denominator == 1 && Exponent == 0;
+				return NUMERATOR == 1 && DENOMINATOR == 1 && EXPONENT == 0;
 			}
 			static consteval bool IsZero() noexcept {
-				return Numerator == 0;
+				return NUMERATOR == 0;
 			}
 			static consteval bool IsPositive() noexcept {
-				return Numerator > 0;
+				return NUMERATOR > 0;
 			}
 			template<Arithmetic T = f64>
 			static consteval T ToDecimal() noexcept {

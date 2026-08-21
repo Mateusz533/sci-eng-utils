@@ -37,17 +37,20 @@
  *              Calculate the Jacobian matrix of h (i.e. H):
  *                  H        = d(h(..))/dx |x(k|k-1)                                 ...{EKF_4}
  *
- *              Predict residual covariance using linearized h (i.e. S):
- *                  S        = H*P(k|k-1)*H' + R                                     ...{EKF_5}
+ *              Predict y(k) through nonlinear function h:
+ *                  y(k|k-1) = h[x(k|k-1)]                                           ...{EKF_5}
  *
- *              Calculate the kalman gain:
- *                  K        = P(k|k-1)*H'*(S^-1)                                    ...{EKF_6}
+ *              Predict residual covariance using linearized h (i.e. S):
+ *                  S        = H*P(k|k-1)*H' + R                                     ...{EKF_6}
+ *
+ *              Calculate the kalman gain (i.e. K):
+ *                  K        = P(k|k-1)*H'*(S^-1)                                    ...{EKF_7}
  *
  *              Correct x(k) using kalman gain:
- *                  x(k|k)   = x(k|k-1) + K*[y(k) - h(x(k|k-1))]                     ...{EKF_7}
+ *                  x(k|k)   = x(k|k-1) + K*[y(k) - y(k|k-1)]                        ...{EKF_8}
  *
  *              Correct P(k) using kalman gain:
- *                  P(k|k)   = (I - K*H)*P(k|k-1)                                    ...{EKF_8}
+ *                  P(k|k)   = (I - K*H)*P(k|k-1)                                    ...{EKF_9}
  *
  *
  *        *Additional Information:
@@ -131,7 +134,7 @@ namespace GenericMath
 				return false;
 			}
 
-			/* =========================== Prediction of x & P =========================== */
+			/* ============================== Predict x & P ============================== */
 			/* x(k|k-1) = f[x(k-1|k-1), u(k-1)]                                 ...{EKF_2} */
 			if(!Self().NonlinearUpdateX(x, x, u, dt)) {
 				return false;
@@ -147,26 +150,28 @@ namespace GenericMath
 				return false;
 			}
 
-			/* =========================== Correction of x & P =========================== */
-			/* S = H*P(k|k-1)*H' + R                                            ...{EKF_5} */
-			const OutputCovMatrix S = H * P * H.Transpose() + R;
-
-			/* K = P(k|k-1)*H'*(S^-1)                                           ...{EKF_6} */
-			const OutputToStateMatrix K = P * H.Transpose() * S.Inverse();
-
-			if(!K.IsValid()) {
-				return false;
-			}
-
-			/* x(k|k) = x(k|k-1) + K*[y(k) - h(x(k|k-1))]                       ...{EKF_7} */
+			/* ============================== Predict y & S ============================== */
+			/* y(k|k-1) = h[x(k|k-1)]                                           ...{EKF_5} */
 			if(!Self().NonlinearUpdateY(y_est, x)) {
 				return false;
 			}
 
+			/* S = H*P(k|k-1)*H' + R                                            ...{EKF_6} */
+			const OutputCovMatrix S = H * P * H.Transpose() + R;
+
+			/* =================== Calculate the Kalman gain (i.e. K) ==================== */
+			/* K = P(k|k-1)*H'*(S^-1)                                           ...{EKF_7} */
+			const OutputToStateMatrix K = P * H.Transpose() * S.Inverse();
+			if(!K.IsValid()) {
+				return false;
+			}
+
+			/* ============================== Correct x & P ============================== */
+			/* x(k|k) = x(k|k-1) + K*[y(k) - y(k|k-1)]                          ...{EKF_8} */
 			y_diff = y - y_est;
 			x = x + K * y_diff;
 
-			/* P(k|k) = (I - K*H)*P(k|k-1)                                      ...{EKF_8} */
+			/* P(k|k) = (I - K*H)*P(k|k-1)                                      ...{EKF_9} */
 			P = (StateCovMatrix::Identity() - K * H) * P;
 
 			return true;
