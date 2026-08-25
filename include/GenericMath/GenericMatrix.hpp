@@ -271,9 +271,9 @@ namespace GenericMath
 			SetHomogen(T{0});
 		}
 
-		constexpr void SetRandom(std::int32_t minRand, std::int32_t maxRand) {
-			const std::int32_t scope = (maxRand - minRand + 1);
-			ForEachElementAssign<[](auto minRand, auto scope) { return T{(std::rand() % scope) + minRand}; }>(minRand, scope);
+		constexpr void SetRandom(std::int32_t minValue, std::int32_t maxValue) {
+			const std::int32_t scope = (maxValue - minValue + 1);
+			ForEachElementAssign<[](auto offset, auto maxRand) { return T{(std::rand() % maxRand) + offset}; }>(minValue, scope);
 		}
 
 		constexpr auto Transpose() const {
