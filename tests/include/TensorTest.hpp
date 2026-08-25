@@ -14,22 +14,13 @@ namespace TensorTest
 	/************************************************************************************************************/
 
 	TEST(TensorTestSuite, TensorTest) {
-		// const std::array<std::array<double, 3>, 3> matArray{
-		// 	std::array<double, 3>{54, 97, -21},
-		// 	std::array<double, 3>{-96, 353, 2},
-		// 	std::array<double, 3>{-39, 5, 24},
-		// };
+		const std::array<std::array<double, 3>, 3> matArray{
+			std::array<double, 3>{54, 97, -21},
+			std::array<double, 3>{-96, 353, 2},
+			std::array<double, 3>{-39, 5, 24},
+		};
 
-		Tensor<double, 2, DIM> mat{};
-		mat(0, 0) = 54;
-		mat(0, 1) = 97;
-		mat(0, 2) = -21;
-		mat(1, 0) = -96;
-		mat(1, 1) = 353;
-		mat(1, 2) = 2;
-		mat(2, 0) = -39;
-		mat(2, 1) = 5;
-		mat(2, 2) = 24;
+		const Tensor<double, 2, DIM> mat{matArray};
 
 		const auto matCopy = mat;
 		const auto outer = mat.OuterProduct(matCopy);

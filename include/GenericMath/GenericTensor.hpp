@@ -11,7 +11,7 @@ namespace GenericMath
 {
 	using TensorIdx = std::int32_t;
 
-	namespace Private
+	namespace Detail
 	{
 		template<typename Data, TensorIdx DIM, TensorIdx RANK>
 			requires(RANK >= 0)
@@ -30,9 +30,12 @@ namespace GenericMath
 	class Tensor
 	{
 		template<TensorIdx OTHER_RANK>
-		using ArrayType = typename Private::MultiArrayComposer<Data, DIM, OTHER_RANK>::ArrayType;
+		using ArrayType = typename Detail::MultiArrayComposer<Data, DIM, OTHER_RANK>::ArrayType;
 
 	public:
+		constexpr Tensor() noexcept = default;
+		constexpr Tensor(const ArrayType<RANK>& data) noexcept : mData{data} {}
+
 		template<typename... Indices>
 			requires(sizeof...(Indices) == RANK && (std::is_same_v<Indices, TensorIdx> && ...))
 		constexpr Data& operator()(Indices... indices) noexcept {
@@ -93,18 +96,10 @@ namespace GenericMath
 
 			TensorIdx currentIndex = 0;
 			for(TensorIdx p = 0; p < RANK; ++p) {
-				if(p == i) {
-					lhsIndicesMap[p] = TensorIdx(0);
-					continue;
-				}
-				lhsIndicesMap[p] = currentIndex++;
+				lhsIndicesMap[p] = (p == i) ? TensorIdx{0} : currentIndex++;
 			}
 			for(TensorIdx p = 0; p < OTHER_RANK; ++p) {
-				if(p == j) {
-					rhsIndicesMap[p] = TensorIdx(0);
-					continue;
-				}
-				rhsIndicesMap[p] = currentIndex++;
+				rhsIndicesMap[p] = (p == j) ? TensorIdx{0} : currentIndex++;
 			}
 
 			Tensor<Data, RANK + OTHER_RANK - 2, DIM> result;
@@ -112,14 +107,16 @@ namespace GenericMath
 			ForEachIndex<RANK + OTHER_RANK - 2>([&](const auto& resultIndices) {
 				std::array<TensorIdx, RANK> lhsIndices;
 				if constexpr(RANK + OTHER_RANK - 2 > 0) {
-					for(TensorIdx p = 0; p < RANK; ++p)
+					for(TensorIdx p = 0; p < RANK; ++p) {
 						lhsIndices[p] = resultIndices[lhsIndicesMap[p]];
+					}
 				}
 
 				std::array<TensorIdx, OTHER_RANK> rhsIndices;
 				if constexpr(RANK + OTHER_RANK - 2 > 0) {
-					for(TensorIdx p = 0; p < OTHER_RANK; ++p)
+					for(TensorIdx p = 0; p < OTHER_RANK; ++p) {
 						rhsIndices[p] = resultIndices[rhsIndicesMap[p]];
+					}
 				}
 
 				Data diagonalSum{0};
@@ -145,21 +142,20 @@ namespace GenericMath
 			requires(RANK >= 2)
 		{
 			// ensure i < j for simpler mapping
-			if(j < i) std::swap(i, j);
+			if(j < i) {
+				std::swap(i, j);
+			}
 
-			if(!(0 <= i && i < j && j < RANK))
+			if(!(0 <= i && i < j && j < RANK)) {
 				return Tensor<Data, RANK - 2, DIM>{};
+			}
 
 			// map positions excluding i and j into resultIndices
 			std::array<TensorIdx, RANK> indicesMap;
 
 			TensorIdx currentIndex = 0;
 			for(TensorIdx p = 0; p < RANK; ++p) {
-				if(p == i || p == j) {
-					indicesMap[p] = TensorIdx(0);
-					continue;
-				}
-				indicesMap[p] = currentIndex++;
+				indicesMap[p] = (p == i || p == j) ? TensorIdx{0} : currentIndex++;
 			}
 
 			Tensor<Data, RANK - 2, DIM> result;
@@ -187,18 +183,20 @@ namespace GenericMath
 	private:
 		template<TensorIdx N>
 		static constexpr Data& At(ArrayType<N>& array, std::span<const TensorIdx, N> indices) noexcept {
-			if constexpr(N == 0)
+			if constexpr(N == 0) {
 				return array;
-			else
+			} else {
 				return At<N - 1>(array[indices[0]], indices.template subspan<1, N - 1>());
+			}
 		}
 
 		template<TensorIdx N>
 		static constexpr const Data& At(const ArrayType<N>& array, std::span<const TensorIdx, N> indices) noexcept {
-			if constexpr(N == 0)
+			if constexpr(N == 0) {
 				return array;
-			else
+			} else {
 				return At<N - 1>(array[indices[0]], indices.template subspan<1, N - 1>());
+			}
 		}
 
 		// Generic N-dimensional index iteration: calls f(indices) for all indices in [0..DIM)^N
@@ -224,6 +222,6 @@ namespace GenericMath
 		}
 
 	private:
-		ArrayType<RANK> mData{};
+		ArrayType<RANK> mData;
 	};
 }
