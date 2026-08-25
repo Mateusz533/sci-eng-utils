@@ -697,7 +697,12 @@ namespace GenericMath
 			}
 
 		protected:
-			constexpr CompactMatrixAllocator() : mRows{}, mCols{} {}
+			constexpr CompactMatrixAllocator()
+				requires(!IS_DYNAMIC)
+			= default;
+			constexpr CompactMatrixAllocator()
+				requires(IS_DYNAMIC)
+				: mRows{}, mCols{} {}
 
 		private:
 			[[no_unique_address]] std::conditional_t<(ROWS == DYNAMIC_SIZE), MatrixIdx, Detail::Empty> mRows;
@@ -777,7 +782,12 @@ namespace GenericMath
 			}
 
 		protected:
-			constexpr StdMatrixAllocator() : mRows{}, mCols{} {}
+			constexpr StdMatrixAllocator()
+				requires(!IS_DYNAMIC)
+			= default;
+			constexpr StdMatrixAllocator()
+				requires(IS_DYNAMIC)
+				: mRows{}, mCols{} {}
 
 		private:
 			[[no_unique_address]] std::conditional_t<(ROWS == DYNAMIC_SIZE), MatrixIdx, Detail::Empty> mRows;
@@ -854,7 +864,7 @@ namespace GenericMath
 		{ return (*this)(index, 0); }
 
 	public:
-		constexpr Matrix() {}
+		constexpr Matrix() = default;
 
 		constexpr Matrix(Idx rows, Idx cols)
 			requires(IsDynamic())
