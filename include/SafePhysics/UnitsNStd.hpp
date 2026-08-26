@@ -113,22 +113,15 @@ namespace Physics::Units::NStd
 		using SiblingStdUnit = decltype(StandardUnit{}.template Cast<OtherType>());
 
 		using Self = GenerativeUnit;
-
-		template<Arithmetic OtherType = Type, template<Arithmetic> class OtherStandardUnit = SiblingStdUnit, Detail::NormedFraction OtherScale = Scale,
-				 Detail::NormedFraction OtherOffset = Offset, Arithmetic OtherAccuracyType = AccuracyType>
-		using Sibling = GenerativeUnit<OtherStandardUnit<OtherType>, OtherScale, OtherOffset, OtherAccuracyType>;
-
 		using OffsetType = Offset;
 		using ScaleType = Scale;
 
-		template<class ComplexType>
-		struct Decomposer {
-			template<Arithmetic T>
-			using OuterType = decltype(ComplexType{}.template Cast<T>());
-			using InnerType = decltype(ComplexType{}.ToRaw());
-		};
-		template<class ComplexType, Detail::NormedFraction OtherScale = Scale, Detail::NormedFraction OtherOffset = Offset, Arithmetic OtherAccuracyType = AccuracyType>
-		using StdToSibling = Sibling<decltype(ComplexType{}.ToRaw()), Decomposer<ComplexType>::template OuterType, OtherScale, OtherOffset, OtherAccuracyType>;
+		template<Arithmetic OtherType = Type>
+		using Sibling = GenerativeUnit<SiblingStdUnit<OtherType>, Scale, Offset, AccuracyType>;
+
+		template<class OtherStandardUnit = StandardUnit, Detail::NormedFraction OtherScale = Scale,
+				 Detail::NormedFraction OtherOffset = Offset, Arithmetic OtherAccuracyType = AccuracyType>
+		using ExtendedSibling = GenerativeUnit<OtherStandardUnit, OtherScale, OtherOffset, OtherAccuracyType>;
 
 		static consteval bool HasNoOffset() noexcept {
 			return Offset::IsZero();
@@ -269,7 +262,7 @@ namespace Physics::Units::NStd
 		/* Arithmetic operators */;
 
 		constexpr auto operator-() const noexcept {
-			using NewUnit = Sibling<decltype(-Type{}), SiblingStdUnit, Scale, typename Offset::Opposite>;
+			using NewUnit = ExtendedSibling<SiblingStdUnit<decltype(-Type{})>, Scale, typename Offset::Opposite>;
 			return NewUnit{-mData};
 		}
 
@@ -328,27 +321,27 @@ namespace Physics::Units::NStd
 				 Detail::NormedFraction OtherOffset, Arithmetic OtherAccuracyType = f64>
 			requires(HasNoOffset() && OtherOffset::IsZero())
 		constexpr auto operator*(const GenerativeUnit<OtherStandardUnit<OtherType>, OtherScale, OtherOffset, OtherAccuracyType>& value) const noexcept {
-			using ComposeType = decltype(SiblingStdUnit<Type>{} * OtherStandardUnit<OtherType>{});
+			using ComposeType = decltype(StandardUnit{} * OtherStandardUnit<OtherType>{});
 			using AccType = decltype(AccuracyType{} * OtherAccuracyType{});
 			using ResultScale = Scale::template Product<OtherScale>;
 
 			if constexpr(ResultScale::IsIdentity()) {
 				return ComposeType{mData * value.ToRaw()};
 			} else {
-				using NewUnit = StdToSibling<ComposeType, ResultScale, Detail::Fraction<0, 1>, AccType>;
+				using NewUnit = ExtendedSibling<ComposeType, ResultScale, Detail::Fraction<0, 1>, AccType>;
 				return NewUnit{mData * value.ToRaw()};
 			}
 		}
-		template<typename OtherStandardUnit = SiblingStdUnit<Type>>
+		template<typename OtherStandardUnit = StandardUnit>
 			requires(HasNoOffset())
 		constexpr auto operator*(const OtherStandardUnit& value) const noexcept {
-			using NewUnit = StdToSibling<decltype(SiblingStdUnit<Type>{} * OtherStandardUnit{})>;
+			using NewUnit = ExtendedSibling<decltype(StandardUnit{} * OtherStandardUnit{})>;
 			return NewUnit{mData * value.ToRaw()};
 		}
-		template<typename OtherStandardUnit = SiblingStdUnit<Type>>
+		template<typename OtherStandardUnit = StandardUnit>
 			requires(HasNoOffset())
 		friend constexpr auto operator*(const OtherStandardUnit& value, const Self& self) noexcept {
-			using NewUnit = StdToSibling<decltype(OtherStandardUnit{} * SiblingStdUnit<Type>{})>;
+			using NewUnit = ExtendedSibling<decltype(OtherStandardUnit{} * StandardUnit{})>;
 			return NewUnit{value.ToRaw() * self.ToRaw()};
 		}
 
@@ -356,27 +349,27 @@ namespace Physics::Units::NStd
 				 Detail::NormedFraction OtherOffset, Arithmetic OtherAccuracyType = f64>
 			requires(HasNoOffset() && OtherOffset::IsZero())
 		constexpr auto operator/(const GenerativeUnit<OtherStandardUnit<OtherType>, OtherScale, OtherOffset, OtherAccuracyType> value) const noexcept {
-			using ComposeType = decltype(SiblingStdUnit<Type>{} / OtherStandardUnit<OtherType>{});
+			using ComposeType = decltype(StandardUnit{} / OtherStandardUnit<OtherType>{});
 			using AccType = decltype(AccuracyType{} / OtherAccuracyType{});
 			using ResultScale = Scale::template Quotient<OtherScale>;
 
 			if constexpr(ResultScale::IsIdentity()) {
 				return ComposeType{mData / value.ToRaw()};
 			} else {
-				using NewUnit = StdToSibling<ComposeType, ResultScale, Detail::Fraction<0, 1>, AccType>;
+				using NewUnit = ExtendedSibling<ComposeType, ResultScale, Detail::Fraction<0, 1>, AccType>;
 				return NewUnit{mData / value.ToRaw()};
 			}
 		}
-		template<typename OtherStandardUnit = SiblingStdUnit<Type>>
+		template<typename OtherStandardUnit = StandardUnit>
 			requires(HasNoOffset())
 		constexpr auto operator/(const OtherStandardUnit& value) const noexcept {
-			using NewUnit = StdToSibling<decltype(SiblingStdUnit<Type>{} / OtherStandardUnit{})>;
+			using NewUnit = ExtendedSibling<decltype(StandardUnit{} / OtherStandardUnit{})>;
 			return NewUnit{mData / value.ToRaw()};
 		}
-		template<typename OtherStandardUnit = SiblingStdUnit<Type>>
+		template<typename OtherStandardUnit = StandardUnit>
 			requires(HasNoOffset())
 		friend constexpr auto operator/(const OtherStandardUnit& value, const Self& self) noexcept {
-			using NewUnit = StdToSibling<decltype(OtherStandardUnit{} / SiblingStdUnit<Type>{})>;
+			using NewUnit = ExtendedSibling<decltype(OtherStandardUnit{} / StandardUnit{})>;
 			return NewUnit{value.ToRaw() / self.ToRaw()};
 		}
 
