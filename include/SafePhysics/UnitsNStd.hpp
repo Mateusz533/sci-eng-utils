@@ -51,7 +51,7 @@ namespace Physics::Units::NStd
 			requires(DENOMINATOR > 0)
 		class Fraction;
 
-		template<class T>
+		template<typename T>
 		concept NormedFraction = std::is_same_v<T, Fraction<T::NUM, T::DEN, T::EXP>>;
 
 		template<i64 NUMERATOR, i64 DENOMINATOR, i64 EXPONENT>
@@ -99,11 +99,11 @@ namespace Physics::Units::NStd
 		class SymbolicBase
 		{};
 
-		template<class T>
+		template<typename T>
 		concept NonStandardUnit = std::is_base_of_v<SymbolicBase, T>;
 	}
 
-	template<class StandardUnit, Detail::NormedFraction Scale, Detail::NormedFraction Offset, Arithmetic AccuracyType = f64>
+	template<typename StandardUnit, Detail::NormedFraction Scale, Detail::NormedFraction Offset, Arithmetic AccuracyType = f64>
 		requires(!Detail::NonStandardUnit<StandardUnit> && StandardUnit::HasNoPrefix() && Scale::IsPositive() && !(Offset::IsZero() && Scale::IsIdentity()))
 	class GenerativeUnit : Detail::SymbolicBase
 	{
@@ -119,7 +119,7 @@ namespace Physics::Units::NStd
 		template<Arithmetic OtherType = Type>
 		using Sibling = GenerativeUnit<SiblingStdUnit<OtherType>, Scale, Offset, AccuracyType>;
 
-		template<class OtherStandardUnit = StandardUnit, Detail::NormedFraction OtherScale = Scale,
+		template<typename OtherStandardUnit = StandardUnit, Detail::NormedFraction OtherScale = Scale,
 				 Detail::NormedFraction OtherOffset = Offset, Arithmetic OtherAccuracyType = AccuracyType>
 		using ExtendedSibling = GenerativeUnit<OtherStandardUnit, OtherScale, OtherOffset, OtherAccuracyType>;
 
@@ -320,11 +320,10 @@ namespace Physics::Units::NStd
 			return NewUnit{value.ToRaw() - self.ToRaw()};
 		}
 
-		template<Arithmetic OtherType, template<Arithmetic> class OtherStandardUnit, Detail::NormedFraction OtherScale,
-				 Detail::NormedFraction OtherOffset, Arithmetic OtherAccuracyType = f64>
-			requires(HasNoOffset() && OtherOffset::IsZero())
-		constexpr auto operator*(const GenerativeUnit<OtherStandardUnit<OtherType>, OtherScale, OtherOffset, OtherAccuracyType>& value) const noexcept {
-			using ComposeType = decltype(std::declval<StandardUnit>() * std::declval<OtherStandardUnit<OtherType>>());
+		template<typename OtherStandardUnit, Detail::NormedFraction OtherScale, Detail::NormedFraction OtherOffset, Arithmetic OtherAccuracyType = f64>
+			requires(HasNoOffset() && OtherOffset::IsZero() && !Detail::NonStandardUnit<OtherStandardUnit>)
+		constexpr auto operator*(const GenerativeUnit<OtherStandardUnit, OtherScale, OtherOffset, OtherAccuracyType>& value) const noexcept {
+			using ComposeType = decltype(std::declval<StandardUnit>() * std::declval<OtherStandardUnit>());
 			using AccType = decltype(std::declval<AccuracyType>() * std::declval<OtherAccuracyType>());
 			using ResultScale = Scale::template Product<OtherScale>;
 
@@ -336,23 +335,22 @@ namespace Physics::Units::NStd
 			}
 		}
 		template<typename OtherStandardUnit = StandardUnit>
-			requires(HasNoOffset())
+			requires(HasNoOffset() && !Detail::NonStandardUnit<OtherStandardUnit>)
 		constexpr auto operator*(const OtherStandardUnit& value) const noexcept {
 			using NewUnit = ExtendedSibling<decltype(std::declval<StandardUnit>() * std::declval<OtherStandardUnit>())>;
 			return NewUnit{mData * value.ToRaw()};
 		}
 		template<typename OtherStandardUnit = StandardUnit>
-			requires(HasNoOffset())
+			requires(HasNoOffset() && !Detail::NonStandardUnit<OtherStandardUnit>)
 		friend constexpr auto operator*(const OtherStandardUnit& value, const Self& self) noexcept {
 			using NewUnit = ExtendedSibling<decltype(std::declval<OtherStandardUnit>() * std::declval<StandardUnit>())>;
 			return NewUnit{value.ToRaw() * self.ToRaw()};
 		}
 
-		template<Arithmetic OtherType, template<Arithmetic> class OtherStandardUnit, Detail::NormedFraction OtherScale,
-				 Detail::NormedFraction OtherOffset, Arithmetic OtherAccuracyType = f64>
-			requires(HasNoOffset() && OtherOffset::IsZero())
-		constexpr auto operator/(const GenerativeUnit<OtherStandardUnit<OtherType>, OtherScale, OtherOffset, OtherAccuracyType> value) const noexcept {
-			using ComposeType = decltype(std::declval<StandardUnit>() / std::declval<OtherStandardUnit<OtherType>>());
+		template<typename OtherStandardUnit, Detail::NormedFraction OtherScale, Detail::NormedFraction OtherOffset, Arithmetic OtherAccuracyType = f64>
+			requires(HasNoOffset() && OtherOffset::IsZero() && !Detail::NonStandardUnit<OtherStandardUnit>)
+		constexpr auto operator/(const GenerativeUnit<OtherStandardUnit, OtherScale, OtherOffset, OtherAccuracyType> value) const noexcept {
+			using ComposeType = decltype(std::declval<StandardUnit>() / std::declval<OtherStandardUnit>());
 			using AccType = decltype(std::declval<AccuracyType>() / std::declval<OtherAccuracyType>());
 			using ResultScale = Scale::template Quotient<OtherScale>;
 
@@ -364,13 +362,13 @@ namespace Physics::Units::NStd
 			}
 		}
 		template<typename OtherStandardUnit = StandardUnit>
-			requires(HasNoOffset())
+			requires(HasNoOffset() && !Detail::NonStandardUnit<OtherStandardUnit>)
 		constexpr auto operator/(const OtherStandardUnit& value) const noexcept {
 			using NewUnit = ExtendedSibling<decltype(std::declval<StandardUnit>() / std::declval<OtherStandardUnit>())>;
 			return NewUnit{mData / value.ToRaw()};
 		}
 		template<typename OtherStandardUnit = StandardUnit>
-			requires(HasNoOffset())
+			requires(HasNoOffset() && !Detail::NonStandardUnit<OtherStandardUnit>)
 		friend constexpr auto operator/(const OtherStandardUnit& value, const Self& self) noexcept {
 			using NewUnit = ExtendedSibling<decltype(std::declval<OtherStandardUnit>() / std::declval<StandardUnit>())>;
 			return NewUnit{value.ToRaw() / self.ToRaw()};
@@ -467,7 +465,7 @@ namespace Physics::Units::NStd
 			}
 		};
 
-		template<Arithmetic Type, template<Arithmetic> class StdU, i64 ScNum, i64 ScDenom, i64 ScExp = 0, i64 OffNum = 0, i64 OffDenom = 1>
+		template<Arithmetic Type, template<Arithmetic> typename StdU, i64 ScNum, i64 ScDenom, i64 ScExp = 0, i64 OffNum = 0, i64 OffDenom = 1>
 		using Simplifier = GenerativeUnit<StdU<Type>, typename Fraction<ScNum, ScDenom, ScExp>::Norm, typename Fraction<OffNum, OffDenom>::Norm>;
 	}
 
