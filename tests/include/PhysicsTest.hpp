@@ -159,10 +159,14 @@ namespace PhysicsTest
 		static_assert(NStd::PoundForceFeet<>{1} == NStd::PoundsForce<>{1} * NStd::Feet<>{1} / SI::Radians<>{1});
 		static_assert(NStd::PoundForceInches<>{1} == NStd::PoundsForce<>{1} * NStd::Inches<>{1} / SI::Radians<>{1});
 		static_assert(NStd::FootPoundsForce<>{1} == NStd::Feet<>{1} * NStd::PoundsForce<>{1});
+		static_assert((NStd::ThCalories<>{1} / SI::Joules<>{4.184}).ToStandardUnit() == SI::Scale<>{1});
+		static_assert((NStd::ItCalories<>{1} / SI::Joules<>{4.1868}).ToStandardUnit() == SI::Scale<>{1});
+		static_assert((NStd::ThBtu<>{1} / NStd::ThCalories<>{1}) ==
+					  (SI::Kelvins<>{1} * SI::KiloGrams<>{0.001}) / (NStd::DegreesRankin<>{1} * NStd::PoundsMass<>{1}));
+		static_assert((NStd::ItBtu<>{1} / NStd::ItCalories<>{1}) ==
+					  (SI::Kelvins<>{1} * SI::KiloGrams<>{0.001}) / (NStd::DegreesRankin<>{1} * NStd::PoundsMass<>{1}));
 		static_assert((NStd::UsTherms<>{1} / SI::Joules<>{105'480'400}).ToStandardUnit() == SI::Scale<>{1});
-		static_assert((NStd::BtuIt<>{1} / SI::Joules<>{1'055.055'852'620}).ToStandardUnit() == SI::Scale<>{1});
-		static_assert((NStd::BtuTh<>{1} / SI::Joules<>{4.184}).ToStandardUnit() == SI::Scale<>{1});
-		static_assert((NStd::TonsOfRefrigeration<>{1} / (NStd::BtuIt<>{12'000} / NStd::Hours<>{1})).ToStandardUnit() == SI::Scale<>{1});
+		static_assert((NStd::TonsOfRefrigeration<>{1} / (NStd::ItBtu<>{12'000} / NStd::Hours<>{1})).ToStandardUnit() == SI::Scale<>{1});
 		static_assert((NStd::Horsepower<>{1} / (NStd::PoundsForce<>{550} * NStd::FeetPerSecond<>{1})).ToStandardUnit() == SI::Scale<>{1});
 
 		/* Pressure */;
