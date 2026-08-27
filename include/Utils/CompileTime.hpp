@@ -1,6 +1,9 @@
 #include <array>
+#include <concepts>
 #include <cstddef>
+#include <cstdint>
 #include <string_view>
+#include <type_traits>
 
 namespace Utils::CompileTime
 {
@@ -92,5 +95,35 @@ namespace Utils::CompileTime
 			result[0] = '-';
 		}
 		return String<result.size() + 1>(result);
+	}
+
+	template<typename T, std::uint8_t N>
+		requires(std::is_integral_v<T> || std::is_floating_point_v<T>)
+	static constexpr T Pow(T base) noexcept {
+		if constexpr(N > 0) {
+			return base * Pow<T, N - 1U>(base);
+		} else {
+			return T{1};
+		}
+	}
+
+	static consteval std::int64_t Exp10(std::uint8_t exp) noexcept {
+		return (exp > 0) ? 10L * Exp10(exp - 1) : 1L;
+	}
+
+	template<std::floating_point T, std::uint8_t N>
+		requires(N > 0)
+	static constexpr T RootNewtonRaphson(T x, T curr, T prev) noexcept {
+		return (curr == prev) ? curr : RootNewtonRaphson<T, N>(x, (T{N - 1U} * curr + x / Pow<T, N - 1U>(curr)) / T{N}, curr);
+	}
+
+	template<std::floating_point T>
+	static constexpr T SqrtNewtonRaphson(T x, T curr, T prev) noexcept {
+		return RootNewtonRaphson<T, 2>(x, curr, prev);
+	}
+
+	template<std::floating_point T>
+	static constexpr T CbrtNewtonRaphson(T x, T curr, T prev) noexcept {
+		return RootNewtonRaphson<T, 3>(x, curr, prev);
 	}
 }

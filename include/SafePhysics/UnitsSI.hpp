@@ -152,31 +152,32 @@ namespace Physics::Units::SI
 			return mData;
 		}
 
-		template<u8 EXPONENT>
+		template<i8 EXPONENT>
 		constexpr auto Power() const noexcept {
 			if constexpr(EXPONENT == 0) {
 				return Scale<Type>{1};
+			} else if constexpr(EXPONENT < 0) {
+				return Scale<Type>{1} / Power<-EXPONENT>();
 			} else {
 				return *this * Power<EXPONENT - 1>();
 			}
 		}
 
-		constexpr auto Sqrt() const noexcept {
-			static_assert(M % 2 == 0);
-			static_assert(S % 2 == 0);
-			static_assert(KG % 2 == 0);
-			static_assert(A % 2 == 0);
-			static_assert(K % 2 == 0);
-			static_assert(MOL % 2 == 0);
-			static_assert(CD % 2 == 0);
-			static_assert(RAD % 2 == 0);
-			static_assert(SR % 2 == 0);
-			static_assert(PREFIX % 2 == 0);
+		template<u8 N>
+			requires((N > 0) && (M % N == 0) && (S % N == 0) && (KG % N == 0) && (A % N == 0) && (K % N == 0) &&
+					 (MOL % N == 0) && (CD % N == 0) && (RAD % N == 0) && (SR % N == 0) && (PREFIX % N == 0))
+		constexpr auto Root() const noexcept {
 			using RawType = std::conditional_t<std::is_same_v<Type, f128>, f128, f64>;
-			using NewType = GenerativeUnit<RawType, M / 2, S / 2, KG / 2, A / 2, K / 2, MOL / 2, CD / 2, RAD / 2, SR / 2, PREFIX / 2>;
-			return NewType{mData >= 0 && mData < std::numeric_limits<double>::infinity()
-							   ? SqrtNewtonRaphson(mData, mData, 0)
+			using NewType = GenerativeUnit<RawType, M / N, S / N, KG / N, A / N, K / N, MOL / N, CD / N, RAD / N, SR / N, PREFIX / N>;
+			return NewType{RawType{0} <= mData && mData < std::numeric_limits<RawType>::infinity()
+							   ? Utils::CompileTime::RootNewtonRaphson<RawType, N>(mData, mData, 0)
 							   : std::numeric_limits<f64>::quiet_NaN()};
+		}
+		constexpr auto Sqrt() const noexcept {
+			return Root<2>();
+		}
+		constexpr auto Cbrt() const noexcept {
+			return Root<3>();
 		}
 
 		static consteval bool HasNoPrefix() noexcept {
@@ -197,25 +198,14 @@ namespace Physics::Units::SI
 			using NewType = decltype(Type{} * OtherType{});
 
 			if constexpr(OTHER_PREFIX - PREFIX > 0) {
-				constexpr NewType SCALE_FACTOR = Pow10(OTHER_PREFIX - PREFIX);
+				constexpr NewType SCALE_FACTOR = Utils::CompileTime::Exp10(OTHER_PREFIX - PREFIX);
 				return value.ToRaw() * SCALE_FACTOR;
 			} else if constexpr(OTHER_PREFIX - PREFIX < 0) {
-				constexpr NewType SCALE_FACTOR = Pow10(PREFIX - OTHER_PREFIX);
+				constexpr NewType SCALE_FACTOR = Utils::CompileTime::Exp10(PREFIX - OTHER_PREFIX);
 				return value.ToRaw() / SCALE_FACTOR;
 			} else {
 				return value.ToRaw();
 			}
-		}
-
-		static consteval i64 Pow10(u8 pow) noexcept {
-			if(pow > 0) {
-				return 10L * Pow10(pow - 1);
-			}
-			return 1;
-		}
-
-		static constexpr f64 SqrtNewtonRaphson(f64 x, f64 curr, f64 prev) noexcept {
-			return curr == prev ? curr : SqrtNewtonRaphson(x, 0.5 * (curr + x / curr), curr);
 		}
 
 		static consteval auto GetTypeText() noexcept {
