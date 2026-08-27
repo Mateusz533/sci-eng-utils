@@ -33,7 +33,7 @@ namespace Physics
 			return angularVelocity * radius;
 		}
 		template<Arithmetic T>
-		constexpr MetersPerSecondSquare<T> TangentialAcceleration(RadiansPerSecondSquare<T> angularAcceleration, RadialMeters<T> radius) noexcept {
+		constexpr MetersPerSecondSquared<T> TangentialAcceleration(RadiansPerSecondSquared<T> angularAcceleration, RadialMeters<T> radius) noexcept {
 			return angularAcceleration * radius;
 		}
 		template<Arithmetic T>
@@ -45,7 +45,7 @@ namespace Physics
 			return mass * velocity * velocity / Scale<T>{2};
 		}
 		template<Arithmetic T>
-		constexpr Joules<T> Energy(KiloGramMetersSquare<T> momentOfInertia, RadiansPerSecond<T> angularVelocity) noexcept {
+		constexpr Joules<T> Energy(KiloGramMetersSquared<T> momentOfInertia, RadiansPerSecond<T> angularVelocity) noexcept {
 			return momentOfInertia * angularVelocity * angularVelocity / Scale<T>{2};
 		}
 		template<Arithmetic T>
@@ -57,7 +57,7 @@ namespace Physics
 			return torque * angularVelocity;
 		}
 		template<Arithmetic T>
-		constexpr KiloGramMetersSquare<T> Inertia(KiloGrams<T> mass, RadialMeters<T> radius, Scale<T> factor) noexcept {
+		constexpr KiloGramMetersSquared<T> Inertia(KiloGrams<T> mass, RadialMeters<T> radius, Scale<T> factor) noexcept {
 			return factor * mass * radius * radius;
 		}
 

@@ -4,11 +4,11 @@
 using namespace Physics;
 using namespace Units;
 
-constexpr SI::KiloGramMetersSquare<f64> CylinderInertia(SI::RadialMeters<f64> radius, SI::KiloGrams<f64> mass) noexcept {
+constexpr SI::KiloGramMetersSquared<f64> CylinderInertia(SI::RadialMeters<f64> radius, SI::KiloGrams<f64> mass) noexcept {
 	return SI::Scale<f64>{0.5} * mass * radius * radius;
 }
 
-constexpr SI::Meters<f64> Distance(SI::MetersPerSecondSquare<f64> acceleration, SI::Seconds<f64> time, SI::MetersPerSecond<f64> startVelocity = 0) noexcept {
+constexpr SI::Meters<f64> Distance(SI::MetersPerSecondSquared<f64> acceleration, SI::Seconds<f64> time, SI::MetersPerSecond<f64> startVelocity = 0) noexcept {
 	return (startVelocity + SI::Scale<f64>{0.5} * acceleration * time) * time;
 }
 
@@ -40,8 +40,8 @@ int main() {
 
 	static_assert(SI::Meters<int>{5} / SI::Seconds<int>{2} == SI::MetersPerSecond<int>{2});
 	static_assert(SI::NewtonSeconds<double>{5} / SI::Seconds<int>{2} == SI::Newtons<double>{2.5});
-	static_assert(SI::MetersSquare<>{4}.Sqrt() == SI::Meters<>{2});
-	static_assert(std::isnan(SI::MetersSquare<>{-1}.Sqrt().ToRaw()));
+	static_assert(SI::SquareMeters<>{4}.Sqrt() == SI::Meters<>{2});
+	static_assert(std::isnan(SI::SquareMeters<>{-1}.Sqrt().ToRaw()));
 	// 5 m / 0 s = ERROR
 	// SI::Meters<int>{5} / SI::Seconds<int>{0}
 

@@ -98,7 +98,7 @@ namespace PhysicsTest
 		static_assert((NStd::UsMeasures<>{2} / NStd::UsLiquidPints<>{1}).ToStandardUnit() == SI::Scale<>{1});
 		static_assert((NStd::UsLiquidPints<>{2} / NStd::UsLiquidQuarts<>{1}).ToStandardUnit() == SI::Scale<>{1});
 		static_assert((NStd::UsLiquidQuarts<>{4} / NStd::UsGallons<>{1}).ToStandardUnit() == SI::Scale<>{1});
-		static_assert((NStd::UsGallons<>{1} / SI::MetersCube<>{0.003'785'411'784}).ToStandardUnit() == SI::Scale<>{1});
+		static_assert((NStd::UsGallons<>{1} / SI::CubicMeters<>{0.003'785'411'784}).ToStandardUnit() == SI::Scale<>{1});
 		static_assert((NStd::PetroleumBarrels<>{1} / NStd::UsGallons<>{42}).ToStandardUnit() == SI::Scale<>{1});
 
 		static_assert((NStd::UsDryPints<>{2} / NStd::UsDryQuarts<>{1}).ToStandardUnit() == SI::Scale<>{1});
@@ -112,7 +112,7 @@ namespace PhysicsTest
 		static_assert((NStd::ImperialGills<>{4} / NStd::ImperialPints<>{1}).ToStandardUnit() == SI::Scale<>{1});
 		static_assert((NStd::ImperialPints<>{2} / NStd::ImperialQuarts<>{1}).ToStandardUnit() == SI::Scale<>{1});
 		static_assert((NStd::ImperialQuarts<>{4} / NStd::ImperialGallons<>{1}).ToStandardUnit() == SI::Scale<>{1});
-		static_assert((NStd::ImperialGallons<>{1} / SI::MetersCube<>{0.004'546'090}).ToStandardUnit() == SI::Scale<>{1});
+		static_assert((NStd::ImperialGallons<>{1} / SI::CubicMeters<>{0.004'546'090}).ToStandardUnit() == SI::Scale<>{1});
 		static_assert((NStd::ImperialPecks<>{1} / NStd::ImperialGallons<>{2}).ToStandardUnit() == SI::Scale<>{1});
 		static_assert((NStd::ImperialBushels<>{1} / NStd::ImperialPecks<>{4}).ToStandardUnit() == SI::Scale<>{1});
 
@@ -148,7 +148,7 @@ namespace PhysicsTest
 		static_assert((NStd::LongTons<>{1} / NStd::LongHundredweights<>{20}).ToStandardUnit() == SI::Scale<>{1});
 		static_assert(NStd::Slug<>{1} == NStd::PoundsForce<>{1} / (NStd::FeetPerSecond<>{1} / SI::Seconds<>{1}));
 
-		static_assert((NStd::StandardGravity<>{1} / SI::MetersPerSecondSquare<>{9.806'650}).ToStandardUnit() == SI::Scale<>{1});
+		static_assert((NStd::StandardGravity<>{1} / SI::MetersPerSecondSquared<>{9.806'650}).ToStandardUnit() == SI::Scale<>{1});
 		static_assert(NStd::OuncesForce<>{1} == NStd::StandardGravity<>{1} * NStd::Ounces<>{1});
 		static_assert(NStd::PoundsForce<>{1} == NStd::StandardGravity<>{1} * NStd::PoundsMass<>{1});
 		static_assert((NStd::Kips<>{1} / NStd::PoundsForce<>{1'000}).ToStandardUnit() == SI::Scale<>{1});
