@@ -70,6 +70,8 @@ namespace PhysicsTest
 		static_assert((NStd::Furlongs<>{1} / NStd::Chains<>{10}).ToStandardUnit() == SI::Scale<>{1});
 		static_assert((NStd::StatuteMiles<>{1} / NStd::Furlongs<>{8}).ToStandardUnit() == SI::Scale<>{1});
 
+		static_assert(NStd::AstronomicalUnits<>{1}.ToStandardUnit() == SI::Meters<>{149'597'870'700});
+
 		/* Surface */;
 
 		static_assert(NStd::SquareInches<>{1} == NStd::Inches<>{1} * NStd::Inches<>{1});
@@ -79,7 +81,10 @@ namespace PhysicsTest
 		static_assert(NStd::SquareChains<>{1} == NStd::Chains<>{1} * NStd::Chains<>{1});
 		static_assert(NStd::SquareStatuteMiles<>{1} == NStd::StatuteMiles<>{1} * NStd::StatuteMiles<>{1});
 		static_assert((NStd::Roods<>{4} / NStd::Acres<>{1}).ToStandardUnit() == SI::Scale<>{1});
-		static_assert((NStd::Acres<>{1} / NStd::SquareYards<>{1}).ToStandardUnit() == SI::Scale<>{4'840});
+		static_assert((NStd::Acres<>{1} / NStd::SquareYards<>{4'840}).ToStandardUnit() == SI::Scale<>{1});
+
+		static_assert((NStd::Ares<>{1} / SI::SquareMeters<>{100}).ToStandardUnit() == SI::Scale<>{1});
+		static_assert((NStd::Hectares<>{1} / NStd::Ares<>{100}).ToStandardUnit() == SI::Scale<>{1});
 
 		/* Volume */;
 
@@ -98,7 +103,7 @@ namespace PhysicsTest
 		static_assert((NStd::UsMeasures<>{2} / NStd::UsLiquidPints<>{1}).ToStandardUnit() == SI::Scale<>{1});
 		static_assert((NStd::UsLiquidPints<>{2} / NStd::UsLiquidQuarts<>{1}).ToStandardUnit() == SI::Scale<>{1});
 		static_assert((NStd::UsLiquidQuarts<>{4} / NStd::UsGallons<>{1}).ToStandardUnit() == SI::Scale<>{1});
-		static_assert((NStd::UsGallons<>{1} / SI::CubicMeters<>{0.003'785'411'784}).ToStandardUnit() == SI::Scale<>{1});
+		static_assert((NStd::UsGallons<>{1} / NStd::Liters<>{3.785'411'784}).ToStandardUnit() == SI::Scale<>{1});
 		static_assert((NStd::PetroleumBarrels<>{1} / NStd::UsGallons<>{42}).ToStandardUnit() == SI::Scale<>{1});
 
 		static_assert((NStd::UsDryPints<>{2} / NStd::UsDryQuarts<>{1}).ToStandardUnit() == SI::Scale<>{1});
@@ -112,9 +117,11 @@ namespace PhysicsTest
 		static_assert((NStd::ImperialGills<>{4} / NStd::ImperialPints<>{1}).ToStandardUnit() == SI::Scale<>{1});
 		static_assert((NStd::ImperialPints<>{2} / NStd::ImperialQuarts<>{1}).ToStandardUnit() == SI::Scale<>{1});
 		static_assert((NStd::ImperialQuarts<>{4} / NStd::ImperialGallons<>{1}).ToStandardUnit() == SI::Scale<>{1});
-		static_assert((NStd::ImperialGallons<>{1} / SI::CubicMeters<>{0.004'546'090}).ToStandardUnit() == SI::Scale<>{1});
+		static_assert((NStd::ImperialGallons<>{1} / NStd::Liters<>{4.546'090}).ToStandardUnit() == SI::Scale<>{1});
 		static_assert((NStd::ImperialPecks<>{1} / NStd::ImperialGallons<>{2}).ToStandardUnit() == SI::Scale<>{1});
 		static_assert((NStd::ImperialBushels<>{1} / NStd::ImperialPecks<>{4}).ToStandardUnit() == SI::Scale<>{1});
+
+		static_assert((NStd::Liters<>{1'000} / SI::CubicMeters<>{1}).ToStandardUnit() == SI::Scale<>{1});
 
 		/* Time */;
 
@@ -147,6 +154,8 @@ namespace PhysicsTest
 		static_assert((NStd::ShortTons<>{1} / NStd::ShortHundredweights<>{20}).ToStandardUnit() == SI::Scale<>{1});
 		static_assert((NStd::LongTons<>{1} / NStd::LongHundredweights<>{20}).ToStandardUnit() == SI::Scale<>{1});
 		static_assert(NStd::Slug<>{1} == NStd::PoundsForce<>{1} / (NStd::FeetPerSecond<>{1} / SI::Seconds<>{1}));
+
+		static_assert((NStd::Tons<>{1} / SI::KiloGrams<>{1'000}).ToStandardUnit() == SI::Scale<>{1});
 
 		static_assert((NStd::StandardGravity<>{1} / SI::MetersPerSecondSquared<>{9.806'650}).ToStandardUnit() == SI::Scale<>{1});
 		static_assert(NStd::OuncesForce<>{1} == NStd::StandardGravity<>{1} * NStd::Ounces<>{1});

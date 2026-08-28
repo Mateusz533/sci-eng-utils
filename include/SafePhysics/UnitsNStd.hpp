@@ -515,7 +515,9 @@ namespace Physics::Units::NStd
 	GENERATE_NSTD_FROM_FRACTION(Chains, SI::Meters, 9'144L * 22, 10'000L)
 	GENERATE_NSTD_FROM_FRACTION(Furlongs, SI::Meters, 9'144L * 22 * 10, 10'000L)
 	GENERATE_NSTD_FROM_FRACTION(StatuteMiles, SI::Meters, 9'144L * 22 * 10 * 8, 10'000L)
-	GENERATE_NSTD_FROM_FRACTION(NauticalMiles, SI::Meters, 1'852, 1)
+	GENERATE_NSTD_FROM_FRACTION(NauticalMiles, SI::Meters, 1'852L, 1L)
+
+	GENERATE_NSTD_FROM_FRACTION(AstronomicalUnits, SI::Meters, 149'597'870'700L, 1L)
 
 	/* Surface */;
 
@@ -527,6 +529,9 @@ namespace Physics::Units::NStd
 	GENERATE_NSTD_FROM_FRACTION(SquareStatuteMiles, SI::SquareMeters, 9'144L * 22 * 10 * 8 * 9'144 * 22 * 10 * 8, 10'000L * 10'000)
 	GENERATE_NSTD_FROM_FRACTION(Roods, SI::SquareMeters, 9'144L * 9'144 * 4840, 10'000L * 10'000 * 4)
 	GENERATE_NSTD_FROM_FRACTION(Acres, SI::SquareMeters, 9'144L * 9'144 * 4840, 10'000L * 10'000)
+
+	GENERATE_NSTD_FROM_FRACTION(Ares, SI::SquareMeters, 100L, 1L)
+	GENERATE_NSTD_FROM_FRACTION(Hectares, SI::SquareMeters, 10'000L, 1L)
 
 	/* Volume */;
 
@@ -563,6 +568,8 @@ namespace Physics::Units::NStd
 	GENERATE_NSTD_FROM_FRACTION(ImperialPecks, SI::CubicMeters, 4'546'090L * 2, 1'000'000'000L)
 	GENERATE_NSTD_FROM_FRACTION(ImperialBushels, SI::CubicMeters, 4'546'090L * 8, 1'000'000'000L)
 
+	GENERATE_NSTD_FROM_FRACTION(Liters, SI::CubicMeters, 1L, 1'000L)
+
 	/* Time */;
 
 	GENERATE_NSTD_FROM_FRACTION(Minutes, SI::Seconds, 60L, 1L)
@@ -594,6 +601,8 @@ namespace Physics::Units::NStd
 	GENERATE_NSTD_FROM_FRACTION(ShortTons, SI::KiloGrams, 453'592'370L * 2'000, 1'000'000'000L)
 	GENERATE_NSTD_FROM_FRACTION(LongTons, SI::KiloGrams, 453'592'370L * 2'240, 1'000'000'000L)
 	GENERATE_NSTD_FROM_FRACTION(Slug, SI::KiloGrams, 453'592'370L * 9'806'650, 3'048L * 100'000 * 1'000'000)
+
+	GENERATE_NSTD_FROM_FRACTION(Tons, SI::KiloGrams, 1'000L, 1L)
 
 	GENERATE_NSTD_FROM_FRACTION(StandardGravity, SI::MetersPerSecondSquared, 9'806'650L, 1'000'000L)
 	GENERATE_NSTD_FROM_FRACTION(OuncesForce, SI::Newtons, 453'592'370L * 9'806'650, 1'000'000'000L * 1'000'000 * 16)
