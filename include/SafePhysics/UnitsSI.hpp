@@ -1,8 +1,11 @@
 #pragma once
 //
 #include <cmath>
-#include <iostream>
+#include <limits>
+#include <ostream>
 #include <string_view>
+#include <type_traits>
+#include <utility>
 //
 #include "SafePhysics.hpp"
 #include "Utils/CompileTime.hpp"
@@ -32,7 +35,7 @@ namespace Physics::Units::SI
 		constexpr GenerativeUnit() = default;
 		constexpr GenerativeUnit(const Self& value) = default;
 		constexpr GenerativeUnit(Self&& value) = default;
-		constexpr GenerativeUnit(Type data) noexcept : mData(data) {}
+		constexpr GenerativeUnit(Type data) noexcept : mData{data} {}
 		template<Arithmetic OtherType = Type, i8 OTHER_PREFIX = PREFIX>
 		constexpr GenerativeUnit(const Sibling<OtherType, OTHER_PREFIX>& value) noexcept : mData(ScaleUnit(value)){};
 
@@ -106,28 +109,30 @@ namespace Physics::Units::SI
 		/* Arithmetic operators */;
 
 		constexpr auto operator-() const noexcept {
-			using NewType = decltype(-Type{});
+			using NewType = decltype(-std::declval<Type>());
 			return Sibling<NewType>{-mData};
 		}
 		template<Arithmetic OtherType = Type>
 		constexpr auto operator+(const Sibling<OtherType>& value) const noexcept {
-			using NewType = decltype(Type{} + OtherType{});
+			using NewType = decltype(std::declval<Type>() + std::declval<OtherType>());
 			return Sibling<NewType>{mData + value.ToRaw()};
 		}
 		template<Arithmetic OtherType = Type>
 		constexpr auto operator-(const Sibling<OtherType>& value) const noexcept {
-			using NewType = decltype(Type{} - OtherType{});
+			using NewType = decltype(std::declval<Type>() - std::declval<OtherType>());
 			return Sibling<NewType>{mData - value.ToRaw()};
 		}
 		template<Arithmetic OtherType, i8 N_M, i8 N_S, i8 N_KG, i8 N_A, i8 N_K, i8 N_MOL, i8 N_CD, i8 N_RAD, i8 N_SR, i8 OTHER_PREFIX>
 		constexpr auto operator*(const GenerativeUnit<OtherType, N_M, N_S, N_KG, N_A, N_K, N_MOL, N_CD, N_RAD, N_SR, OTHER_PREFIX>& value) const noexcept {
-			using NewType = GenerativeUnit<decltype(Type{} * OtherType{}), M + N_M, S + N_S, KG + N_KG, A + N_A, K + N_K,
+			using RawType = decltype(std::declval<Type>() * std::declval<OtherType>());
+			using NewType = GenerativeUnit<RawType, M + N_M, S + N_S, KG + N_KG, A + N_A, K + N_K,
 										   MOL + N_MOL, CD + N_CD, RAD + N_RAD, SR + N_SR, PREFIX + OTHER_PREFIX>;
 			return NewType{mData * value.ToRaw()};
 		}
 		template<Arithmetic OtherType, i8 N_M, i8 N_S, i8 N_KG, i8 N_A, i8 N_K, i8 N_MOL, i8 N_CD, i8 N_RAD, i8 N_SR, i8 OTHER_PREFIX>
 		constexpr auto operator/(const GenerativeUnit<OtherType, N_M, N_S, N_KG, N_A, N_K, N_MOL, N_CD, N_RAD, N_SR, OTHER_PREFIX>& value) const noexcept {
-			using NewType = GenerativeUnit<decltype(Type{} / OtherType{}), M - N_M, S - N_S, KG - N_KG, A - N_A, K - N_K,
+			using RawType = decltype(std::declval<Type>() / std::declval<OtherType>());
+			using NewType = GenerativeUnit<RawType, M - N_M, S - N_S, KG - N_KG, A - N_A, K - N_K,
 										   MOL - N_MOL, CD - N_CD, RAD - N_RAD, SR - N_SR, PREFIX - OTHER_PREFIX>;
 			return NewType{mData / value.ToRaw()};
 		}
@@ -195,7 +200,7 @@ namespace Physics::Units::SI
 	private:
 		template<Arithmetic OtherType = Type, i8 OTHER_PREFIX = PREFIX>
 		static constexpr auto ScaleUnit(const Sibling<OtherType, OTHER_PREFIX>& value) noexcept {
-			using NewType = decltype(Type{} * OtherType{});
+			using NewType = decltype(std::declval<Type>() * std::declval<OtherType>());
 
 			if constexpr(OTHER_PREFIX - PREFIX > 0) {
 				constexpr NewType SCALE_FACTOR = Utils::CompileTime::Exp10(OTHER_PREFIX - PREFIX);

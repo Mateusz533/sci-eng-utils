@@ -1,8 +1,10 @@
 #pragma once
 //
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <numbers>
+#include <ostream>
 #include <ratio>
 #include <type_traits>
 //
@@ -54,6 +56,9 @@ namespace Physics::Units::NStd
 		template<typename T>
 		concept NormedFraction = std::is_same_v<T, Fraction<T::NUM, T::DEN, T::EXP>>;
 
+		template<typename Ratio, i64 EXP = 0>
+		using FractionFromRatio = Fraction<Ratio::num, Ratio::den, EXP>::Norm;
+
 		template<i64 NUMERATOR, i64 DENOMINATOR, i64 EXPONENT>
 			requires(DENOMINATOR > 0)
 		class Fraction
@@ -77,27 +82,27 @@ namespace Physics::Units::NStd
 			}
 			template<Arithmetic T = f64>
 			static consteval T ToDecimal() noexcept {
-				return static_cast<T>(NUM) / static_cast<T>(DEN) *
-					   static_cast<T>(CeiledExp2(EXP)) / static_cast<T>(CeiledExp2(-EXP));	// TODO: Consider accuracy
+				return static_cast<T>(NUM) * static_cast<T>(CeiledExp2(EXP)) /
+					   (static_cast<T>(DEN) * static_cast<T>(CeiledExp2(-EXP)));
 			}
 
 			using Norm = Fraction<NUM, DEN, EXP>;
 			using Opposite = Fraction<-NUM, DEN, EXP>;
 
 			template<NormedFraction Other>
-			using Sum = Fraction<NUM * Other::DEN * CeiledExp2(EXP - Other::EXP) + DEN * Other::NUM * CeiledExp2(Other::EXP - EXP),
-								 DEN * Other::DEN, std::min(EXP, Other::EXP)>::Norm;
+			using Sum = FractionFromRatio<std::ratio_add<std::ratio<NUM * CeiledExp2(EXP - Other::EXP), DEN>,
+														 std::ratio<Other::NUM * CeiledExp2(Other::EXP - EXP), Other::DEN>>,
+										  std::min(EXP, Other::EXP)>;
 			template<NormedFraction Other>
-			using Diff = Fraction<NUM * Other::DEN * CeiledExp2(EXP - Other::EXP) - DEN * Other::NUM * CeiledExp2(Other::EXP - EXP),
-								  DEN * Other::DEN, std::min(EXP, Other::EXP)>::Norm;
+			using Diff = FractionFromRatio<std::ratio_subtract<std::ratio<NUM * CeiledExp2(EXP - Other::EXP), DEN>,
+															   std::ratio<Other::NUM * CeiledExp2(Other::EXP - EXP), Other::DEN>>,
+										   std::min(EXP, Other::EXP)>;
 			template<NormedFraction Other>
-			using Product = Fraction<std::ratio_multiply<std::ratio<NUM, DEN>, std::ratio<Other::NUM, Other::DEN>>::num,
-									 std::ratio_multiply<std::ratio<NUM, DEN>, std::ratio<Other::NUM, Other::DEN>>::den,
-									 EXP + Other::EXP>::Norm;
+			using Product = FractionFromRatio<std::ratio_multiply<std::ratio<NUM, DEN>, std::ratio<Other::NUM, Other::DEN>>,
+											  EXP + Other::EXP>::Norm;
 			template<NormedFraction Other>
-			using Quotient = Fraction<std::ratio_divide<std::ratio<NUM, DEN>, std::ratio<Other::NUM, Other::DEN>>::num,
-									  std::ratio_divide<std::ratio<NUM, DEN>, std::ratio<Other::NUM, Other::DEN>>::den,
-									  EXP - Other::EXP>::Norm;
+			using Quotient = FractionFromRatio<std::ratio_divide<std::ratio<NUM, DEN>, std::ratio<Other::NUM, Other::DEN>>,
+											   EXP - Other::EXP>::Norm;
 		};
 
 		class SymbolicBase
