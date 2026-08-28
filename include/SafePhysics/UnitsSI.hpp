@@ -7,8 +7,13 @@
 #include <type_traits>
 #include <utility>
 //
-#include "SafePhysics.hpp"
 #include "Utils/CompileTime.hpp"
+#include "Utils/Types.hpp"
+
+namespace Physics
+{
+	using namespace Utils::Types;
+}
 
 namespace Physics::Units::SI
 {

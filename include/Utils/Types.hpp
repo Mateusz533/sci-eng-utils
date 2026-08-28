@@ -4,7 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace Physics
+namespace Utils::Types
 {
 	using usize = std::size_t;
 	using isize = std::ptrdiff_t;
