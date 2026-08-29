@@ -324,6 +324,7 @@ namespace Physics::Units::SI
 	GENERATE_SI_UNIT(Siemens, -2, 3, -1, 2, 0, 0, 0, 0, 0, 0, 1, );
 	GENERATE_SI_UNIT(Farads, -2, 4, -1, 2, 0, 0, 0, 0, 0, 0, 1, );
 	GENERATE_SI_UNIT(FaradsPerMeter, -3, 4, -1, 2, 0, 0, 0, 0, 0, 0, 1, );
+	GENERATE_SI_UNIT(AmperesPerSecond, 0, -1, 0, 1, 0, 0, 0, 0, 0, 0, 1, );
 
 	/* Magnetism */;
 
@@ -340,11 +341,19 @@ namespace Physics::Units::SI
 	GENERATE_SI_UNIT(Meters, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, Cubic);
 	GENERATE_SI_UNIT(GramsPerSquareMeter, -2, 0, 1, 0, 0, 0, 0, 0, 0, -3, 1, );
 	GENERATE_SI_UNIT(GramsPerCubicMeter, -3, 0, 1, 0, 0, 0, 0, 0, 0, -3, 1, );
+	GENERATE_SI_UNIT(MetersPerKilogram, 3, 0, -1, 0, 0, 0, 0, 0, 0, 0, 3, Cubic);
 	GENERATE_SI_UNIT(Pascals, -1, -2, 1, 0, 0, 0, 0, 0, 0, 0, 1, );
+	GENERATE_SI_UNIT(PascalSeconds, -1, -1, 1, 0, 0, 0, 0, 0, 0, 0, 1, );
+	GENERATE_SI_UNIT(NewtonsPerMeter, 0, -2, 1, 0, 0, 0, 0, 0, 0, 0, 1, );
+	GENERATE_SI_UNIT(JoulesPerCubicMeter, -1, -2, 1, 0, 0, 0, 0, 0, 0, 0, 1, );
+	GENERATE_SI_UNIT(CoulombsPerSquareMeter, -2, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, );
 	GENERATE_SI_UNIT(CoulombsPerCubicMeter, -3, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, );
 	GENERATE_SI_UNIT(AmperesPerSquareMeter, -2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, );
 	GENERATE_SI_UNIT(GramsPerMole, 0, 0, 1, 0, 0, -1, 0, 0, 0, -3, 1, );
 	GENERATE_SI_UNIT(PartsPerMole, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1, );
+	GENERATE_SI_UNIT(MolesPerCubicMeter, -3, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, );
+	GENERATE_SI_UNIT(Katals, 0, -1, 0, 0, 0, 1, 0, 0, 0, 0, 1, );
+	GENERATE_SI_UNIT(KatalsPerCubicMeter, -3, -1, 0, 0, 0, 1, 0, 0, 0, 0, 1, );
 
 	/* Vibrations and waves */;
 
@@ -356,17 +365,29 @@ namespace Physics::Units::SI
 	GENERATE_SI_UNIT(WattsPerSquareMeter, 0, -3, 1, 0, 0, 0, 0, 0, 0, 0, 1, );
 	GENERATE_SI_UNIT(JoulesPerKelvin, 2, -2, 1, 0, -1, 0, 0, 0, 0, 0, 1, );
 	GENERATE_SI_UNIT(JoulesPerKilogramKelvin, 2, -2, 0, 0, -1, 0, 0, 0, 0, 0, 1, );
+	GENERATE_SI_UNIT(JoulesPerKilogram, 2, -2, 0, 0, 0, 0, 0, 0, 0, 0, 1, );
 	GENERATE_SI_UNIT(WattsPerMeterKelvin, 1, -3, 1, 0, -1, 0, 0, 0, 0, 0, 1, );
 
 	/* Optics */;
 
 	GENERATE_SI_UNIT(Lumens, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, );
 	GENERATE_SI_UNIT(Luxes, -2, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, );
+	GENERATE_SI_UNIT(CandelasPerSquareMeter, -2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, );
+	GENERATE_SI_UNIT(WattsPerSteradian, 2, -3, 1, 0, 0, 0, 0, 0, -1, 0, 1, );
+	GENERATE_SI_UNIT(WattsPerSquareMeterSteradian, 0, -3, 1, 0, 0, 0, 0, 0, -1, 0, 1, );
 
 	/* Quantum mechanics */;
 
 	GENERATE_SI_UNIT(JouleSeconds, 2, -1, 1, 0, 0, 0, 0, 0, 0, 0, 1, );
 	GENERATE_SI_UNIT(JouleSecondsPerRadian, 2, -1, 1, 0, 0, 0, 0, -1, 0, 0, 1, );
+
+	/* Nuclear physics */;
+
+	GENERATE_SI_UNIT(Becquerels, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 1, );
+	GENERATE_SI_UNIT(Grays, 2, -2, 0, 0, 0, 0, 0, 0, 0, 0, 1, );
+	GENERATE_SI_UNIT(Sieverts, 2, -2, 0, 0, 0, 0, 0, 0, 0, 0, 1, );
+	GENERATE_SI_UNIT(GraysPerSecond, 2, -3, 0, 0, 0, 0, 0, 0, 0, 0, 1, );
+	GENERATE_SI_UNIT(CoulombsPerKilogram, 0, 1, -1, 1, 0, 0, 0, 0, 0, 0, 1, );
 
 #undef GENERATE_SI_UNIT
 }
