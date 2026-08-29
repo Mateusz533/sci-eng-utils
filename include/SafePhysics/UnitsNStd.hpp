@@ -414,13 +414,7 @@ namespace Physics::Units::NStd
 			constexpr AccuracyType SCALE = GetScale<AccuracyType>();
 			constexpr AccuracyType OFFSET = GetOffset<AccuracyType>();
 
-			if constexpr(HasIdentScale()) {
-				return mData + OFFSET;
-			} else if constexpr(HasNoOffset()) {
-				return mData * SCALE;
-			} else {
-				return mData * SCALE + OFFSET;
-			}
+			return mData * SCALE + OFFSET;
 		}
 
 		template<Arithmetic AccuracyType = Type>
@@ -442,34 +436,23 @@ namespace Physics::Units::NStd
 			constexpr AccuracyType SCALE = GetScale<AccuracyType>();
 			constexpr AccuracyType OFFSET = GetOffset<AccuracyType>();
 
-			if constexpr(HasIdentScale()) {
-				return value.ToRaw() - OFFSET;
-			} else if constexpr(HasNoOffset()) {
-				return value.ToRaw() / SCALE;
-			} else {
-				return (value.ToRaw() - OFFSET) / SCALE;
-			}
+			return (value.ToRaw() - OFFSET) / SCALE;
 		}
-		template<Detail::StandardUnit OtherStandardUnit, Detail::NormedFraction OtherScale, Detail::NormedFraction OtherOffset>
-			requires(HasSameStdUnitBase<ExtendedSibling<OtherStandardUnit, OtherScale, OtherOffset>>())
-		static constexpr Type FromOtherNStd(const ExtendedSibling<OtherStandardUnit, OtherScale, OtherOffset>& value) noexcept {
-			if constexpr(std::is_same_v<Scale, OtherScale> && std::is_same_v<Offset, OtherOffset>) {
-				return value;
-			} else {
-				using OtherType = ExtendedSibling<OtherStandardUnit, OtherScale, OtherOffset>;
-				using AccuracyType = decltype(std::declval<Type>() * std::declval<OtherStandardUnit>().ToRaw());
+		template<Detail::NonStandardUnit OtherUnit>
+			requires(HasSameStdUnitBase<OtherUnit>() && !std::is_same_v<OtherUnit, Sibling<decltype(std::declval<OtherUnit>().ToRaw())>>)
+		static constexpr Type FromOtherNStd(const OtherUnit& value) noexcept {
+			using AccuracyType = decltype(std::declval<Type>() * std::declval<OtherUnit>().ToRaw());
 
-				constexpr AccuracyType OWN_SCALE = GetScale<AccuracyType>();
-				constexpr AccuracyType OWN_OFFSET = GetOffset<AccuracyType>();
+			constexpr AccuracyType OWN_SCALE = GetScale<AccuracyType>();
+			constexpr AccuracyType OWN_OFFSET = GetOffset<AccuracyType>();
 
-				constexpr AccuracyType OTHER_SCALE = OtherType::template GetScale<AccuracyType>();
-				constexpr AccuracyType OTHER_OFFSET = OtherType::template GetOffset<AccuracyType>();
+			constexpr AccuracyType OTHER_SCALE = OtherUnit::template GetScale<AccuracyType>();
+			constexpr AccuracyType OTHER_OFFSET = OtherUnit::template GetOffset<AccuracyType>();
 
-				constexpr AccuracyType COMP_SCALE = OTHER_SCALE / OWN_SCALE;
-				constexpr AccuracyType COMP_OFFSET = (OTHER_OFFSET - OWN_OFFSET) / OWN_SCALE;
+			constexpr AccuracyType COMP_SCALE = OTHER_SCALE / OWN_SCALE;
+			constexpr AccuracyType COMP_OFFSET = (OTHER_OFFSET - OWN_OFFSET) / OWN_SCALE;
 
-				return value.ToRaw() * COMP_SCALE + COMP_OFFSET;
-			}
+			return value.ToRaw() * COMP_SCALE + COMP_OFFSET;
 		}
 
 	private:
