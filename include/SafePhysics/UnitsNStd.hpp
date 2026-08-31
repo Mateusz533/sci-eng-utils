@@ -438,19 +438,18 @@ namespace Physics::Units::NStd
 
 			return (value.ToRaw() - OFFSET) / SCALE;
 		}
-		template<Detail::NonStandardUnit OtherUnit>
-			requires(HasSameStdUnitBase<OtherUnit>() && !std::is_same_v<OtherUnit, Sibling<decltype(std::declval<OtherUnit>().ToRaw())>>)
-		static constexpr Type FromOtherNStd(const OtherUnit& value) noexcept {
-			using AccuracyType = decltype(std::declval<Type>() * std::declval<OtherUnit>().ToRaw());
+		template<Detail::StandardUnit OtherStandardUnit, Detail::NormedFraction OtherScale, Detail::NormedFraction OtherOffset>
+			requires(HasSameStdUnitBase<ExtendedSibling<OtherStandardUnit>>() && !(std::is_same_v<Scale, OtherScale> && std::is_same_v<Offset, OtherOffset>))
+		static constexpr Type FromOtherNStd(const ExtendedSibling<OtherStandardUnit, OtherScale, OtherOffset>& value) noexcept {
+			using CompScale = OtherScale::template Quotient<Scale>;
+			using CompOffset = OtherOffset::template Diff<Offset>::template Quotient<Scale>;
+			using AccuracyType = decltype(std::declval<Type>() * std::declval<OtherStandardUnit>().ToRaw());
 
-			constexpr AccuracyType OWN_SCALE = GetScale<AccuracyType>();
-			constexpr AccuracyType OWN_OFFSET = GetOffset<AccuracyType>();
+			constexpr AccuracyType COMP_SCALE = CompScale::template ToDecimal<AccuracyType>();
+			constexpr AccuracyType COMP_OFFSET = CompOffset::template ToDecimal<AccuracyType>();
 
-			constexpr AccuracyType OTHER_SCALE = OtherUnit::template GetScale<AccuracyType>();
-			constexpr AccuracyType OTHER_OFFSET = OtherUnit::template GetOffset<AccuracyType>();
-
-			constexpr AccuracyType COMP_SCALE = OTHER_SCALE / OWN_SCALE;
-			constexpr AccuracyType COMP_OFFSET = (OTHER_OFFSET - OWN_OFFSET) / OWN_SCALE;
+			static_assert(std::isnormal(COMP_SCALE));
+			static_assert(std::isnormal(COMP_OFFSET) || COMP_OFFSET == AccuracyType{0});
 
 			return value.ToRaw() * COMP_SCALE + COMP_OFFSET;
 		}
