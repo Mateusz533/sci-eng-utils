@@ -162,6 +162,18 @@ namespace Physics::Units::SI
 			return mData;
 		}
 
+		constexpr GenerativeUnit<Type, M, S, KG, A, K, MOL, CD, RAD, SR, 0> ToCoherentUnit() const noexcept {
+			if constexpr(PREFIX > 0) {
+				constexpr Type SCALE_FACTOR = Utils::CompileTime::Exp10(+PREFIX);
+				return mData.ToRaw() * SCALE_FACTOR;
+			} else if constexpr(PREFIX < 0) {
+				constexpr Type SCALE_FACTOR = Utils::CompileTime::Exp10(-PREFIX);
+				return mData.ToRaw() / SCALE_FACTOR;
+			} else {
+				return mData.ToRaw();
+			}
+		}
+
 		template<i8 EXPONENT>
 		constexpr auto Power() const noexcept {
 			if constexpr(EXPONENT == 0) {
