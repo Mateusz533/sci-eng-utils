@@ -194,6 +194,10 @@ namespace Physics::Units::SI
 			return PREFIX == 0;
 		}
 
+		static consteval i8 GetPrefix() noexcept {
+			return PREFIX;
+		}
+
 		static consteval std::string_view GetTypeView() noexcept {
 			return TYPE_TEXT.View();
 		}

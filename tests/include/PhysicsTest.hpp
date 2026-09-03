@@ -56,20 +56,19 @@ namespace PhysicsTest
 
 		/* Distance */;
 
-		static_assert(NStd::Yards<>{1} == SI::Meters<>{0.9144});
-		static_assert(NStd::NauticalMiles<>{1} == SI::Meters<>{1'852});
-
-		static_assert(NStd::Inches<>{1} == NStd::Mils<>{1000});
-		static_assert(NStd::Hands<>{1} == NStd::Inches<>{4});
+		static_assert(NStd::Mils<>{1000} == NStd::Inches<>{1});
+		static_assert(NStd::Inches<>{12} == NStd::Feet<>{1});
 		static_assert(NStd::Links<>{100} == NStd::Chains<>{1});
-		static_assert(NStd::Feet<>{1} == NStd::Inches<>{12});
-		static_assert(NStd::Yards<>{1} == NStd::Feet<>{3});
+		static_assert(NStd::Hands<>{1} == NStd::Inches<>{4});
+		static_assert(NStd::Feet<>{3} == NStd::Yards<>{1});
+		static_assert(NStd::Yards<>{1} == SI::Meters<>{0.9144});
 		static_assert(NStd::Fathoms<>{1} == NStd::Yards<>{2});
 		static_assert(NStd::Rods<>{4} == NStd::Chains<>{1});
 		static_assert(NStd::Chains<>{1} == NStd::Fathoms<>{11});
 		static_assert(NStd::Furlongs<>{1} == NStd::Chains<>{10});
 		static_assert(NStd::StatuteMiles<>{1} == NStd::Furlongs<>{8});
 
+		static_assert(NStd::NauticalMiles<>{1} == SI::Meters<>{1'852});
 		static_assert(NStd::AstronomicalUnits<>{1} == SI::Meters<>{149'597'870'700});
 
 		/* Surface */;
@@ -121,7 +120,7 @@ namespace PhysicsTest
 		static_assert(NStd::ImperialPecks<>{1} == NStd::ImperialGallons<>{2});
 		static_assert(NStd::ImperialBushels<>{1} == NStd::ImperialPecks<>{4});
 
-		static_assert(NStd::Liters<>{1'000} == SI::CubicMeters<>{1});
+		static_assert(NStd::Liters<>{1} == SI::CubicMeters<>{0.001});
 
 		/* Time */;
 
@@ -132,10 +131,10 @@ namespace PhysicsTest
 
 		/* Velocity */;
 
-		static_assert(NStd::NauticalMiles<>{1} / NStd::Hours<>{1} == NStd::Knots<>{1});
-		static_assert(NStd::StatuteMiles<>{1} / NStd::Hours<>{1} == NStd::MilesPerHour<>{1});
-		static_assert(NStd::Feet<>{1} / NStd::Minutes<>{1} == NStd::FeetPerMinute<>{1});
-		static_assert(NStd::Feet<>{1} / SI::Seconds<>{1} == NStd::FeetPerSecond<>{1});
+		static_assert(NStd::Knots<>{1} == NStd::NauticalMiles<>{1} / NStd::Hours<>{1});
+		static_assert(NStd::MilesPerHour<>{1} == NStd::StatuteMiles<>{1} / NStd::Hours<>{1});
+		static_assert(NStd::FeetPerMinute<>{1} == NStd::Feet<>{1} / NStd::Minutes<>{1});
+		static_assert(NStd::FeetPerSecond<>{1} == NStd::Feet<>{1} / SI::Seconds<>{1});
 
 		/* Mass & Force */;
 
@@ -180,9 +179,9 @@ namespace PhysicsTest
 
 		/* Pressure */;
 
-		static_assert(NStd::InchesOfMercury<>{1'000} == SI::Pascals<>{3'386'389});
+		static_assert(NStd::InchesOfMercury<>{1} == SI::Pascals<>{3'386.389});
+		static_assert(NStd::MilliBars<>{1} == NStd::Bars<>{0.001});
 		static_assert(NStd::Bars<>{1} == SI::Pascals<>{100'000});
-		static_assert(NStd::MilliBars<>{1'000} == NStd::Bars<>{1});
 		static_assert(NStd::Atmospheres<>{1} == SI::Pascals<>{101'325});
 		static_assert(NStd::PoundsPerSquareFoot<>{1} == NStd::PoundsForce<>{1} / NStd::SquareFeet<>{1});
 		static_assert(NStd::PoundsPerSquareInch<>{1} == NStd::PoundsForce<>{1} / NStd::SquareInches<>{1});

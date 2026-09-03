@@ -352,7 +352,7 @@ namespace Physics::Units::NStd
 				return NewUnit{mData * value.ToRaw()};
 			}
 		}
-		template<Detail::StandardUnit OtherStandardUnit = StandardUnit>
+		template<Detail::StandardUnit OtherStandardUnit = StandardUnit>	 // TODO: Consider also units with prefixes (incoherent)
 			requires(HasNoOffset())
 		constexpr auto operator*(const OtherStandardUnit& value) const noexcept {
 			using NewUnit = ExtendedSibling<decltype(std::declval<StandardUnit>() * std::declval<OtherStandardUnit>())>;
