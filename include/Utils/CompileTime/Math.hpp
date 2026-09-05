@@ -1,6 +1,7 @@
 #pragma once
 //
 #include <algorithm>
+#include <cmath>
 #include <concepts>
 #include <ratio>
 #include <type_traits>
@@ -132,5 +133,28 @@ namespace Utils::CompileTime
 		template<NormedFraction Other>
 		using Quotient = FractionFromRatio<std::ratio_divide<std::ratio<NUM, DEN>, std::ratio<Other::NUM, Other::DEN>>,
 										   EXP - Other::EXP>::Norm;
+	};
+
+	template<f64 VALUE>
+		requires((VALUE == 0) || std::isnormal(VALUE))
+	class FloatDecomposer
+	{
+	public:
+		static consteval i64 Exponent() noexcept {
+			return FlooredLog2(std::abs(VALUE)) - 52L;
+		}
+		static consteval i64 Numerator() noexcept {
+			f64 value = VALUE;
+			i64 exp = -Exponent();
+			while(exp < 0) {
+				value /= 2.0;
+				++exp;
+			}
+			while(exp > 0) {
+				value *= 2.0;
+				--exp;
+			}
+			return static_cast<i64>(value);
+		}
 	};
 }
