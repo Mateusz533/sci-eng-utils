@@ -1,13 +1,13 @@
 #pragma once
 //
-#include <cmath>
 #include <limits>
 #include <ostream>
 #include <string_view>
 #include <type_traits>
 #include <utility>
 //
-#include "Utils/CompileTime.hpp"
+#include "Utils/CompileTime/Math.hpp"
+#include "Utils/CompileTime/String.hpp"
 #include "Utils/Types.hpp"
 
 namespace Physics
