@@ -370,6 +370,8 @@ namespace Physics::Units::SI
 	GENERATE_SI_UNIT(MolesPerCubicMeter, -3, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, );
 	GENERATE_SI_UNIT(Katals, 0, -1, 0, 0, 0, 1, 0, 0, 0, 0, 1, );
 	GENERATE_SI_UNIT(KatalsPerCubicMeter, -3, -1, 0, 0, 0, 1, 0, 0, 0, 0, 1, );
+	GENERATE_SI_UNIT(CoulombsPerMole, 0, 1, 0, 1, 0, -1, 0, 0, 0, 0, 1, );
+	GENERATE_SI_UNIT(MetersPerKilogramSecondSquared, 3, -2, -1, 0, 0, 0, 0, 0, 0, 0, 3, Cubic);
 
 	/* Vibrations and waves */;
 
@@ -382,6 +384,8 @@ namespace Physics::Units::SI
 	GENERATE_SI_UNIT(JoulesPerKelvin, 2, -2, 1, 0, -1, 0, 0, 0, 0, 0, 1, );
 	GENERATE_SI_UNIT(JoulesPerKilogramKelvin, 2, -2, 0, 0, -1, 0, 0, 0, 0, 0, 1, );
 	GENERATE_SI_UNIT(JoulesPerKilogram, 2, -2, 0, 0, 0, 0, 0, 0, 0, 0, 1, );
+	GENERATE_SI_UNIT(JoulesPerMoleKelvin, 2, -2, 1, 0, -1, -1, 0, 0, 0, 0, 1, );
+	GENERATE_SI_UNIT(JoulesPerMole, 2, -2, 1, 0, 0, -1, 0, 0, 0, 0, 1, );
 	GENERATE_SI_UNIT(WattsPerMeterKelvin, 1, -3, 1, 0, -1, 0, 0, 0, 0, 0, 1, );
 
 	/* Optics */;
@@ -391,11 +395,13 @@ namespace Physics::Units::SI
 	GENERATE_SI_UNIT(CandelasPerSquareMeter, -2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, );
 	GENERATE_SI_UNIT(WattsPerSteradian, 2, -3, 1, 0, 0, 0, 0, 0, -1, 0, 1, );
 	GENERATE_SI_UNIT(WattsPerSquareMeterSteradian, 0, -3, 1, 0, 0, 0, 0, 0, -1, 0, 1, );
+	GENERATE_SI_UNIT(LumensPerWatt, -2, 3, -1, 0, 0, 0, 1, 0, 1, 0, 1, );
 
 	/* Quantum mechanics */;
 
 	GENERATE_SI_UNIT(JouleSeconds, 2, -1, 1, 0, 0, 0, 0, 0, 0, 0, 1, );
 	GENERATE_SI_UNIT(JouleSecondsPerRadian, 2, -1, 1, 0, 0, 0, 0, -1, 0, 0, 1, );
+	GENERATE_SI_UNIT(HertzesPerVolt, -2, 2, -1, 1, 0, 0, 0, 0, 0, 0, 1, );
 
 	/* Nuclear physics */;
 

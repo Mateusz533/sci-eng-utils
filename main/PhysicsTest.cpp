@@ -6,14 +6,6 @@
 using namespace Physics;
 using namespace Units;
 
-constexpr SI::KiloGramMetersSquared<f64> CylinderInertia(SI::RadialMeters<f64> radius, SI::KiloGrams<f64> mass) noexcept {
-	return SI::Scale<f64>{0.5} * mass * radius * radius;
-}
-
-constexpr SI::Meters<f64> Distance(SI::MetersPerSecondSquared<f64> acceleration, SI::Seconds<f64> time, SI::MetersPerSecond<f64> startVelocity = 0) noexcept {
-	return (startVelocity + SI::Scale<f64>{0.5} * acceleration * time) * time;
-}
-
 int main() {
 	/*----------------------------------------------------------------------*/
 	/*------------------------ Standard Units tests ------------------------*/
@@ -54,7 +46,7 @@ int main() {
 
 	// Patterns
 	constexpr SI::MetersPerSecond<f128> V_99_PERCENT_SPEED_OF_LIGHT{SI::Scale<>{0.99} * Constants::SPEED_OF_LIGHT};
-	std::cout << "Gamma for 99 \% speed of light: " << Calculate::TimeDilation(V_99_PERCENT_SPEED_OF_LIGHT) << std::endl;
+	std::cout << "Gamma for 99 \% speed of light: " << Calculate::LorentzFactor(V_99_PERCENT_SPEED_OF_LIGHT) << std::endl;
 
 	/*----------------------------------------------------------------------*/
 	/*-------------------------- NStd Units tests --------------------------*/
