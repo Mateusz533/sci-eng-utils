@@ -53,7 +53,7 @@ int main() {
 	/*----------------------------------------------------------------------*/
 	std::cout << "\n--- NStd units tests ---\n\n";
 
-	NStd::Inches<double> resultInch = ING_M;
+	NStd::Inches<double> resultInch = NStd::Inches<double>{ING_M};
 	std::cout << "1 meter in inches: " << resultInch << std::endl;
 	std::cout << "1 meter after double conversion: " << resultInch.ToStandardUnit<>() << std::endl;
 

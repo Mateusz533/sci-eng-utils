@@ -41,8 +41,10 @@ namespace Physics::Units::SI
 		constexpr GenerativeUnit(const Self& value) = default;
 		constexpr GenerativeUnit(Self&& value) = default;
 		constexpr GenerativeUnit(Type data) noexcept : mData{data} {}
+		template<Arithmetic OtherType = Type>
+		constexpr GenerativeUnit(const Sibling<OtherType>& value) noexcept : mData{value.ToRaw()} {}
 		template<Arithmetic OtherType = Type, i8 OTHER_PREFIX = PREFIX>
-		constexpr GenerativeUnit(const Sibling<OtherType, OTHER_PREFIX>& value) noexcept : mData{ScaleUnit(value)} {};
+		explicit constexpr GenerativeUnit(const Sibling<OtherType, OTHER_PREFIX>& value) noexcept : mData{ScaleUnit(value)} {};
 
 		/* Assignment operators */;
 

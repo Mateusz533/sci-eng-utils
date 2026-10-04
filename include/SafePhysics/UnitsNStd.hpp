@@ -73,12 +73,12 @@ namespace Physics::Units::NStd
 		constexpr GenerativeUnit(Self&& value) = default;
 		constexpr GenerativeUnit(RawType data) noexcept : mData{data} {}
 		template<Arithmetic OtherType = RawType>
-		constexpr GenerativeUnit(const SiblingStdUnit<OtherType>& value) noexcept : mData{FromStandardUnit(value)} {}
+		explicit constexpr GenerativeUnit(const SiblingStdUnit<OtherType>& value) noexcept : mData{FromStandardUnit(value)} {}
 		template<Arithmetic OtherType = RawType>
 		constexpr GenerativeUnit(const Sibling<OtherType>& value) noexcept : mData{value.ToRaw()} {}
 		template<Detail::NonStandardUnit OtherUnit = Self>
 			requires(HasSameStdUnitBase<OtherUnit>())
-		constexpr GenerativeUnit(const OtherUnit& value) noexcept : mData{FromOtherNStd(value)} {};
+		explicit constexpr GenerativeUnit(const OtherUnit& value) noexcept : mData{FromOtherNStd(value)} {};
 
 		/* Assignment operators */;
 
